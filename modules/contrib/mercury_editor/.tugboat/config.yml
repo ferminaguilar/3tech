@@ -1,0 +1,84 @@
+services:
+  php:
+    # Specify the version of Drupal you wish to use for Tugboat below.
+    image: q0rban/tugboat-drupal:10
+    default: true
+    http: false
+    depends: mysql
+    commands:
+      init:
+        # Install nodejs
+        - apt-get update
+        - apt-get install -y ca-certificates curl gnupg
+        - mkdir -p /etc/apt/keyrings
+        - curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg
+        - echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list
+        - apt-get update
+        - apt-get install nodejs -y
+        - node -v
+        - npm -v
+        # Install cypress dependencies
+        - apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+        - set -eux
+        # Use the tugboat-specific Drupal settings.
+        - cp "${TUGBOAT_ROOT}/.tugboat/settings.php" "${DOCROOT}/sites/default/"
+        - cp "${TUGBOAT_ROOT}/.tugboat/settings.local.php" "${DOCROOT}/sites/default/"
+        # Check out a branch using the unique Tugboat ID for this repository, to
+        # ensure we don't clobber an existing branch.
+        - git checkout -b $TUGBOAT_REPO_ID
+        # Composer is hungry. You need a Tugboat project with a pretty sizeable
+        # chunk of memory.
+        - export COMPOSER_MEMORY_LIMIT=-1
+      update: |
+        # This is an environment variable we added in the Dockerfile that
+        # provides the path to Drupal composer root (not the web root).
+        cd $DRUPAL_COMPOSER_ROOT
+        # Set minimum viability to dev.
+        composer config minimum-stability dev
+        # We configure the Drupal project to use the checkout of the module as a
+        # Composer package repository.
+        composer config repositories.tugboat vcs $TUGBOAT_ROOT
+        # Update drupal core.
+        composer update "drupal/core*" --with-dependencies
+        # Now we can require this module, specifing the branch name we created
+        # above that uses the $TUGBOAT_REPO_ID environment variable.
+        composer require drupal/mercury_editor:dev-$TUGBOAT_REPO_ID
+        composer require drupal/gin
+        composer require drupal/gin_toolbar
+        # Install Drupal on the site.
+        vendor/bin/drush \
+          --yes \
+          --db-url=mysql://tugboat:tugboat@mysql:3306/tugboat \
+          --site-name="Live preview for ${TUGBOAT_PREVIEW_NAME}" \
+          --account-pass=admin \
+          site:install standard
+        # Set up the files directory permissions.
+        mkdir -p $DRUPAL_DOCROOT/sites/default/files
+        chgrp -R www-data $DRUPAL_DOCROOT/sites/default/files
+        chmod 2775 $DRUPAL_DOCROOT/sites/default/files
+        chmod -R g+w $DRUPAL_DOCROOT/sites/default/files
+        # Enable the modules.
+        vendor/bin/drush --yes pm:enable mercury_editor
+        vendor/bin/drush --yes pm:enable mercury_editor_setup_test
+        # Make cyress script executable.
+        chmod 775 ${TUGBOAT_ROOT}/.tugboat/cypress.sh
+      build: |
+        set -eux
+        # Delete and re-check out this branch in case this is built from a Base Preview.
+        git branch -D $TUGBOAT_REPO_ID && git checkout -b $TUGBOAT_REPO_ID || true
+        export COMPOSER_MEMORY_LIMIT=-1
+        cd $DRUPAL_COMPOSER_ROOT
+        composer install --optimize-autoloader
+        # Update this module, including all dependencies.
+        composer update drupal/mercury_editor --with-all-dependencies
+        vendor/bin/drush --yes updb
+        vendor/bin/drush cache:rebuild
+        # Copy tugboat config.
+        cp "${TUGBOAT_ROOT}/.tugboat/cypress.config.js" "${DOCROOT}/modules/contrib/mercury_editor/tests/cypress/"
+        # Install and run cypress.
+        cd "${DOCROOT}/modules/contrib/mercury_editor/tests/cypress"
+        npm install
+      online:
+        .tugboat/cypress.sh
+  mysql:
+    image: tugboatqa/mariadb

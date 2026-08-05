@@ -1,0 +1,227 @@
+/**
+ * @file
+ * Component Icon Select Styles
+ *
+ * Styles for the icon selection component including menu button and grid layout.
+ */
+
+.me-component-icon-select {
+  position: relative;
+  display: inline-block;
+}
+
+/* Button styles */
+.me-component-icon-select .me-component-icon-select__button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid #6b7280;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+
+  &:hover:not(:disabled) {
+    border-color: #3b82f6;
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  &[aria-expanded="true"] {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  &:disabled {
+    background: #f9fafb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    border-color: #d1d5db;
+  }
+}
+
+.me-component-icon-select .me-component-icon-select__button-icon {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  background-color: #6b7280;
+  mask-image: var(--me-component-icon-image);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  transition: background-color 0.15s ease-in-out;
+}
+
+.me-component-icon-select .me-component-icon-select__button-label {
+  flex: 1;
+  text-align: left;
+}
+
+.me-component-icon-select .me-component-icon-select__button-arrow {
+  display: inline-flex;
+  transition: transform 0.15s ease-in-out;
+
+  svg {
+    fill: currentColor;
+  }
+}
+
+.me-component-icon-select .me-component-icon-select__button[aria-expanded="true"] .me-component-icon-select__button-arrow {
+  transform: rotate(180deg);
+}
+
+/* Dialog styles */
+.me-component-icon-select .me-component-icon-select__dialog {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  margin: 4px 0 0 0;
+  padding: 0;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  max-width: 320px;
+  min-width: 280px;
+
+  &::backdrop {
+    background: transparent;
+  }
+
+  &:not([open]) {
+    display: none;
+  }
+}
+
+.me-component-icon-select .me-component-icon-select__dialog-content {
+  padding: 16px;
+}
+
+.me-component-icon-select .me-component-icon-select__dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.me-component-icon-select .me-component-icon-select__dialog-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.me-component-icon-select .me-component-icon-select__dialog-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+  }
+
+  &:focus {
+    outline: none;
+    background: #f3f4f6;
+    color: #374151;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+  }
+
+  svg {
+    fill: currentColor;
+  }
+}
+
+/* Grid styles */
+.me-component-icon-select .me-component-icon-select__grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+  padding: 0;
+  margin: 0;
+}
+
+.me-component-icon-select .me-component-icon-select__grid-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+
+  &:hover {
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+
+    .me-component-icon-select__grid-item-icon {
+      background-color: #3b82f6;
+    }
+  }
+
+  &:focus {
+    outline: none;
+    border-color: #3b82f6;
+    background: rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+
+    .me-component-icon-select__grid-item-icon {
+      background-color: #3b82f6;
+    }
+  }
+
+  &.is-selected {
+    border-color: #1f2937;
+    background: rgba(31, 41, 55, 0.1);
+
+    .me-component-icon-select__grid-item-icon {
+      background-color: #1f2937;
+    }
+  }
+}
+
+.me-component-icon-select .me-component-icon-select__grid-item-icon {
+  display: inline-flex;
+  width: 20px;
+  height: 20px;
+  background-color: #6b7280;
+  mask-image: var(--me-component-icon-image);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  transition: background-color 0.15s ease-in-out;
+}
+
+
+/* Icon mask images */
+.me-component-icon-select .me-component-icon-select__button-icon {
+  mask-image: var(--me-component-icon-image);
+}
+
+/* Fix for grid item icons getting clipped when expanded */
+[data-drupal-selector="edit-component-icons"] .gin-table-scroll-wrapper {
+  overflow-y: visible;
+}

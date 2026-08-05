@@ -1,0 +1,126 @@
+services:
+  cache_context.route.name.is_mercury_editor_preview:
+    class: Drupal\mercury_editor\Cache\MercuryEditorPreviewCacheContext
+    arguments: ['@current_route_match', '@mercury_editor.context']
+    tags:
+      - { name: cache.context }
+  mercury_editor.attachments_processor:
+    class: Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapperAttachmentsProcessor
+    parent: ajax_response.attachments_processor
+  mercury_editor.autosave_helper:
+    class: Drupal\mercury_editor\AutosaveHelper
+    arguments: ['@config.factory']
+  mercury_editor.component_icons:
+    class: Drupal\mercury_editor\MercuryEditorComponentIcons
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@entity_type.bundle.info'
+      - '@extension.list.module'
+  mercury_editor.content_translation_route_subscriber:
+    class: Drupal\mercury_editor\Routing\ContentTranslationRouteSubscriber
+    arguments: ['@config.factory']
+    tags:
+      - { name: event_subscriber }
+  mercury_editor.context:
+    class: Drupal\mercury_editor\MercuryEditorContextService
+    arguments:
+      [
+        '@current_route_match',
+        '@layout_paragraphs.tempstore_repository',
+        '@mercury_editor.tempstore_repository',
+        '@request_stack',
+      ]
+  mercury_editor.controller.entity_form:
+    # Override the entity form controller to handle the entity layout_builder
+    # operation.
+    decorates: controller.entity_form
+    class: Drupal\mercury_editor\Controller\MercuryEditorHtmlEntityFormController
+    public: false
+    arguments:
+      [
+        '@mercury_editor.controller.entity_form.inner',
+        '@config.factory',
+        '@mercury_editor.tempstore_repository',
+        '@form_builder',
+      ]
+  mercury_editor.dialog:
+    class: Drupal\mercury_editor\DialogService
+    arguments: ['@config.factory']
+  mercury_editor.form_alterer:
+    class: Drupal\mercury_editor\Form\MercuryEditorEntityFormAlterer
+    arguments:
+      - '@config.factory'
+      - '@entity_type.manager'
+      - '@mercury_editor.tempstore_repository'
+      - '@layout_paragraphs.tempstore_repository'
+      - '@mercury_editor.preview'
+  mercury_editor.form_error_handler:
+    class: Drupal\mercury_editor\Form\MercuryEditorFormErrorHandlerDecorator
+    decorates: form_error_handler
+    arguments:
+      - '@mercury_editor.form_error_handler.inner'
+      - '@current_route_match'
+  Drupal\mercury_editor\Hook\MercuryEditorFormHooks:
+    class: Drupal\mercury_editor\Hook\MercuryEditorFormHooks
+    arguments:
+      - '@mercury_editor.form_alterer'
+      - '@module_handler'
+      - '@class_resolver'
+  mercury_editor.http_middleware.ajax_page_state:
+    class: Drupal\mercury_editor\StackMiddleware\AjaxPageState
+    tags:
+      - { name: http_middleware, priority: 500 }
+  mercury_editor.iframe_ajax_response_wrapper:
+    class: Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper
+    arguments:
+      - '@theme.manager'
+      - '@config.factory'
+      - '@theme.initialization'
+      - '@mercury_editor.attachments_processor'
+      - '@mercury_editor.context'
+  mercury_editor.layout_paragraphs.tempstore_repository_decorator:
+    class: Drupal\mercury_editor\LayoutParagraphsLayoutTempstoreRepositoryDecorator
+    arguments:
+      [
+        '@tempstore.private',
+        '@mercury_editor.layout_paragraphs.tempstore_repository_decorator.inner',
+        '@mercury_editor.tempstore_repository',
+        '@entity_type.manager',
+      ]
+    decorates: layout_paragraphs.tempstore_repository
+  mercury_editor.param_converter:
+    class: Drupal\mercury_editor\Routing\MercuryEditorParamConverter
+    arguments:
+      - '@mercury_editor.tempstore_repository'
+      - '@entity_type.manager'
+      - '@entity_field.manager'
+      - '@entity.repository'
+    tags:
+      - { name: paramconverter, priority: 10 }
+  mercury_editor.preview:
+    class: Drupal\mercury_editor\MercuryEditorPreviewService
+    arguments:
+      - '@mercury_editor.context'
+      - '@mercury_editor.tempstore_repository'
+      - '@mercury_editor.iframe_ajax_response_wrapper'
+      - '@entity_type.manager'
+  mercury_editor.preview_routes_subscriber:
+    class: \Drupal\mercury_editor\Routing\MercuryEditorPreviewRoutes
+    arguments: ['@entity_type.manager']
+  mercury_editor.reorder_route_subscriber:
+    class: Drupal\mercury_editor\Routing\ReorderRouteSubscriber
+    tags:
+      - { name: event_subscriber }
+  mercury_editor.taxonomy_term_route_subscriber:
+    class: Drupal\mercury_editor\Routing\TaxonomyTermRouteSubscriber
+    tags:
+      - { name: event_subscriber }
+  mercury_editor.tempstore_repository:
+    class: Drupal\mercury_editor\MercuryEditorTempstore
+    arguments: ['@tempstore.private']
+  mercury_editor.theme.negotiator:
+    class: Drupal\mercury_editor\Theme\ThemeNegotiator
+    arguments: ['@config.factory', '@request_stack']
+    tags:
+      - { name: theme_negotiator, priority: 1500 }

@@ -1,0 +1,22 @@
+entity.me_template.settings:
+  title: 'Settings'
+  route_name: entity.me_template.settings
+  base_route: entity.me_template.settings
+entity.me_template.view:
+  title: 'View'
+  route_name: entity.me_template.canonical
+  base_route: entity.me_template.canonical
+entity.me_template.edit_form:
+  title: 'Edit'
+  route_name: entity.me_template.edit_form
+  base_route: entity.me_template.canonical
+entity.me_template.delete_form:
+  title: 'Delete'
+  route_name: entity.me_template.delete_form
+  base_route: entity.me_template.canonical
+  weight: 10
+entity.me_template.collection:
+  title: 'Mercury Editor Templates'
+  route_name: entity.me_template.collection
+  base_route: system.admin_content
+  weight: 10

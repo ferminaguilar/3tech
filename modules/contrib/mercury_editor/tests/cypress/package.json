@@ -1,0 +1,21 @@
+{
+  "name": "mercury_editor_cypress",
+  "version": "1.0.0",
+  "description": "Cypress tests for Mercury Editor module",
+  "main": "index.js",
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@4tw/cypress-drag-drop": "^2.3.1",
+    "@types/cypress": "^1.1.6",
+    "cypress": "^15.8.2",
+    "cypress-iframe": "^1.0.1",
+    "cypress-mercury-editor": "^3.0.12",
+    "cypress-real-events": "^1.15.0"
+  }
+}

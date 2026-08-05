@@ -1,0 +1,17 @@
+.lpb-save-as-template {
+  cursor: pointer;
+  height: 30px;
+  width: 30px;
+  border-radius: 3px;
+  margin: 0;
+  padding: 0;
+  opacity: 1;
+  background-image: url('data:image/svg+xml,<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><path opacity="1" fill-rule="evenodd" clip-rule="evenodd" d="M12 10C12 8.34315 13.3431 7 15 7C16.6569 7 18 8.34315 18 10L17.1429 16H21C22.1046 16 23 16.8954 23 18V20H7V18C7 16.8954 7.89543 16 9 16H12.8571L12 10ZM9 23V21H21V23H9Z" fill="%23FFFFFF"/></svg>');
+  background-size: cover;
+  background-position: 0 0;
+  background-repeat: no-repeat;
+}
+.lpb-save-as-template:hover {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, .25);
+}

@@ -1,0 +1,58 @@
+.lpb-dialog .field--widget-entity-browser-entity-reference {
+  details p {
+    line-height: 2;
+  }
+
+  & .entities-list {
+    border-top: 1px solid var(--me-color-border);
+    padding-top: 1.6em;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+
+    & .item-container {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      padding: 10px;
+      border-radius: 3px;
+      max-width: 48%;
+      transition: var(--me-transition);
+      gap: 1em;
+
+      &> :first-child,
+      & picture,
+      & figure {
+        flex-basis: 100%;
+        margin-bottom: 5px;
+
+        img {
+          margin-left: auto;
+          margin-right: auto;
+          display: block;
+        }
+      }
+
+      & input.button {
+        flex-grow: 1;
+        width: auto;
+        height: auto;
+        background: none;
+        border: 1px solid var(--me-color-border) !important;
+
+        &:hover {
+          background: #fff;
+        }
+      }
+    }
+
+    &.sortable {
+      & .item-container {
+        &:hover {
+          opacity: 1;
+          background-color: #fff;
+        }
+      }
+    }
+  }
+}

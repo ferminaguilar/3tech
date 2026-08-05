@@ -1,0 +1,11 @@
+/* Apply base font size to all layout paragraphs UI containers. */
+.ui-widget.lpb-dialog,
+.lpb-form__actions,
+.lpb-btn,
+.lpb-controls,
+.lpb-enable__wrapper,
+.lpb-enable__empty-message__wrapper,
+.lpb-empty-container__wrapper {
+  font-size: var(--me-base-font-size);
+  font-family: var(--me-font-family-sans);
+}

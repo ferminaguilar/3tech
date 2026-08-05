@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Module hooks for Mercury Editor Block Context Test module.
+ */
+
+use Drupal\block\Entity\Block;
+
+/**
+ * Loads a test block for Mercury Editor block context testing.
+ */
+function mercury_editor_block_context_test_block_loader() {
+  $block = Block::load('olivero_mercuryeditortestblock');
+  $block->getVisibility();
+
+}

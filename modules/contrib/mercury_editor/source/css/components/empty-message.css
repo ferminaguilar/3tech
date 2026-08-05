@@ -1,0 +1,24 @@
+.lpb-empty-container {
+  padding: 60px 60px 0 60px;
+  font-size: 1.25em;
+  & .lpb-empty-message {
+    padding: 0;
+    margin-bottom: 20px;
+  }
+}
+.lpb-empty-container__wrapper + .lpb-btn.center {
+  position: static;
+  margin-left: 50%;
+  margin-bottom: 60px;
+  transform: translate(-50%, 0);
+}
+.lp-builder:has(.lpb-empty-container) {
+  background: var(--me-color-blue-05);
+  padding-bottom: 60px;
+  margin-bottom: 20px;
+  border: 2px dashed var(--me-color-blue-30);
+}
+.lp-builder:has(.lpb-empty-container) .lpb-btn--add.center {
+  top: auto;
+  transform: none;
+}

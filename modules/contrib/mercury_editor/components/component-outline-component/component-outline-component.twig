@@ -1,0 +1,37 @@
+<div class="me-component-outline__component-controls" data-uuid="{{ item.id }}"> {% block prefix %}{% endblock %}
+
+  {% if item.children %}
+    <span class="me-component-outline__component-toggle" aria-expanded="false" aria-hidden="true">{{'Expand'|t}}</span>
+  {% else %}
+    {# Keep an empty toggle for consistent spacing. #}
+    <div class="me-component-outline__component-toggle-placeholder"></div>
+  {% endif %}
+
+  <span class="me-component-outline__component-label me-component-outline__component-label--{{ item.is_layout ? 'layout' : 'component' }}" data-type="{{ item.type }}" data-uuid="{{ item.id }}">
+    {{ item.label }}
+  </span>
+
+  {# Component add button #}
+  {{ addButton }}
+
+  {# Component actions menu. #}
+  <div class="me-component-outline__component-menu">
+    <button class="me-component-outline__component-menu-toggle" aria-haspopup="true" aria-expanded="false" aria-label="{{'Actions for @label'|t({'@label': component.label|render|striptags})}}">
+      <span class="visually-hidden">{{'Actions'|t}}</span>
+    </button>
+    <dialog class="me-component-outline__component-menu-dialog" role="menu" aria-hidden="true">
+      <ul class="me-component-outline__component-menu-list" role="menu">
+        <li role="menuitem" data-component-uuid="{{ item.id }}" data-action="edit">
+          {{'Edit'|t}}
+        </li>
+        <li role="menuitem" data-component-uuid="{{ item.id }}" data-action="duplicate">
+          {{'Duplicate'|t}}
+        </li>
+        <li role="menuitem" data-component-uuid="{{ item.id }}" data-action="delete">
+          {{'Delete'|t}}
+        </li>
+      </ul>
+    </dialog>
+  </div>
+  {% block suffix %}{% endblock %}
+</div>

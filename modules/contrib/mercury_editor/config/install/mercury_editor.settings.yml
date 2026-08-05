@@ -1,0 +1,25 @@
+content_types: {}
+edit_screen_theme: ''
+skip_create_form: {}
+mobile_presets:
+  - name: 'iPhone 12 Pro'
+    width: 390
+    height: 844
+  - name: 'iPhone XR'
+    width: 414
+    height: 896
+  - name: 'Pixel 5'
+    width: 393
+    height: 851
+dialog_settings:
+  _defaults:
+    height: 'fit-content'
+    drupalAutoButtons: false
+    dialogClass: 'lpb-dialog'
+    resizable: true
+dialog_tray_width: 400
+rollover_padding_block: 10
+rollover_padding_inline: 0
+auto_update:
+  enabled: true
+  paragraphs: {}

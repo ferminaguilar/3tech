@@ -1,0 +1,262 @@
+/* Remove claro-specific styles. */
+.me-dialog__buttonpane .button:not(:focus) {
+  box-shadow: none;
+}
+
+/* Expose dialog resize handle in safari. */
+.me-dialog__buttonpane {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+}
+
+/* All buttons in dialog content pane. */
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button,
+/* Save / close buttons in main builder interface. */
+.lpb-form__actions .button,
+/* Dialog button pane buttons. */
+.lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button,
+[class*="me-button"],
+.me-dialog__buttonpane .button {
+  /* Remove hyper-specific gin theme styles. */
+  border: none;
+  border-radius: 2px;
+
+  /* Fonts */
+  font-size: var(--me-font-size-button, calc(13px + 2 * ((100vw - 320px) / 1360)));
+  font-family: var(--me-font-family-sans);
+  font-weight: 700;
+  /* letter-spacing: var(--me-letter-spacing-loose); */
+  /* text-transform: uppercase; */
+  line-height: 1.1;
+  text-decoration: none;
+  white-space: nowrap;
+
+  /* Layout */
+  display: inline-block;
+  height: auto;
+  padding: 0.6em 1em;
+  position: relative;
+  vertical-align: middle;
+  margin: 0.5rem 0.2rem;
+
+  /* Color */
+  color: var(--me-button-color-text);
+  background-color: var(--me-button-color-background);
+
+  /* Transition */
+  transition: var(--me-transition);
+
+  /* States */
+  &:not([disabled]):hover {
+    background-color: var(--me-button-color-background-hover);
+    color: var(--me-button-color-text-hover);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  &[disabled] {
+    opacity: 0.6;
+  }
+
+  &.action-link {
+    background: none;
+    position: relative;
+    padding: 0.6em;
+    margin: 1em;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  &.action-link--icon-trash {
+    padding-left: 25px;
+    margin-right: 0;
+    float: right;
+    &:before {
+      position: absolute;
+      left: 0;
+      content: "\274c"; /* use the hex value here... */
+      color: #fff;
+      text-align: center;
+      /* Overwrite claro action-link styles. */
+      background-image: none;
+      top: auto;
+    }
+  }
+  &.button--primary {
+    background-color: var(--me-button-color-background-primary);
+    color: var(--me-button-color-text-primary);
+    &:not([disabled]):hover {
+      color: var(--me-button-color-text-primary-hover);
+      background-color: var(--me-button-color-background-primary-hover);
+      box-shadow: inset 0 0 2px rgba(0, 62, 204, 1);
+    }
+  }
+}
+
+.me-button--primary {
+  color: var(--me-button-color-text-primary);
+  background-color: var(--me-button-color-background-primary);
+  display: flex;
+  flex-wrap: nowrap;
+  &:not([disabled]):hover {
+    color: var(--me-button-color-text-primary-hover);
+    background-color: var(--me-button-color-background-primary-hover);
+    box-shadow: inset 0 0 2px rgba(0, 62, 204, 1);
+  }
+}
+.me-button--primary.me-button--saved {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--me-button-color-background-saved);
+  color: var(--me-button-color-text-saved);
+}
+.me-button--primary.me-button--saved:hover {
+  text-decoration: none;
+  cursor: default;
+  background-color: var(--me-button-color-background-saved);
+  color: var(--me-button-color-text-saved);
+}
+.me-button--saved:before {
+  content: "\2713";
+  display: inline-block;
+  color: currentColor;
+  padding: 0 6px 0 0;
+  text-decoration: none;
+}
+
+.me-button--secondary {
+  color: var(--me-button-color-text-secondary);
+  background-color: var(--me-button-color-background-secondary);
+
+  &:not([disabled]):hover {
+    color: var(--me-button-color-text-secondary-hover);
+    background-color: var(--me-button-color-background-secondary-hover);
+  }
+}
+
+.me-button--cancel {
+  color: var(--me-button-color-text-cancel);
+  background-color: var(--me-button-color-background-cancel);
+  &:not([disabled]):hover {
+    color: var(--me-button-color-text-cancel-hover);
+    background-color: var(--me-button-color-background-cancel-hover);
+  }
+}
+.me-button--icon {
+  border-radius: 5px;
+  background-color: var(--me-button-color-background-primary);
+  padding: 0.4em;
+  outline: 1px solid var(--me-button-color-background-primary);
+  &.me-button--simple {
+    background-color: transparent;
+    outline: none;
+  }
+}
+.me-button--icon span {
+  display: block;
+  overflow: hidden;
+  height: var(--me-button-icon-height);
+  width: var(--me-button-icon-width);
+  text-indent: calc(var(--me-button-icon-width) + 2px);
+  white-space: nowrap;
+  mask-repeat: no-repeat;
+  mask-position: 50% 50%;
+  mask-size: var(--me-button-icon-height) var(--me-button-icon-width);
+  mask-image: var(--me-button-icon);
+  background-color: var(--me-button-color-icon);
+}
+.me-button--icon:not(.me-button--simple):not(.disabled):hover,
+.me-button--icon.active:not(.me-button--simple):not(.disabled) {
+  background-color: var(--me-button-color-background-primary);
+  outline: 1px solid #bdd1ff;
+  z-index: 100;
+  & span {
+    --me-button-color-icon: var(--me-button-color-icon-hover);
+    background-color: var(--me-button-color-text-primary);
+  }
+}
+.me-toolbar__group .me-button--icon {
+  border-radius: 0;
+  margin-left: 0;
+  margin-right: 0;
+  &:last-of-type {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+  &:first-of-type {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+  }
+}
+.me-toolbar__group .me-button--chunky:last-of-type {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+.me-button--component-outline {
+  --me-button-icon: svg-load("component-outline.svg");
+}
+.me-button--sidebar-collapse {
+  --me-button-icon: svg-load("sidebar-collapse.svg");
+}
+.me-button--sidebar-expand {
+  --me-button-icon: svg-load("sidebar-expand.svg");
+}
+.me-button--desktop {
+  --me-button-icon: svg-load("desktop.svg");
+}
+.me-button--mobile {
+  --me-button-icon: svg-load("mobile.svg");
+}
+.me-button--undo,
+.me-button--redo {
+  padding: 0.3em;
+  --me-button-icon-height: 24px;
+  --me-button-icon-width: 24px;
+  &.disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+    &:hover {
+      cursor: default;
+    }
+  }
+}
+.me-button--undo {
+  padding-right: 0;
+  --me-button-icon: svg-load("undo.svg");
+}
+.me-button--redo {
+  padding-left: 0;
+  margin-right: 10px;
+  --me-button-icon: svg-load("redo.svg");
+}
+
+[class*="me-button"] + [class*="me-button"] {
+  margin-left: 0;
+}
+
+.lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button {
+  margin-left: 8px;
+}
+
+/* Add Section Buttons */
+.lp-builder {
+  & .lpb-btn {
+    line-height: 24px;
+    font-weight: var(--me-font-weight-medium);
+    text-transform: uppercase;
+    z-index: 540;
+    border-radius: 3px;
+    background-color: #00659b;
+    color: #fff;
+  }
+
+  & .lpb-btn.before {
+    top: -18px;
+  }
+
+  & .lpb-btn.after {
+    bottom: -18px;
+  }
+}

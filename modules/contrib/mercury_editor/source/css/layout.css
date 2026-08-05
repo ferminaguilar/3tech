@@ -1,0 +1,103 @@
+.l__region {
+  width: 100%; }
+
+.l__region + .l__region {
+  margin-top: 1.875rem; }
+  @media (min-width: 48em) {
+    .l__region + .l__region {
+      margin-top: 3.75rem; } }
+  @media (min-width: 64em) {
+    .l__region + .l__region {
+      margin-top: 0; } }
+
+.l__header + .l__main {
+  margin-top: 1.875rem; }
+
+.l__header:empty + .l__main {
+  margin-top: 0; }
+
+.l__main + .l__footer {
+  margin-top: 1.875rem; }
+
+.l__main + .l__footer:empty {
+  margin-top: 0; }
+
+.l__main {
+  width: 100%; }
+
+@media (min-width: 64em) {
+  .l--layout-onecolumn .l__main {
+    display: block; } }
+
+.l--layout-onecolumn .l__region {
+  width: 100%; }
+
+.l__main > .l__primary,
+.l__main > .l__secondary {
+  width: 100%; }
+
+@media (min-width: 64em) {
+  .l__main {
+    display: grid;
+    grid-template-rows: auto;
+    justify-content: space-between; }
+    .l__main > .l__primary {
+      grid-area: primary; }
+    .l__main > .l__secondary {
+      grid-area: secondary; }
+    .l__main > .l__tertiary {
+      grid-area: tertiary; }
+    .l--layout-twocolumn-halves .l__main {
+      grid-template-columns: 43.47826% 43.47826%;
+      grid-template-areas: "primary secondary"; }
+    .l--layout-twocolumn-onethird-twothirds .l__main {
+      grid-template-columns: 30.43478% 65.21739%;
+      grid-template-areas: "primary secondary"; }
+    .l--layout-twocolumn-twothirds-onethird .l__main {
+      grid-template-columns: 65.21739% 30.43478%;
+      grid-template-areas: "primary secondary"; }
+    .l--layout-threecolumn-thirds .l__main {
+      grid-template-columns: 30.43478% 30.43478% 30.43478%;
+      grid-template-areas: "primary secondary tertiary"; }
+    .l--layout-threecolumn-half-quarter-quarter .l__main {
+      grid-template-columns: 43.47826% 21.73913% 21.73913%;
+      grid-template-areas: "primary secondary tertiary"; }
+    .l--layout-threecolumn-quarter-half-quarter .l__main {
+      grid-template-columns: 21.73913% 43.47826% 21.73913%;
+      grid-template-areas: "primary secondary tertiary"; }
+    .l--layout-threecolumn-quarter-quarter-half .l__main {
+      grid-template-columns: 21.73913% 21.73913% 43.47826%;
+      grid-template-areas: "primary secondary tertiary"; }
+    .l--layout-fourcolumn .l__main {
+      grid-template-columns: 25% 25% 25% 25%;
+      grid-template-areas: "primary secondary tertiary quaternary"; } }
+
+/*
+.layout--twocol {
+  margin-bottom: calc(var(--sp-large) * 4);
+}
+
+.layout--twocol .layout__region--top  {
+    margin-bottom: var(--sp-large);
+  }
+*/
+
+.layout--twocol .layout__region--top h1,
+    .layout--twocol .layout__region--top h2 {
+  font-size: 2.5rem;
+      text-align: center; }
+
+.layout--twocol .layout__region--top h3 {
+  font-size: 1.875rem; }
+
+.layout--twocol > .layout__region--first {
+      padding-right: 2rem;
+    }
+
+.layout--twocol > .layout__region--second {
+      padding-left: 2rem;
+    }
+
+.layout--twocol .layout__region--first {
+      flex: 1 0 47%;
+  }

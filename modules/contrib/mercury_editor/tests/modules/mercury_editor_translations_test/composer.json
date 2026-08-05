@@ -1,0 +1,13 @@
+{
+  "name": "drupal/mercury_editor_translations_test",
+  "description": "Mercury editor translations test module",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "extra": {
+    "drush": {
+      "services": {
+        "drush.services.yml": "^10"
+      }
+    }
+  }
+}

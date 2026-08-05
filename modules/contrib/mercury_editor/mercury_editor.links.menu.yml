@@ -1,0 +1,5 @@
+mercury_editor.settings:
+  title: 'Mercury Editor settings'
+  description: 'Configuration settings for Mercury Editor.'
+  parent: system.admin_config_content
+  route_name: mercury_editor.settings

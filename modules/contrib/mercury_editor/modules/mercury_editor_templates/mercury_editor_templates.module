@@ -1,0 +1,131 @@
+<?php
+
+/**
+ * @file
+ * Module hooks for Mercury Editor Templates module.
+ */
+
+use Drupal\Core\Url;
+use Drupal\user\UserInterface;
+use Drupal\Core\Render\Element;
+use Drupal\Component\Serialization\Json;
+
+/**
+ * Implements hook_theme().
+ */
+function mercury_editor_templates_theme() {
+  return [
+    'me_template' => [
+      'render element' => 'elements',
+    ],
+  ];
+}
+
+/**
+ * Prepares variables for Mercury Editor template templates.
+ *
+ * Default template: me-template.html.twig.
+ *
+ * @param array $variables
+ *   An associative array containing:
+ *   - elements: An associative array containing the Mercury Editor template
+ *     information and any fields attached to the entity.
+ *   - attributes: HTML attributes for the containing element.
+ */
+function template_preprocess_me_template(array &$variables) {
+  $variables['view_mode'] = $variables['elements']['#view_mode'];
+  foreach (Element::children($variables['elements']) as $key) {
+    $variables['content'][$key] = $variables['elements'][$key];
+  }
+}
+
+/**
+ * Implements hook_user_cancel().
+ */
+function mercury_editor_templates_user_cancel($edit, UserInterface $account, $method) {
+  switch ($method) {
+    case 'user_cancel_block_unpublish':
+      // Unpublish Mercury Editor templates.
+      $storage = \Drupal::entityTypeManager()->getStorage('me_template');
+      $me_template_ids = $storage->getQuery()
+        ->condition('uid', $account->id())
+        ->condition('status', 1)
+        ->accessCheck(TRUE)
+        ->execute();
+      /** @var \Drupal\mercury_editor_templates\Entity\MeTemplate */
+      foreach ($storage->loadMultiple($me_template_ids) as $me_template) {
+        $me_template->set('status', FALSE);
+        $me_template->save();
+      }
+      break;
+
+    case 'user_cancel_reassign':
+      // Anonymize Mercury Editor templates.
+      $storage = \Drupal::entityTypeManager()->getStorage('me_template');
+      $me_template_ids = $storage->getQuery()
+        ->condition('uid', $account->id())
+        ->accessCheck(TRUE)
+        ->execute();
+      /** @var \Drupal\mercury_editor_templates\Entity\MeTemplate */
+      foreach ($storage->loadMultiple($me_template_ids) as $me_template) {
+        $me_template->setOwnerId(0);
+        $me_template->save();
+      }
+      break;
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_predelete() for user entities.
+ */
+function mercury_editor_templates_user_predelete(UserInterface $account) {
+  // Delete Mercury Editor templates.
+  $storage = \Drupal::entityTypeManager()->getStorage('me_template');
+  $me_template_ids = $storage->getQuery()
+    ->condition('uid', $account->id())
+    ->accessCheck(TRUE)
+    ->execute();
+  $me_templates = $storage->loadMultiple($me_template_ids);
+  $storage->delete($me_templates);
+}
+
+/**
+ * Implements hook_preprocess_layout_paragraphs_builder_controls().
+ */
+function mercury_editor_templates_preprocess_layout_paragraphs_builder_controls(&$variables) {
+  if (in_array('is-layout', $variables['attributes']['class'])) {
+    $dialog_settings = \Drupal::service('mercury_editor.dialog')->dialogSettings([
+      'layout' => $variables['layout_paragraphs_layout'],
+      'dialog' => 'mercury_editor_template',
+    ]);
+    $variables['controls']['save_as_template'] = [
+      '#type' => 'link',
+      '#url' => Url::fromRoute('mercury_editor_templates.save_as_template', [
+        'layout_paragraphs_layout' => $variables['layout_paragraphs_layout']->id(),
+        'uuid' => $variables['uuid'],
+      ]),
+      '#title' => t('Save as template'),
+      '#attributes' => [
+        'class' => [
+          'lpb-save-as-template',
+          'use-ajax',
+        ],
+        'data-dialog-type' => 'dialog',
+        'data-dialog-options' => Json::encode($dialog_settings),
+        'data-me-component-action' => 'saveAsTemplate',
+      ],
+      // @todo Permissions check.
+      '#access' => \Drupal::currentUser()->hasPermission('create mercury editor template'),
+      '#weight' => 67,
+    ];
+    $variables['#attached']['library'][] = 'mercury_editor_templates/mercury_editor_templates';
+  }
+}
+
+/**
+ * Implements hook_entity_type_build().
+ */
+function mercury_editor_templates_entity_type_build(array &$entity_types) {
+  $entity_types['me_template']->setFormClass('dialog', 'Drupal\mercury_editor_templates\Entity\MeTemplateDialogForm');
+  $entity_types['me_template']->setFormClass('mercury_editor', 'Drupal\mercury_editor_templates\Entity\MercuryEditorMeTemplateForm');
+}

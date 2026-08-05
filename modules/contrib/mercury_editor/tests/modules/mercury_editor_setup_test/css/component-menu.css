@@ -1,0 +1,68 @@
+.lpb-component-list__item {
+  &.type-me_test_section a::before {
+    background: url('../../../../images/menu-icons/icon-section.png');
+  }
+  &.type-me_test_text a::before {
+    background: url('../../../../images/menu-icons/icon-text.png');
+  }
+  &.type-me_test_image a::before {
+    background: url('../../../../images/menu-icons/icon-image.png');
+  }
+  &.type-me_test_image__image_download a::before {
+    background: url('../../../../images/menu-icons/icon-image-download.png');
+  }
+  &.type-me_test_image__image_link a::before {
+    background: url('../../../../images/menu-icons/icon-image-link.png');
+  }
+  &.type-me_test_gallery a::before {
+    background: url('../../../../images/menu-icons/icon-image-gallery.png');
+  }
+  &.type-me_test_video a::before {
+    background: url('../../../../images/menu-icons/icon-video.png');
+  }
+  &.type-me_test_accordion a::before {
+    background: url('../../../../images/menu-icons/icon-accordion.png');
+  }
+  &.type-me_test_cta a::before {
+    background: url('../../../../images/menu-icons/icon-call-to-action.png');
+  }
+  &.type-me_test_cta__image a::before {
+    background: url('../../../../images/menu-icons/icon-call-to-action-image.png');
+  }
+  &.type-me_test_cta__image_simple a::before {
+    background: url('../../../../images/menu-icons/icon-call-to-action-image.png');
+  }
+  &.type-me_test_date_location a::before {
+    background: url('../../../../images/menu-icons/icon-date-and-location.png');
+  }
+  &.type-me_test_heading a::before {
+    background: url('../../../../images/menu-icons/icon-heading.png');
+  }
+  &.type-me_test_hr a::before {
+    background: url('../../../../images/menu-icons/icon-horizontal-rule.png');
+  }
+  &.type-me_test_iframe a::before {
+    background: url('../../../../images/menu-icons/icon-iframe.png');
+  }
+  &.type-me_test_logo_list a::before {
+    background: url('../../../../images/menu-icons/icon-logo-list.png');
+  }
+  &.type-me_test_person a::before {
+    background: url('../../../../images/menu-icons/icon-person.png');
+  }
+  &.type-me_test_quote a::before {
+    background: url('../../../../images/menu-icons/icon-quote.png');
+  }
+  &.type-me_test_table a::before {
+    background: url('../../../../images/menu-icons/icon-table.png');
+  }
+  &.type-me_test_view a::before {
+    background: url('../../../../images/menu-icons/icon-view.png');
+  }
+  &.type-me_test_jotform a::before {
+    background: url('../../../../images/menu-icons/icon-form.png');
+  }
+  &.type-me_test_card a::before {
+    background: url('../../../../images/menu-icons/icon-card.png');
+  }
+}

@@ -1,0 +1,108 @@
+{#
+/**
+ * @file
+ * Component Icon Select
+ *
+ * A menu button that opens a dialog with an icon grid selection.
+ *
+ * Available props:
+ * - component_id: Unique identifier for the component instance
+ * - options: Array of icon options with value and label keys
+ * - selected_value: The currently selected icon value
+ * - field_id: The form field ID for accessibility
+ * - field_name: The form field name
+ * - required: Whether the field is required
+ * - disabled: Whether the field is disabled
+ */
+#}
+
+{% set attributes = create_attribute() %}
+{% set button_id = field_id ~ '-button' %}
+{% set dialog_id = field_id ~ '-dialog' %}
+
+{% set classes = [
+  'me-component-icon-select'
+] %}
+
+{% set selected_option = null %}
+{% for option in options %}
+  {% if option.value == selected_value %}
+    {% set selected_option = option %}
+  {% endif %}
+{% endfor %}
+
+<div {{ attributes.addClass(classes) }} data-component-id="{{ component_id }}">
+  {# Hidden input field to store the selected value #}
+  <input
+    type="hidden"
+    id="{{ field_id }}"
+    name="{{ field_name }}[value]"
+    value="{{ selected_value }}"
+    {{ required ? 'required' : '' }}
+    {{ disabled ? 'disabled' : '' }}
+  />
+
+  {# Menu button that shows currently selected icon #}
+  <button
+    type="button"
+    id="{{ button_id }}"
+    class="me-component-icon-select__button form-element"
+    aria-haspopup="menu"
+    aria-expanded="false"
+    aria-controls="{{ dialog_id }}"
+    {{ disabled ? 'disabled' : '' }}
+  >
+    <span class="me-component-icon-select__button-icon" data-type="{{ component_id }}" data-me-icon="{{ selected_value }}">
+      {# Current selection will be displayed here via CSS #}
+    </span>
+    <span class="me-component-icon-select__button-label">
+      {{ selected_option ? selected_option.label : 'Select Icon'|t }}
+    </span>
+    <span class="me-component-icon-select__button-arrow" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="16" height="16">
+        <path fill="currentColor" d="M7 10l5 5 5-5z"/>
+      </svg>
+    </span>
+  </button>
+
+  {# Native dialog element containing the icon grid #}
+  <dialog
+    id="{{ dialog_id }}"
+    class="me-component-icon-select__dialog"
+    aria-labelledby="{{ button_id }}"
+  >
+    <div class="me-component-icon-select__dialog-content">
+      <div class="me-component-icon-select__dialog-header">
+        <h3 class="me-component-icon-select__dialog-title">{{ 'Select Icon'|t }}</h3>
+        <button
+          type="button"
+          class="me-component-icon-select__dialog-close"
+          aria-label="{{ 'Close'|t }}"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16">
+            <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="me-component-icon-select__grid" role="menu" aria-labelledby="{{ field_id }}-title">
+        {% for option in options %}
+          <button
+            type="button"
+            class="me-component-icon-select__grid-item{{ option.value == selected_value ? ' is-selected' : '' }}"
+            role="menuitem"
+            data-value="{{ option.value }}"
+            aria-label="{{ option.label }}"
+            title="{{ option.label }}"
+            data-me-icon="{{ option.value }}"
+            data-type="{{ component_id }}"
+          >
+            <span class="me-component-icon-select__grid-item-icon" data-type="{{ component_id }}" data-me-icon="{{ option.value }}">
+              {# Icon will be displayed here via CSS #}
+            </span>
+          </button>
+        {% endfor %}
+      </div>
+    </div>
+  </dialog>
+</div>

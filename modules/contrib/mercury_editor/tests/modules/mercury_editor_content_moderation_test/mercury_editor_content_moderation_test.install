@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor Content Moderation Test module.
+ */
+
+use Drupal\workflows\Entity\Workflow;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_content_moderation_test_install() {
+  $workflow_storage = \Drupal::entityTypeManager()->getStorage('workflow');
+  /** @var \Drupal\workflows\WorkflowInterface $workflow */
+  $workflow = $workflow_storage->load('editorial');
+
+  if (!$workflow) {
+    // Create the editorial workflow from scratch.
+    $workflow = Workflow::create([
+      'id' => 'editorial',
+      'label' => 'Editorial',
+      'type' => 'content_moderation',
+    ]);
+
+    $workflow->set('type_settings', [
+      'states' => [
+        'draft' => [
+          'weight' => 0,
+          'label' => 'Draft',
+          'published' => FALSE,
+          'default_revision' => TRUE,
+        ],
+        'published' => [
+          'weight' => 1,
+          'label' => 'Published',
+          'published' => TRUE,
+          'default_revision' => TRUE,
+        ],
+        'archived' => [
+          'weight' => 2,
+          'label' => 'Archived',
+          'published' => FALSE,
+          'default_revision' => FALSE,
+        ],
+      ],
+      'transitions' => [
+        'create_new_draft' => [
+          'weight' => 0,
+          'label' => 'Create New Draft',
+          'from' => ['draft', 'published'],
+          'to' => 'draft',
+        ],
+        'publish' => [
+          'weight' => 1,
+          'label' => 'Publish',
+          'from' => ['draft', 'published'],
+          'to' => 'published',
+        ],
+        'archive' => [
+          'weight' => 2,
+          'label' => 'Archive',
+          'from' => ['published'],
+          'to' => 'archived',
+        ],
+        'restore' => [
+          'weight' => 3,
+          'label' => 'Restore to Draft',
+          'from' => ['archived'],
+          'to' => 'draft',
+        ],
+      ],
+      'entity_types' => [
+        'node' => ['me_test_ct'],
+      ],
+    ]);
+    $workflow->save();
+  }
+  else {
+    // Add me_test_ct to the existing workflow.
+    $config = $workflow->getTypePlugin()->getConfiguration();
+    $config['entity_types']['node'][] = 'me_test_ct';
+    $config['entity_types']['node'] = array_unique($config['entity_types']['node']);
+    $workflow->set('type_settings', $config);
+    $workflow->save();
+  }
+}

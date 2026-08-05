@@ -1,0 +1,39 @@
+.so-horizontal-tabs__wrapper {
+  clear: both;
+  display: inline-block;
+  width: 100%;
+  border-bottom: 1px solid #d1d1d1;
+  padding: 0;
+  position: relative;
+  margin-top: -1em;
+  & .form-type--boolean {
+    margin-block: 0;
+    margin-inline-start: 0;
+  }
+}
+
+.so-horizontal-tabs__tab {
+  position: absolute;
+  left: -99999em;
+  top: -99999em;
+
+	& + label {
+		cursor: pointer;
+		float: left;
+		/* border: 1px solid #aaa;
+		border-bottom: 0; */
+		background-color: #fff;
+		margin: 0;
+		padding: 1em;
+		position: relative;
+    font-size: .9em;
+	}
+
+	&:checked + label {
+		box-shadow: 0 -3px 0 -3px #fff,
+       inset 0 -5px 0 -3px #d1d1d1;
+		background-color: #fff;
+     border-color: #428bca;
+		z-index: 1;
+	}
+}

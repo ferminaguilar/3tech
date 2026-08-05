@@ -1,0 +1,261 @@
+/* Remove claro-specific styles. */
+.me-dialog__buttonpane .button:not(:focus) {
+  box-shadow: none;
+}
+
+/* Expose dialog resize handle in safari. */
+.me-dialog__buttonpane {
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%);
+}
+
+/* All buttons in dialog content pane. */
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button,
+/* Save / close buttons in main builder interface. */
+.lpb-form__actions .button,
+/* Dialog button pane buttons. */
+.lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button,
+[class*="me-button"],
+.me-dialog__buttonpane .button {
+  /* Remove hyper-specific gin theme styles. */
+  border: none;
+  border-radius: 2px;
+
+  /* Fonts */
+  font-size: var(--me-font-size-button, calc(13px + 2 * ((100vw - 320px) / 1360)));
+  font-family: var(--me-font-family-sans);
+  font-weight: 700;
+  /* letter-spacing: var(--me-letter-spacing-loose); */
+  /* text-transform: uppercase; */
+  line-height: 1.1;
+  text-decoration: none;
+  white-space: nowrap;
+
+  /* Layout */
+  display: inline-block;
+  height: auto;
+  padding: 0.6em 1em;
+  position: relative;
+  vertical-align: middle;
+  margin: 0.5rem 0.2rem;
+
+  /* Color */
+  color: var(--me-button-color-text);
+  background-color: var(--me-button-color-background);
+
+  /* Transition */
+  transition: var(--me-transition);
+
+  /* States */
+}
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button:not([disabled]):hover, .lpb-form__actions .button:not([disabled]):hover, .lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button:not([disabled]):hover, [class*="me-button"]:not([disabled]):hover, .me-dialog__buttonpane .button:not([disabled]):hover {
+    background-color: var(--me-button-color-background-hover);
+    color: var(--me-button-color-text-hover);
+    cursor: pointer;
+    text-decoration: underline;
+  }
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button[disabled], .lpb-form__actions .button[disabled], .lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button[disabled], [class*="me-button"][disabled], .me-dialog__buttonpane .button[disabled] {
+    opacity: 0.6;
+  }
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button.action-link, .lpb-form__actions .button.action-link, .lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button.action-link, .action-link[class*="me-button"], .me-dialog__buttonpane .button.action-link {
+    background: none;
+    position: relative;
+    padding: 0.6em;
+    margin: 1em;
+  }
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button.action-link:hover, .lpb-form__actions .button.action-link:hover, .lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button.action-link:hover, .action-link[class*="me-button"]:hover, .me-dialog__buttonpane .button.action-link:hover {
+      text-decoration: underline;
+    }
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button.action-link--icon-trash, .lpb-form__actions .button.action-link--icon-trash, .lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button.action-link--icon-trash, .action-link--icon-trash[class*="me-button"], .me-dialog__buttonpane .button.action-link--icon-trash {
+    padding-left: 25px;
+    margin-right: 0;
+    float: right;
+  }
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button.action-link--icon-trash:before, .lpb-form__actions .button.action-link--icon-trash:before, .lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button.action-link--icon-trash:before, .action-link--icon-trash[class*="me-button"]:before, .me-dialog__buttonpane .button.action-link--icon-trash:before {
+      position: absolute;
+      left: 0;
+      content: "\274c"; /* use the hex value here... */
+      color: #fff;
+      text-align: center;
+      /* Overwrite claro action-link styles. */
+      background-image: none;
+      top: auto;
+    }
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button.button--primary, .lpb-form__actions .button.button--primary, .lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button.button--primary, .button--primary[class*="me-button"], .me-dialog__buttonpane .button.button--primary {
+    background-color: var(--me-button-color-background-primary);
+    color: var(--me-button-color-text-primary);
+  }
+.lpb-dialog.ui-dialog .ui-dialog-content.ui-widget-content .button.button--primary:not([disabled]):hover, .lpb-form__actions .button.button--primary:not([disabled]):hover, .lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button.button--primary:not([disabled]):hover, .button--primary[class*="me-button"]:not([disabled]):hover, .me-dialog__buttonpane .button.button--primary:not([disabled]):hover {
+      color: var(--me-button-color-text-primary-hover);
+      background-color: var(--me-button-color-background-primary-hover);
+      box-shadow: inset 0 0 2px rgba(0, 62, 204, 1);
+    }
+
+.me-button--primary {
+  color: var(--me-button-color-text-primary);
+  background-color: var(--me-button-color-background-primary);
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.me-button--primary:not([disabled]):hover {
+    color: var(--me-button-color-text-primary-hover);
+    background-color: var(--me-button-color-background-primary-hover);
+    box-shadow: inset 0 0 2px rgba(0, 62, 204, 1);
+  }
+.me-button--primary.me-button--saved {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--me-button-color-background-saved);
+  color: var(--me-button-color-text-saved);
+}
+.me-button--primary.me-button--saved:hover {
+  text-decoration: none;
+  cursor: default;
+  background-color: var(--me-button-color-background-saved);
+  color: var(--me-button-color-text-saved);
+}
+.me-button--saved:before {
+  content: "\2713";
+  display: inline-block;
+  color: currentColor;
+  padding: 0 6px 0 0;
+  text-decoration: none;
+}
+
+.me-button--secondary {
+  color: var(--me-button-color-text-secondary);
+  background-color: var(--me-button-color-background-secondary);
+}
+
+.me-button--secondary:not([disabled]):hover {
+    color: var(--me-button-color-text-secondary-hover);
+    background-color: var(--me-button-color-background-secondary-hover);
+  }
+
+.me-button--cancel {
+  color: var(--me-button-color-text-cancel);
+  background-color: var(--me-button-color-background-cancel);
+}
+
+.me-button--cancel:not([disabled]):hover {
+    color: var(--me-button-color-text-cancel-hover);
+    background-color: var(--me-button-color-background-cancel-hover);
+  }
+.me-button--icon {
+  border-radius: 5px;
+  background-color: var(--me-button-color-background-primary);
+  padding: 0.4em;
+  outline: 1px solid var(--me-button-color-background-primary);
+}
+.me-button--icon.me-button--simple {
+    background-color: transparent;
+    outline: none;
+  }
+.me-button--icon span {
+  display: block;
+  overflow: hidden;
+  height: var(--me-button-icon-height);
+  width: var(--me-button-icon-width);
+  text-indent: calc(var(--me-button-icon-width) + 2px);
+  white-space: nowrap;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-position: 50% 50%;
+          mask-position: 50% 50%;
+  -webkit-mask-size: var(--me-button-icon-height) var(--me-button-icon-width);
+          mask-size: var(--me-button-icon-height) var(--me-button-icon-width);
+  -webkit-mask-image: var(--me-button-icon);
+          mask-image: var(--me-button-icon);
+  background-color: var(--me-button-color-icon);
+}
+.me-button--icon:not(.me-button--simple):not(.disabled):hover,
+.me-button--icon.active:not(.me-button--simple):not(.disabled) {
+  background-color: var(--me-button-color-background-primary);
+  outline: 1px solid #bdd1ff;
+  z-index: 100;
+}
+.me-button--icon:not(.me-button--simple):not(.disabled):hover span, .me-button--icon.active:not(.me-button--simple):not(.disabled) span {
+    --me-button-color-icon: var(--me-button-color-icon-hover);
+    background-color: var(--me-button-color-text-primary);
+  }
+.me-toolbar__group .me-button--icon {
+  border-radius: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+.me-toolbar__group .me-button--icon:last-of-type {
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+  }
+.me-toolbar__group .me-button--icon:first-of-type {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+  }
+.me-toolbar__group .me-button--chunky:last-of-type {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+}
+.me-button--component-outline {
+  --me-button-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D'23'%20height%3D'23'%20viewBox%3D'0%200%2023%2023'%20fill%3D'none'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%20%3Ccircle%20cx%3D'3.7207'%20cy%3D'6.5'%20r%3D'1.375'%20fill%3D'%23777277'%2F%3E%20%3Ccircle%20cx%3D'3.7207'%20cy%3D'11.5'%20r%3D'1.375'%20fill%3D'%23777277'%2F%3E%20%3Ccircle%20cx%3D'3.7207'%20cy%3D'16.5'%20r%3D'1.375'%20fill%3D'%23777277'%2F%3E%20%3Cpath%20d%3D'M7.84538%207.83334C7.58566%207.83334%207.3678%207.74534%207.1918%207.56934C7.0158%207.39334%206.9281%207.17578%206.92871%206.91667C6.92871%206.65695%207.01671%206.43909%207.19271%206.26309C7.36871%206.08709%207.58627%205.99939%207.84538%206H18.8454C19.1051%206%2019.323%206.088%2019.499%206.264C19.675%206.44%2019.7627%206.65756%2019.762%206.91667C19.762%207.17639%2019.674%207.39425%2019.498%207.57025C19.322%207.74625%2019.1045%207.83395%2018.8454%207.83334H7.84538Z'%20fill%3D'%23777277'%2F%3E%20%3Cpath%20d%3D'M7.84538%2012.4167C7.58566%2012.4167%207.3678%2012.3287%207.1918%2012.1527C7.0158%2011.9767%206.9281%2011.7591%206.92871%2011.5C6.92871%2011.2403%207.01671%2011.0224%207.19271%2010.8464C7.36871%2010.6704%207.58627%2010.5827%207.84538%2010.5833H18.8454C19.1051%2010.5833%2019.323%2010.6713%2019.499%2010.8473C19.675%2011.0233%2019.7627%2011.2409%2019.762%2011.5C19.762%2011.7597%2019.674%2011.9776%2019.498%2012.1536C19.322%2012.3296%2019.1045%2012.4173%2018.8454%2012.4167H7.84538Z'%20fill%3D'%23777277'%2F%3E%20%3Cpath%20d%3D'M7.84538%2017C7.58566%2017%207.3678%2016.912%207.1918%2016.736C7.0158%2016.56%206.9281%2016.3424%206.92871%2016.0833C6.92871%2015.8236%207.01671%2015.6057%207.19271%2015.4297C7.36871%2015.2537%207.58627%2015.166%207.84538%2015.1667H18.8454C19.1051%2015.1667%2019.323%2015.2547%2019.499%2015.4307C19.675%2015.6067%2019.7627%2015.8242%2019.762%2016.0833C19.762%2016.343%2019.674%2016.5609%2019.498%2016.7369C19.322%2016.9129%2019.1045%2017.0006%2018.8454%2017H7.84538Z'%20fill%3D'%23777277'%2F%3E%20%3C%2Fsvg%3E%20");
+}
+.me-button--sidebar-collapse {
+  --me-button-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D'16'%20height%3D'16'%20fill%3D'none'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%20%3Cpath%20fill-rule%3D'evenodd'%20clip-rule%3D'evenodd'%20d%3D'M0%202C0%200.895431%200.895431%200%202%200H10V16H2C0.89543%2016%200%2015.1046%200%2014V2ZM4%204L8%208L4%2012L3%2011L6%208L3%205L4%204ZM14%200H12V16H14C15.1046%2016%2016%2015.1046%2016%2014V2C16%200.895431%2015.1046%200%2014%200Z'%20fill%3D'%23130F13'%2F%3E%20%3C%2Fsvg%3E%20");
+}
+.me-button--sidebar-expand {
+  --me-button-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D'16'%20height%3D'16'%20viewBox%3D'0%200%2016%2016'%20fill%3D'none'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%20%3Cpath%20fill-rule%3D'evenodd'%20clip-rule%3D'evenodd'%20d%3D'M0%202C0%200.895431%200.895431%200%202%200H10V16H2C0.89543%2016%200%2015.1046%200%2014V2ZM6%2012L2%208L6%204L7%205L4%208L7%2011L6%2012ZM14%200H12V16H14C15.1046%2016%2016%2015.1046%2016%2014V2C16%200.895431%2015.1046%200%2014%200Z'%20fill%3D'%23130F13'%2F%3E%20%3C%2Fsvg%3E%20");
+}
+.me-button--desktop {
+  --me-button-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D'21'%20height%3D'19'%20viewBox%3D'0%200%2021%2019'%20fill%3D'none'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%20%3Cpath%20d%3D'M18.0537%200H2.05371C0.950711%200%200.0537109%200.897%200.0537109%202V13C0.0537109%2014.103%200.950711%2015%202.05371%2015H9.05371V17H6.05371V19H14.0537V17H11.0537V15H18.0537C19.1567%2015%2020.0537%2014.103%2020.0537%2013V2C20.0537%200.897%2019.1567%200%2018.0537%200ZM2.05371%2011V2H18.0537L18.0557%2011H2.05371Z'%20fill%3D'%23003ECC'%2F%3E%20%3C%2Fsvg%3E%20");
+}
+.me-button--mobile {
+  --me-button-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D'17'%20height%3D'16'%20viewBox%3D'0%200%2017%2016'%20fill%3D'none'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%20%3Cpath%20d%3D'M12.1585%2013.0909H4.88582V2.90909H12.1585M12.1585%200H4.88582C4.07855%200%203.43127%200.647273%203.43127%201.45455V14.5455C3.43127%2014.9312%203.58452%2015.3012%203.8573%2015.574C4.13008%2015.8468%204.50005%2016%204.88582%2016H12.1585C12.5443%2016%2012.9143%2015.8468%2013.1871%2015.574C13.4598%2015.3012%2013.6131%2014.9312%2013.6131%2014.5455V1.45455C13.6131%201.06878%2013.4598%200.698807%2013.1871%200.426027C12.9143%200.153246%2012.5443%200%2012.1585%200Z'%20fill%3D'white'%2F%3E%20%3C%2Fsvg%3E%20");
+}
+.me-button--undo,
+.me-button--redo {
+  padding: 0.3em;
+  --me-button-icon-height: 24px;
+  --me-button-icon-width: 24px;
+}
+.me-button--undo.disabled, .me-button--redo.disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+  }
+.me-button--undo.disabled:hover, .me-button--redo.disabled:hover {
+      cursor: default;
+    }
+.me-button--undo {
+  padding-right: 0;
+  --me-button-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D'24'%20height%3D'24'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%20%20%20%3Cpath%20d%3D'M9%204L4%209L9%2014V11C13%2011%2016%2014%2016%2018C16%2019.1%2015.78%2020.15%2015.38%2021.1C16.95%2020.05%2018%2018.15%2018%2016C18%2011.58%2014.42%208%2010%208H9V4Z'%20fill%3D'black'%2F%3E%20%3C%2Fsvg%3E%20");
+}
+.me-button--redo {
+  padding-left: 0;
+  margin-right: 10px;
+  --me-button-icon: url("data:image/svg+xml;charset=utf-8,%3Csvg%20width%3D'24'%20height%3D'24'%20viewBox%3D'0%200%2024%2024'%20fill%3D'none'%20xmlns%3D'http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg'%3E%20%20%20%3Cpath%20d%3D'M15%204V8H14C9.58%208%206%2011.58%206%2016C6%2018.15%207.05%2020.05%208.62%2021.1C8.22%2020.15%208%2019.1%208%2018C8%2014%2011%2011%2015%2011V14L20%209L15%204Z'%20fill%3D'black'%2F%3E%20%3C%2Fsvg%3E%20");
+}
+
+[class*="me-button"] + [class*="me-button"] {
+  margin-left: 0;
+}
+
+.lpb-dialog.ui-dialog .ui-widget-content.ui-dialog-buttonpane .button {
+  margin-left: 8px;
+}
+
+/* Add Section Buttons */
+.lp-builder .lpb-btn {
+    line-height: 24px;
+    font-weight: var(--me-font-weight-medium);
+    text-transform: uppercase;
+    z-index: 540;
+    border-radius: 3px;
+    background-color: #00659b;
+    color: #fff;
+  }
+.lp-builder .lpb-btn.before {
+    top: -18px;
+  }
+.lp-builder .lpb-btn.after {
+    bottom: -18px;
+  }

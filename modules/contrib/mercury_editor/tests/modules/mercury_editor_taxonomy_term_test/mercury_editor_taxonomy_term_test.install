@@ -1,0 +1,77 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor Taxonomy Term Test module.
+ */
+
+use Drupal\taxonomy\Entity\Vocabulary;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_taxonomy_term_test_install() {
+
+  $test_vocab = Vocabulary::load('me_test_vocab');
+  if (!$test_vocab) {
+    $test_vocab = Vocabulary::create([
+      'vid' => 'me_test_vocab',
+      'name' => 'Mercury Editor Test Term',
+      'description' => 'A vocabulary term type for testing Mercury Editor.',
+    ]);
+    $test_vocab->save();
+  }
+
+  $handler_settings = [
+    'target_bundles' => NULL,
+    'negate' => FALSE,
+    'target_bundles_drag_drop' => [
+      'me_test_section' => [
+        'weight' => 0,
+        'enabled' => TRUE,
+      ],
+      'me_test_text' => [
+        'weight' => 1,
+        'enabled' => TRUE,
+      ],
+      'me_test_image' => [
+        'weight' => 2,
+        'enabled' => TRUE,
+      ],
+      'me_test_gallery' => [
+        'weight' => 3,
+        'enabled' => TRUE,
+      ],
+      'me_test_video' => [
+        'weight' => 4,
+        'enabled' => TRUE,
+      ],
+      'me_test_card' => [
+        'weight' => 5,
+        'enabled' => TRUE,
+      ],
+    ],
+  ];
+
+  // Add the main paragraphs reference field to the vocabulary.
+  mercury_editor_startup_demo_make_paragraph_field('taxonomy_term', 'me_test_vocab', 'field_me_test_content', 'ME Test Content', $handler_settings, 'layout_paragraphs', 'layout_paragraphs');
+
+  $config = Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $bundles = $config->get('bundles');
+  $bundles['taxonomy_term']['me_test_vocab'] = 'me_test_vocab';
+  $config->set('bundles', $bundles)->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_taxonomy_term_test_uninstall() {
+
+  $config = Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $bundles = $config->get('bundles');
+  unset($bundles['taxonomy_term']['me_test_vocab']);
+  $config->set('bundles', $bundles)->save();
+
+  $test_ct = Vocabulary::load('me_test_vocab');
+  $test_ct->delete();
+}

@@ -1,0 +1,64 @@
+
+  .lpb-dialog table {
+    font-size: 1em;
+    border-radius: 3px;
+    border: 1px solid var(--me-color-border);
+    border-collapse: separate;
+    margin-top: 10px;
+  }
+.lpb-dialog table thead {
+      background-color: var(--me-header-color-background);
+      border-top-left-radius: 3px;
+      border-top-right-radius: 3px;
+    }
+.lpb-dialog table th,
+    .lpb-dialog table td {
+      border: none;
+      text-align: left;
+    }
+.lpb-dialog table th {
+      padding: 24px;
+      background-color: transparent;
+      font-weight: var(--me-font-weight-medium);
+      font-size: .9em;
+    }
+.lpb-dialog table th h4 {
+
+      margin: 0 !important;
+    }
+.lpb-dialog table th h4 {
+      font-family: var(--me-font-family-sans);
+      font-weight: var(--me-font-weight-medium);
+      letter-spacing: var(--me-letter-spacing-loose);
+      font-size: 1em;
+      text-transform: uppercase;
+      line-height: 1;
+      float: left;
+    }
+.lpb-dialog table tr {
+      background: none;
+    }
+.lpb-dialog table td {
+      padding: 24px;
+      font-size: .9em;
+    }
+.lpb-dialog table td.field-multiple-drag {
+      padding-right: 0;
+      padding-top: 36px;
+    }
+.lpb-dialog .draggable a.tabledrag-handle {
+    float: none;
+    display: inline-block;
+    height: 24px;
+    width: 24px;
+    margin: 0;
+  }
+.lpb-dialog .draggable a.tabledrag-handle .handle {
+      border: none;
+      background-size: cover;
+      background-position: 0 0;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      margin: 0;
+    }

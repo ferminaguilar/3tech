@@ -1,0 +1,13 @@
+name: Mercury Editor Templates Test
+type: module
+description: 'Test module for Mercury Editor Templates.'
+core_version_requirement: ^10 || ^11
+package: 'Testing'
+dependencies:
+  - mercury_editor:mercury_editor_setup_test
+  - mercury_editor:mercury_editor_templates
+
+# Information added by Drupal.org packaging script on 2026-06-03
+version: '3.0.0-alpha19'
+project: 'mercury_editor'
+datestamp: 1780507319

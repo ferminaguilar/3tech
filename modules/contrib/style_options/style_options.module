@@ -1,0 +1,61 @@
+<?php
+
+use Drupal\paragraphs\Entity\ParagraphsType;
+
+/**
+ * @file
+ * Contains style_options.module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function style_options_theme() {
+
+  return [
+    'style_options_background_color' => [
+      'variables' => [
+        'css_class' => NULL,
+        'color' => NULL,
+      ],
+    ],
+    'style_options_background_image' => [
+      'variables' => [
+        'css_class' => NULL,
+        'file_url' => NULL,
+        'image' => NULL,
+      ],
+    ],
+  ];
+
+}
+
+/**
+ * Migrates data from the option_plugin paragraph behavior to style_options.
+ */
+function style_options_migrate_option_plugin_paragraph_behavior() {
+  $paragraph_types = ParagraphsType::loadMultiple();
+  foreach ($paragraph_types as $paragraph_type) {
+    $behavior_plugins = $paragraph_type->getEnabledBehaviorPlugins();
+    // Turn on the plugin.
+    if (isset($behavior_plugins['option_plugin'])) {
+      $behavior_plugin = $paragraph_type->getBehaviorPlugin('style_options');
+      $behavior_plugin->setConfiguration(['enabled' => TRUE]);
+      $paragraph_type->save();
+
+      $paragraphs = \Drupal::service('entity_type.manager')
+        ->getStorage('paragraph')
+        ->loadByProperties(['type' => $paragraph_type->id()]);
+
+      /** @var \Drupal\paragraphs\Entity\Paragraph $paragraph */
+      foreach ($paragraphs as $paragraph) {
+        $behavior_settings = $paragraph->getAllBehaviorSettings();
+        if (isset($behavior_settings['option_plugin'])) {
+          $behavior_settings['style_options'] = $behavior_settings['option_plugin'];
+          $paragraph->setAllBehaviorSettings($behavior_settings);
+          $paragraph->save();
+        }
+      }
+    }
+  }
+}

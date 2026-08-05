@@ -1,0 +1,145 @@
+################
+# GitLabCI template for Drupal projects.
+#
+# This template is designed to give any Contrib maintainer everything they need to test, without requiring modification.
+# It is also designed to keep up to date with Core Development automatically through the use of include files that can be centrally maintained.
+# As long as you include the project, ref and three files below, any future updates added by the Drupal Association will be used in your
+# pipelines automatically. However, you can modify this template if you have additional needs for your project.
+# The full documentation is on https://project.pages.drupalcode.org/gitlab_templates/
+################
+
+# For information on alternative values for 'ref' see https://project.pages.drupalcode.org/gitlab_templates/info/templates-version/
+# To test a Drupal 7 project, change the first include filename from .main.yml to .main-d7.yml
+include:
+  - project: $_GITLAB_TEMPLATES_REPO
+    ref: $_GITLAB_TEMPLATES_REF
+    file:
+      - '/includes/include.drupalci.main.yml'
+      - '/includes/include.drupalci.variables.yml'
+      - '/includes/include.drupalci.workflows.yml'
+
+# cspell:
+#   before_script:
+#     - apt-get update
+#     - apt-get install -y --no-install-recommends libatomic1
+#   variables:
+#     _NODE_VERSION: 'node'
+
+phpstan:
+  before_script:
+    # Remove any pre-installed core packages from the CI image
+    - composer remove drupal/core-recommended drupal/core-dev --no-update || true
+    # Force-install the version you want
+    - composer require drupal/core-recommended:^11.2 drupal/core-dev:^11.2 --no-update
+    - composer update drupal/core-recommended drupal/core-dev -W
+    # Show the installed version for debugging
+    - composer show drupal/core | grep versions
+
+# Override the PHPUnit job to do nothing
+phpunit:
+  script:
+    - echo "Skipping PHPUnit tests"
+
+# Add a custom Cypress job
+cypress:
+  image: cypress/included:15.8.2
+  stage: test
+  services:
+    - name: mariadb:10.6
+      alias: db
+      command:
+        - --default-authentication-plugin=mysql_native_password
+        - --character-set-server=utf8mb4
+        - --collation-server=utf8mb4_unicode_ci
+  variables:
+    # Database configuration
+    MYSQL_DATABASE: drupal
+    MYSQL_USER: drupal
+    MYSQL_PASSWORD: drupal
+    MYSQL_ROOT_PASSWORD: root
+    # Drupal configuration
+    DRUPAL_DB_URL: 'mysql://drupal:drupal@db/drupal'
+    CYPRESS_baseUrl: 'http://127.0.0.1:8080'
+  before_script:
+    # Make apt reliable in cypress/included by removing the repo that is missing a key.
+    - rm -f /etc/apt/sources.list.d/google-chrome.list /etc/apt/sources.list.d/google-chrome*.list || true
+    # (Optional) reduce noise from duplicate Edge lists if present
+    - rm -f /etc/apt/sources.list.d/microsoft-edge-stable.list /etc/apt/sources.list.d/microsoft-edge.list || true
+    - apt-get update -y
+    # Install base packages you need
+    - apt-get install -y --no-install-recommends default-mysql-client lsb-release ca-certificates wget curl git unzip gnupg
+    # Add Sury PHP repo (you can keep this if you truly need apt-installed PHP 8.3)
+    - wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
+    - echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/php.list
+    - apt-get update -y
+    # Install PHP + extensions
+    - apt-get install -y php8.3-cli php8.3-mbstring php8.3-xml php8.3-dom php8.3-gd php8.3-curl php8.3-zip php8.3-mysql
+    # Install Composer
+    - curl -sS https://getcomposer.org/installer | php
+    - mv composer.phar /usr/local/bin/composer
+    # Install Node 20 (note: this also adds an apt repo, so do it after update + deps)
+    - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    - apt-get update -y
+    - apt-get install -y nodejs
+    - npm install -g npm@latest
+    # Check versions
+    - node --version && npm --version
+  script:
+    # Print composer file
+    - cat composer.json
+    # Install Drupal
+    - vendor/bin/drush si -y --db-url="$DRUPAL_DB_URL" --account-pass=admin --site-name="Mercury Editor"
+    - echo "\$settings['extension_discovery_scan_tests'] = TRUE;" >> web/sites/default/settings.php
+    - echo "ini_set('log_errors', 1);" >> web/sites/default/settings.php
+    - echo "ini_set('error_log', DRUPAL_ROOT . '/sites/default/files/php-error.log');" >> web/sites/default/settings.php
+    - echo "\$config['system.logging']['error_level'] = 'verbose';" >> web/sites/default/settings.php
+    - vendor/bin/drush pm:enable mercury_editor --yes
+    - vendor/bin/drush pm:enable mercury_editor_setup_test --yes || echo "Test module not found, continuing..."
+    - vendor/bin/drush cache:rebuild
+    - vendor/bin/drush runserver 127.0.0.1:8080 &
+    # Wait for the server to be ready
+    - DRUPAL_PID=$!
+    - |
+      echo "Waiting for Drupal server to be ready..."
+      for i in {1..20}; do
+        if curl -f http://127.0.0.1:8080 >/dev/null 2>&1; then
+          echo "Drupal server is ready!"
+          break
+        fi
+        echo "Waiting for server... ($i/20)"
+        sleep 3
+      done
+
+    # Run Cypress tests
+    - cd tests/cypress
+    - mv cypress.config.js.gitlab-ci cypress.config.js
+    - mkdir -p cypress/videos cypress/screenshots
+    - npm install
+    - npm run cy:run
+    - kill $DRUPAL_PID || echo "Server already stopped"
+  artifacts:
+    when: always
+    paths:
+      - web/sites/default/files/php-error.log
+      - tests/cypress/cypress/videos/
+      - tests/cypress/cypress/screenshots/
+  allow_failure: false
+  after_script:
+    - echo "--- PHP logs ---"
+    - cat web/sites/default/files/php-error.log || echo "No PHP log found."
+    - ls -al ./
+
+#
+################
+# Pipeline configuration variables are defined with default values and descriptions in the file
+# https://git.drupalcode.org/project/gitlab_templates/-/blob/main/includes/include.drupalci.variables.yml
+# Uncomment the lines below if you want to override any of the variables. The following is just an example.
+################
+variables:
+  _DRUPAL_CORE: '10.5.1'
+  DRUPAL_CORE: '10.5.1'
+  SKIP_ESLINT: '1'
+  SKIP_STYLELINT: '1'
+  _CSPELL_IGNORE_PATHS: 'images/**, build/**'
+  _CSPELL_WORDS: 'fontello,treeitems'
+  _NODE_VERSION: 'v20.15.0'

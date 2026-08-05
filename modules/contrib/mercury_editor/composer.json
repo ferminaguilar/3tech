@@ -1,0 +1,79 @@
+{
+  "name": "drupal/mercury_editor",
+  "type": "drupal-module",
+  "description": "Mercury Editor",
+  "keywords": [
+    "Drupal"
+  ],
+  "license": "GPL-2.0+",
+  "minimum-stability": "dev",
+  "homepage": "https://drupal.org/project/mercury_editor",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/mercury_editor",
+    "source": "https://git.drupalcode.org/project/mercury_editor"
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packages.drupal.org/8"
+    },
+    {
+      "type": "package",
+      "package": {
+        "name": "ckeditor-plugin/editorplaceholder",
+        "version": "4.17",
+        "type": "ckeditor-plugin",
+        "dist": {
+          "url": "https://download.ckeditor.com/editorplaceholder/releases/editorplaceholder_4.17.2.zip",
+          "type": "zip"
+        }
+      }
+    }
+  ],
+  "require": {
+    "php": ">=8.1",
+    "drupal/layout_paragraphs": ">=3.0.0-alpha7",
+    "drupal/style_options": "^1 || ^2"
+  },
+  "require-dev": {
+    "drush/drush": "^11 || ^12 || ^13",
+    "drupal/coder": "8.3.x-dev",
+    "drupal/heading": "^2.0"
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/installers": true,
+      "cweagans/composer-patches": true,
+      "phpstan/extension-installer": true,
+      "drupal/core-composer-scaffold": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "extra": {
+    "drupal-scaffold": {
+      "locations": {
+        "web-root": "web"
+      }
+    },
+    "installer-paths": {
+      "web/core": [
+        "type:drupal-core"
+      ],
+      "web/libraries/{$name}": [
+        "type:drupal-library"
+      ],
+      "web/modules/contrib/{$name}": [
+        "type:drupal-module"
+      ],
+      "web/profiles/contrib/{$name}": [
+        "type:drupal-profile"
+      ],
+      "web/themes/contrib/{$name}": [
+        "type:drupal-theme"
+      ],
+      "drush/contrib/{$name}": [
+        "type:drupal-drush"
+      ]
+    }
+  }
+}

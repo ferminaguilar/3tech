@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the mercury_editor module.
+ */
+
+/**
+ * Enable Mercury Editor for the content types specified by the old settings.
+ */
+function mercury_editor_update_9001() {
+  $mercury_settings = Drupal::configFactory()->getEditable('mercury_editor.settings');
+
+  $content_types = $mercury_settings->get('content_types');
+  if (empty($content_types)) {
+    return;
+  }
+
+  foreach (array_keys($mercury_settings->get('content_types')) as $content_type) {
+    $mercury_settings->set('bundles.node.' . $content_type, $content_type)->save();
+  }
+  $mercury_settings->clear('content_types')->save();
+}
+
+/**
+ * Set dialog_tray_width in mercury_editor.settings config if it does not exist.
+ */
+function mercury_editor_update_9002() {
+  $mercury_settings = Drupal::configFactory()->getEditable('mercury_editor.settings');
+  if (!$mercury_settings->get('dialog_tray_width')) {
+    $mercury_settings->set('dialog_tray_width', '400')->save();
+  }
+}
+
+/**
+ * Set rollover_padding in mercury_editor.settings config if it does not exist.
+ */
+function mercury_editor_update_9003() {
+  $mercury_settings = Drupal::configFactory()->getEditable('mercury_editor.settings');
+  if (!$mercury_settings->get('rollover_padding_block')) {
+    $mercury_settings->set('rollover_padding_block', '10')->save();
+  }
+  if (!$mercury_settings->get('rollover_padding_inline')) {
+    $mercury_settings->set('rollover_padding_inline', '0')->save();
+  }
+}

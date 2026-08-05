@@ -1,0 +1,22 @@
+<?php
+
+/**
+ * @file
+ * Mercury Editor Field Validation Test module.
+ */
+
+use Drupal\Core\Messenger\MessengerInterface;
+
+/**
+ * Implements hook_form_FORM_ID_alter() for node_me_test_ct_mercury_editor_form.
+ *
+ * Adds example messenger messages to demonstrate different message types
+ * (status, warning, error) on the node form without AJAX.
+ */
+function mercury_editor_field_validation_test_form_node_me_test_ct_mercury_editor_form_alter(&$form) {
+  $messenger = \Drupal::messenger();
+  // Show current time and second.
+  $messenger->addMessage(t('This content is an example status at @time', ['@time' => date('H:i:s')]), MessengerInterface::TYPE_STATUS);
+  $messenger->addMessage(t('This content is an example warning at @time', ['@time' => date('H:i:s')]), MessengerInterface::TYPE_WARNING);
+  $messenger->addMessage(t('This content is an example error at @time', ['@time' => date('H:i:s')]), MessengerInterface::TYPE_ERROR);
+}

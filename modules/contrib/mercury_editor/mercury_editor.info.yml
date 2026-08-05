@@ -1,0 +1,14 @@
+name: Mercury Editor
+description: Effortless, drag-and-drop editing for Drupal.
+type: module
+core_version_requirement: '^10.3 || ~11'
+package: Mercury Editor
+configure: mercury_editor.settings
+dependencies:
+  - layout_paragraphs:layout_paragraphs
+  - style_options:style_options
+
+# Information added by Drupal.org packaging script on 2026-06-03
+version: '3.0.0-alpha19'
+project: 'mercury_editor'
+datestamp: 1780507319

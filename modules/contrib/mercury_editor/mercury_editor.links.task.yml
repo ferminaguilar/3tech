@@ -1,0 +1,20 @@
+mercury_editor.settings:
+  route_name: mercury_editor.settings
+  title: 'Mercury Editor Settings'
+  base_route: mercury_editor.settings
+mercury_editor.skip_form_settings:
+  route_name: mercury_editor.skip_form_settings
+  title: 'Skip Form Settings'
+  base_route: mercury_editor.settings
+mercury_editor.menu_settings:
+  route_name: mercury_editor.menu_settings
+  title: 'Menu Settings'
+  base_route: mercury_editor.settings
+mercury_editor.auto_update_settings:
+  route_name: mercury_editor.auto_update_settings
+  title: 'Auto-update Settings'
+  base_route: mercury_editor.settings
+mercury_editor.dialog_settings:
+  route_name: mercury_editor.dialog_settings
+  title: 'Dialog & UI Settings'
+  base_route: mercury_editor.settings

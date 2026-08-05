@@ -1,0 +1,4 @@
+mercury_editor_templates:
+  css:
+    component:
+      css/mercury-editor-templates.css: {}

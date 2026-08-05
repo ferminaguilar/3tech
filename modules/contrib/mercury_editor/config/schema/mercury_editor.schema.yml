@@ -1,0 +1,98 @@
+mercury_editor.settings:
+  type: config_object
+  label: 'Mercury Editor Settings'
+  mapping:
+    content_types:
+      type: sequence
+      label: 'Enable edit tray for these content types'
+      sequence:
+        type: string
+        label: 'Content type'
+    edit_screen_theme:
+      type: string
+      label: 'Theme to use for Mercury Editor Edit Tray'
+    skip_create_form:
+      type: sequence
+      label: 'Skip create form for these paragraph types'
+      sequence:
+        type: string
+        label: 'Paragraph type'
+    mobile_presets:
+      type: sequence
+      label: 'Mobile preview presets'
+      sequence:
+        type: mapping
+        label: 'Mobile preview preset'
+        mapping:
+          name:
+            type: text
+            label: Name
+          width:
+            type: integer
+            label: Width
+          height:
+            type: integer
+            label: Height
+    dialog_settings:
+      type: sequence
+      label: 'Mercury Editor dialog settings'
+      sequence:
+        type: mapping
+        label: 'Dialog type setting'
+        mapping:
+          width:
+            type: string
+            label: 'Width'
+          height:
+            type: string
+            label: 'Height'
+          drupalAutoButtons:
+            type: boolean
+            label: 'Auto-apply buttons'
+          dialogClass:
+            type: string
+            label: 'Dialog CSS class'
+          resizable:
+            type: boolean
+            label: 'Dialog is resizable'
+    dialog_tray_width:
+      type: integer
+      label: 'Default width of the Mercury Editor tray'
+    bundles:
+      type: sequence
+      label: 'Bundles'
+      sequence:
+        type: sequence
+        label: 'Bundle'
+        sequence:
+          type: string
+          label: 'Entity type'
+    auto_update:
+      type: mapping
+      label: 'Auto-update settings'
+      mapping:
+        enabled:
+          type: boolean
+          label: 'Enable auto-update globally'
+        paragraphs:
+          type: mapping
+          label: 'Paragraph bundle overrides'
+          mapping:
+            '*':
+              type: boolean
+              label: 'Disable auto-update for this paragraph bundle'
+    outline_component_icons:
+      type: mapping
+      label: 'Component outline icons'
+      mapping:
+        '[a-zA-Z_]+':
+          type: string
+          label: 'Icon for paragraph bundle'
+
+mercury_editor.menu.settings:
+  type: config_object
+  label: 'Mercury Editor Menu Settings'
+  mapping:
+    groups:
+      type: string
+      label: 'Mercury Editor menu groups'

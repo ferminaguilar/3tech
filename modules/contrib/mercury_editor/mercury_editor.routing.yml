@@ -1,0 +1,206 @@
+# Mercury Editor editor and preview routes.
+mercury_editor.editor:
+  path: /mercury-editor/{mercury_editor_entity}
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\MercuryEditorController::editor'
+  requirements:
+    _custom_access: '\Drupal\mercury_editor\Controller\MercuryEditorController::access'
+  options:
+    parameters:
+      mercury_editor_entity:
+        type: mercury_editor_entity
+    _admin_route: TRUE
+    _mercury_editor_route: TRUE
+    _hide_admin_toolbar: TRUE
+
+mercury_editor.undo:
+  path: /mercury-editor/{mercury_editor_entity}/undo
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\MercuryEditorController::undo'
+  requirements:
+    _custom_access: '\Drupal\mercury_editor\Controller\MercuryEditorController::access'
+  options:
+    parameters:
+      mercury_editor_entity:
+        type: mercury_editor_entity
+    _mercury_editor_route: TRUE
+
+mercury_editor.redo:
+  path: /mercury-editor/{mercury_editor_entity}/redo
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\MercuryEditorController::redo'
+  requirements:
+    _custom_access: '\Drupal\mercury_editor\Controller\MercuryEditorController::access'
+  options:
+    parameters:
+      mercury_editor_entity:
+        type: mercury_editor_entity
+    _mercury_editor_route: TRUE
+
+mercury_editor.exit:
+  path: /mercury-editor/{mercury_editor_entity}/exit
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\MercuryEditorController::exit'
+  requirements:
+    _custom_access: '\Drupal\mercury_editor\Controller\MercuryEditorController::access'
+  options:
+    parameters:
+      mercury_editor_entity:
+        type: mercury_editor_entity
+    _mercury_editor_route: TRUE
+
+mercury_editor.component_outline:
+  path: /mercury-editor/{mercury_editor_entity}/component-outline
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\MercuryEditorController::componentOutline'
+  requirements:
+    _custom_access: '\Drupal\mercury_editor\Controller\MercuryEditorController::access'
+  options:
+    parameters:
+      mercury_editor_entity:
+        type: mercury_editor_entity
+    _admin_route: TRUE
+    _mercury_editor_route: TRUE
+    _hide_admin_toolbar: TRUE
+
+# Setting form routes.
+mercury_editor.settings:
+  path: '/admin/config/content/mercury-editor'
+  defaults:
+    _form: '\Drupal\mercury_editor\Form\SettingsForm'
+    _title: 'Mercury Editor Settings'
+  requirements:
+    _permission: 'administer site configuration'
+mercury_editor.skip_form_settings:
+  path: '/admin/config/content/mercury-editor/skip-form'
+  defaults:
+    _form: '\Drupal\mercury_editor\Form\SkipFormSettingsForm'
+    _title: 'Mercury Editor Skip Form Settings'
+  requirements:
+    _permission: 'administer site configuration'
+mercury_editor.menu_settings:
+  path: '/admin/config/content/mercury-editor/menu'
+  defaults:
+    _form: '\Drupal\mercury_editor\Form\MenuSettingsForm'
+    _title: 'Mercury Editor Menu Settings'
+  requirements:
+    _permission: 'administer site configuration'
+mercury_editor.auto_update_settings:
+  path: '/admin/config/content/mercury-editor/auto-update'
+  defaults:
+    _form: '\Drupal\mercury_editor\Form\AutoUpdateSettingsForm'
+    _title: 'Mercury Editor Auto-update Settings'
+  requirements:
+    _permission: 'administer site configuration'
+mercury_editor.dialog_settings:
+  path: '/admin/config/content/mercury-editor/dialog'
+  defaults:
+    _form: '\Drupal\mercury_editor\Form\DialogSettingsForm'
+    _title: 'Mercury Editor Dialog Settings'
+  requirements:
+    _permission: 'administer site configuration'
+
+mercury_editor.component.action:
+  path: '/mercury-editor/{mercury_editor_entity}/{layout_paragraphs_layout}/action/{action}/{component_uuid}'
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\MercuryEditorActionController::run'
+    component_uuid: NULL
+  methods: [POST]
+  requirements:
+    _custom_access: '\Drupal\mercury_editor\Controller\MercuryEditorController::access'
+  options:
+    _auth: ['cookie']
+    _mercury_editor_route: TRUE
+    parameters:
+      mercury_editor_entity:
+        type: mercury_editor_entity
+      layout_paragraphs_layout:
+        layout_paragraphs_layout_tempstore: TRUE
+
+# Mercury Editor replacements for Layout Paragraphs Builder routes.
+mercury_editor.builder.insert:
+  path: '/mercury-editor/{layout_paragraphs_layout}/insert/{paragraph_type_id}'
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\InsertComponentController::skipInsertForm'
+    operation: 'create'
+  options:
+    _mercury_editor_route: TRUE
+    parameters:
+      layout_paragraphs_layout:
+        layout_paragraphs_layout_tempstore: TRUE
+  requirements:
+    _layout_paragraphs_builder_access: 'TRUE'
+mercury_editor.builder.edit_item:
+  path: '/mercury-editor/{layout_paragraphs_layout}/edit/{component_uuid}'
+  defaults:
+    _form: '\Drupal\mercury_editor\Form\EditComponentForm'
+    operation: 'update'
+  options:
+    _mercury_editor_route: TRUE
+    parameters:
+      layout_paragraphs_layout:
+        layout_paragraphs_layout_tempstore: TRUE
+  requirements:
+    _layout_paragraphs_builder_access: 'TRUE'
+mercury_editor.builder.duplicate_item:
+  path: '/mercury-editor/{layout_paragraphs_layout}/duplicate/{source_uuid}'
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\DuplicateController::duplicate'
+    operation: 'duplicate'
+  options:
+    _mercury_editor_route: TRUE
+    parameters:
+      layout_paragraphs_layout:
+        layout_paragraphs_layout_tempstore: TRUE
+  requirements:
+    _layout_paragraphs_builder_access: 'TRUE'
+mercury_editor.builder.delete_item:
+  path: '/mercury-editor/{layout_paragraphs_layout}/delete/{component_uuid}'
+  defaults:
+    _form: '\Drupal\mercury_editor\Form\DeleteComponentForm'
+    operation: 'delete'
+  options:
+    _mercury_editor_route: TRUE
+    parameters:
+      layout_paragraphs_layout:
+        layout_paragraphs_layout_tempstore: TRUE
+  requirements:
+    _layout_paragraphs_builder_access: 'TRUE'
+mercury_editor.builder.choose_component:
+  path: '/mercury-editor/{layout_paragraphs_layout}/choose-component'
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\ChooseComponentController::list'
+    operation: 'create'
+  options:
+    _mercury_editor_route: TRUE
+    parameters:
+      layout_paragraphs_layout:
+        layout_paragraphs_layout_tempstore: TRUE
+  requirements:
+    _layout_paragraphs_builder_access: 'TRUE'
+
+# Replace Term routes.
+entity.taxonomy_term.add_form:
+  path: '/admin/structure/taxonomy/manage/{taxonomy_vocabulary}/add'
+  defaults:
+    _entity_form: 'taxonomy_term.default'
+    _title: 'Add term'
+  requirements:
+    _entity_create_access: 'taxonomy_term:{taxonomy_vocabulary}'
+  options:
+    parameters:
+      taxonomy_vocabulary:
+        type: entity:taxonomy_vocabulary
+        with_config_overrides: TRUE
+
+# Dialog settings tips.
+mercury_editor.dialog_tips:
+  path: '/mercury-editor-dialog-config'
+  defaults:
+    _controller: '\Drupal\mercury_editor\Controller\DialogTipsController::tips'
+    _title: 'Dialog tips'
+  requirements:
+    _permission: 'administer site configuration'
+
+route_callbacks:
+  - 'mercury_editor.preview_routes_subscriber:routes'

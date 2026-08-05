@@ -1,0 +1,17 @@
+$schema: https://git.drupalcode.org/project/sdc/-/raw/1.x/src/metadata.schema.json
+name: Mercury Editor Form Error Messages
+status: stable
+libraryOverrides:
+  js:
+    form-error-messages.js: {}
+  dependencies:
+    - mercury_editor/edit_screen
+props:
+  type: object
+  properties:
+    form_errors:
+      title: Form Errors
+      type: array
+    id:
+      title: Element ID
+      type: string

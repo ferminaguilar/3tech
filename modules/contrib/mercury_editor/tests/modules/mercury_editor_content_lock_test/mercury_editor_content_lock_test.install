@@ -1,0 +1,68 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor Content Lock Test module.
+ */
+
+use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_content_lock_test_install() {
+  // Create a new role.
+  $role = Role::create([
+    'id' => 'mercury_editor_content_lock_test_role',
+    'label' => 'Mercury Editor Content Lock Test Role',
+  ]);
+  // Give the role the permission to use the content lock.
+  $role->grantPermission('create page content');
+  $role->grantPermission('edit own page content');
+  $role->grantPermission('edit any page content');
+  $role->save();
+
+  // Create a new user with the role.
+  $user = User::create([
+    'name' => 'mercury_editor_content_lock_test_user_1',
+    'mail' => '',
+    'status' => 1,
+  ]);
+  $user->addRole($role->id());
+  $user->save();
+
+  // Create a second user with the role.
+  $user = User::create([
+    'name' => 'mercury_editor_content_lock_test_user_2',
+    'mail' => '',
+    'status' => 1,
+  ]);
+  $user->addRole($role->id());
+  $user->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_content_lock_test_uninstall() {
+  // Remove the role and users.
+  // Use the entity manager service to load the role.
+  Role::load('mercury_editor_content_lock_test_role')->delete();
+
+  // Use the entity manager service to load the users
+  // and delete them.
+  $users = \Drupal::entityTypeManager()
+    ->getStorage('user')
+    ->loadByProperties(['name' => 'mercury_editor_content_lock_test_user_1']);
+  foreach ($users as $user) {
+    $user->delete();
+  }
+  $users = \Drupal::entityTypeManager()
+    ->getStorage('user')
+    ->loadByProperties(['name' => 'mercury_editor_content_lock_test_user_2']);
+  foreach ($users as $user) {
+    $user->delete();
+  }
+
+}

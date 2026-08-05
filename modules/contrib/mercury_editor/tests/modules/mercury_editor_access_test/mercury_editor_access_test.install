@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Mercury Editor Access Test module.
+ */
+
+use Drupal\user\Entity\User;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_access_test_install() {
+  // Create a test user without Mercury Editor access permissions.
+  $user = User::create([
+    'name' => 'mercury_test_user',
+    'mail' => 'test@example.com',
+    'pass' => 'mercuryTestUser!',
+    'status' => 1,
+  ]);
+  $user->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_access_test_uninstall() {
+  // Clean up test user on module uninstall.
+  $user = user_load_by_name('mercury_test_user');
+  if ($user) {
+    $user->delete();
+  }
+}

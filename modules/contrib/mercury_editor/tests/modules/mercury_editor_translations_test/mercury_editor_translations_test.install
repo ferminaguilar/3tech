@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor Translations Test module.
+ */
+
+use Drupal\language\Entity\ConfigurableLanguage;
+
+/**
+ * @file
+ * Installs languages for testing.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_translations_test_install() {
+  if (!\Drupal::languageManager()->getLanguage('es')) {
+    $language = ConfigurableLanguage::createFromLangcode('es');
+    $language->save();
+  }
+  if (!\Drupal::languageManager()->getLanguage('de')) {
+    $language = ConfigurableLanguage::createFromLangcode('de');
+    $language->save();
+  }
+}

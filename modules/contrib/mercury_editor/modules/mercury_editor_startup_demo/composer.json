@@ -1,0 +1,24 @@
+{
+  "name": "drupal/mercury_editor_startup_demo",
+  "type": "drupal-module",
+  "description": "Demo module for Mercury Editor setup and configuration.",
+  "keywords": [
+    "Drupal",
+    "Mercury Editor",
+    "Demo",
+    "Paragraphs",
+    "Layout"
+  ],
+  "license": "GPL-2.0+",
+  "minimum-stability": "dev",
+  "homepage": "https://drupal.org/project/mercury_editor",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/mercury_editor",
+    "source": "https://git.drupalcode.org/project/mercury_editor"
+  },
+  "require": {
+    "drupal/core": "^10 || ^11",
+    "drupal/mercury_editor": "*",
+    "drupal/heading": "^2.0"
+  }
+}

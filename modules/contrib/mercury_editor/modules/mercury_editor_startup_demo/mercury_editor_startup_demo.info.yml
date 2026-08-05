@@ -1,0 +1,16 @@
+name: Mercury Editor Demo
+description: 'Demo module for Mercury Editor setup and configuration.'
+package: 'Mercury Editor'
+type: module
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:contextual
+  - mercury_editor:mercury_editor
+  - media:media
+  - media:media_library
+  - heading:heading
+
+# Information added by Drupal.org packaging script on 2026-06-03
+version: '3.0.0-alpha19'
+project: 'mercury_editor'
+datestamp: 1780507319

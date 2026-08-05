@@ -1,0 +1,7 @@
+style_options.migrate_data:
+  path: '/admin/config/style-options/migrate'
+  defaults:
+    _form: '\Drupal\style_options\Form\MigrateDataForm'
+    _title: 'Migrate Data'
+  requirements:
+    _permission: 'administer site configuration'

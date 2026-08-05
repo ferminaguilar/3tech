@@ -1,0 +1,33 @@
+.lpb-dialog {
+  --me-dialog-main-space-inset-x: 0;
+  --me-dialog-main-space-inset-y: 0;
+}
+
+mercury-dialog[dock="right"] {
+  --me-dialog-position-top: var(--me-toolbar-offset-y, 0px);
+  --me-dialog-main-space-inset-y: 0;
+}
+
+body[\:has\(mercury-dialog\[push\]\[dock\%3D\%22top\%22\]\[open\]\)] #toolbar-bar {
+  top: var(--me-dialog-dock-height, 0);
+}
+
+body:has(mercury-dialog[push][dock="top"][open]) #toolbar-bar {
+  top: var(--me-dialog-dock-height, 0);
+}
+
+body[\:has\(mercury-dialog\[push\]\[dock\%3D\%22right\%22\]\[open\]\)] #toolbar-bar {
+  right: var(--me-dialog-dock-width, 0);
+}
+
+body:has(mercury-dialog[push][dock="right"][open]) #toolbar-bar {
+  right: var(--me-dialog-dock-width, 0);
+}
+
+body[\:has\(mercury-dialog\[push\]\[dock\%3D\%22left\%22\]\[open\]\)] #toolbar-bar {
+  left: var(--me-dialog-dock-width, 0);
+}
+
+body:has(mercury-dialog[push][dock="left"][open]) #toolbar-bar {
+  left: var(--me-dialog-dock-width, 0);
+}

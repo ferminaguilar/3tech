@@ -1,0 +1,49 @@
+$schema: https://git.drupalcode.org/project/sdc/-/raw/1.x/src/metadata.schema.json
+name: Component Icon Select
+status: stable
+libraryOverrides:
+  js:
+    component-icon-select.js: {}
+  dependencies:
+    - core/once
+    - mercury_editor/component_icons
+props:
+  type: object
+  properties:
+    component_id:
+      title: Component ID
+      description: Unique identifier for the component instance, typically the paragraph bundle machine name
+      type: string
+    options:
+      title: Icon Options
+      description: Array of icon options with value and label keys
+      type: array
+      items:
+        type: object
+        properties:
+          value:
+            type: string
+          label:
+            type: string
+    selected_value:
+      title: Selected Value
+      description: The currently selected icon value
+      type: string
+    field_id:
+      title: Field ID
+      description: The form field ID for accessibility
+      type: string
+    field_name:
+      title: Field Name
+      description: The form field name
+      type: string
+    required:
+      title: Required
+      description: Whether the field is required
+      type: boolean
+      default: false
+    disabled:
+      title: Disabled
+      description: Whether the field is disabled
+      type: boolean
+      default: false

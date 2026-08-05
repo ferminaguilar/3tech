@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor Block Context Test module.
+ */
+
+use Drupal\block\Entity\Block;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_block_context_test_install() {
+  $values = [
+    'id' => 'mercury_editor_test_block_olivero_1',
+    'plugin' => 'mercury_editor_test_block',
+    'region' => 'content',
+    'settings' => [
+      'label' => 'Mercury Editor Test Block',
+    ],
+    'theme' => 'olivero',
+    'visibility' => [],
+    'weight' => -10,
+  ];
+  $block = Block::create($values);
+  $block->setVisibilityConfig('entity_bundle:node', [
+    'id' => 'entity_bundle:node',
+    'negate' => FALSE,
+    'context_mapping' => [
+      'node' => '@node.node_route_context:node',
+    ],
+    'bundles' => [
+      'me_test_ct' => 'me_test_ct',
+    ],
+  ]);
+  $block->save();
+}

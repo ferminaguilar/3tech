@@ -1,0 +1,32 @@
+entity.me_template.settings:
+  path: 'admin/structure/me-template'
+  defaults:
+    _form: '\Drupal\mercury_editor_templates\Form\MeTemplateSettingsForm'
+    _title: 'Mercury Editor Template'
+  requirements:
+    _permission: 'administer mercury editor template'
+
+mercury_editor_templates.save_as_template:
+  path: 'admin/mercury-editor/save-as-template/{layout_paragraphs_layout}/{uuid}'
+  defaults:
+    _controller: \Drupal\mercury_editor_templates\Controller\SaveAsTemplate::templateForm
+  options:
+    parameters:
+      layout_paragraphs_layout:
+        layout_paragraphs_layout_tempstore: TRUE
+  requirements:
+    _permission: 'create mercury editor template'
+
+mercury_editor_templates.insert_template:
+  path: '/mercury-editor-templates/{layout_paragraphs_layout}/insert/{me_template}'
+  defaults:
+    _controller: '\Drupal\mercury_editor_templates\Controller\InsertTemplateController::insertTemplate'
+    operation: 'create'
+  options:
+    parameters:
+      layout_paragraphs_layout:
+        layout_paragraphs_layout_tempstore: TRUE
+      me_template:
+        type: entity:me_template
+  requirements:
+    _permission: 'use mercury editor templates'

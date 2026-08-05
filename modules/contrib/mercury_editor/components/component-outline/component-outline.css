@@ -1,0 +1,417 @@
+[id="mercury-editor-component-outline"] {
+  --me-dialog-position-top: var(--me-toolbar-offset-y, 0px);
+  --me-dialog-main-space-inset-x: 0px;
+  --me-dialog-main-space-inset-y: 0px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) inset;
+}
+
+.me-component-outline {
+  --me-component-outline-caret-width: 1rem;
+  --me-component-outline-control-gap: 8px;
+  --me-component-outline-inset: calc(var(--me-component-outline-caret-width) + calc(var(--me-component-outline-control-gap)));
+  --me-component-outline-icon-width: 18px;
+  --me-component-outline-add-button-color: #003ecc;
+  --me-component-icon-image: url(../../images/component-icons/component-icon--component.svg);
+  border-bottom: var(--me-border-width, 1px) var(--me-border-style, solid) var(--me-border-color, #e5e5e5);
+}
+
+.me-component-outline__no-components {
+  padding: 0 16px 16px 16px;
+}
+.me-button--add-component {
+  padding: 0;
+  margin: 0;
+  color: var(--me-component-outline-add-button-color);
+}
+.me-button--add-component span {
+  padding-left: 20px;
+}
+.me-button--add-component:before {
+  content: "";
+  display: block;
+  position: absolute;
+  margin: 0;
+  left: 0;
+  -webkit-mask-image: url("../../images/icons/component-outline-add.svg");
+          mask-image: url("../../images/icons/component-outline-add.svg");
+  -webkit-mask-size: 100%;
+          mask-size: 100%;
+  -webkit-mask-position: top center;
+          mask-position: top center;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  background-color: currentColor;
+  width: 1rem;
+  height: 1rem;
+  margin-right: 8px;
+}
+
+.me-component-outline ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.me-component-outline .me-component-outline__list,
+.me-component-outline .me-component-outline__regions {
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-gap: 2px;
+  gap: 2px;
+  margin-top: 4px;
+}
+
+.me-component-outline > ul > li {
+  display: block;
+  list-style: none;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.me-component-outline .me-component-outline__components {
+  margin-top: 4px;
+  margin-bottom: 4px;
+  min-height: 10px;
+}
+
+.me-component-outline__heading {
+  margin: 0;
+  padding: 16px 0 10px 16px;
+  font-size: 1rem;
+  font-weight: bold;
+  color: #130f13;
+}
+
+.me-component-outline__component {
+  --me-component-outline-tree-inset: calc(var(--me-treeitem-depth, 0) * var(--me-component-outline-inset, 0));
+  margin: 0;
+  padding: 2px 8px;
+}
+
+.me-component-outline__component:focus,
+.me-component-outline__region:focus {
+  outline: none;
+}
+
+.me-component-outline__region-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.me-component-outline__component:focus > .me-component-outline__component-controls,
+.me-component-outline__region:focus > .me-component-outline__region-controls {
+  outline: 2px solid var(--lp-focus-outline-color, #0550e6);
+  outline-offset: 2px;
+}
+
+.me-component-outline__component.is-highlighted > .me-component-outline__component-controls,
+.me-component-outline__region.is-highlighted > .me-component-outline__region-controls {
+  background-color: #e0eaff;
+}
+
+.me-component-outline__component .me-component-outline__component {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+[dir="ltr"] .me-component-outline__component-controls {
+  padding-left: calc(var(--me-component-outline-tree-inset));
+}
+
+[dir="rtl"] .me-component-outline__component-controls {
+  padding-right: calc(var(--me-component-outline-tree-inset));
+}
+
+.me-component-outline__component-controls {
+  display: flex;
+  gap: 8px;
+  grid-template-columns: 1rem max-content auto 1.5rem;
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.me-component-outline__component-controls[\:has\(\:hover\)] {
+  background-color: #f7faff;
+}
+
+.me-component-outline__component-controls:has(:hover) {
+  background-color: #f7faff;
+}
+
+.me-component-outline__component-toggle-placeholder {
+  width: 1rem;
+  flex: none;
+}
+
+.me-component-outline__component-toggle {
+  background-image: url(../../images/icons/component-caret.svg);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-color: transparent;
+  background-position: center;
+  border: 0;
+  cursor: pointer;
+  display: block;
+  height: 1.25rem;
+  flex: none;
+  padding: 0;
+  width: 16px;
+  text-indent: 200%;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: transform 0.25s ease-in-out;
+}
+
+.me-component-outline__component-toggle:hover {
+  background-color: #e0eaff;
+}
+
+[aria-expanded="false"] .me-component-outline__component-toggle {
+  transform: rotateZ(-90deg);
+}
+
+/*
+ * Group Visibility Rules
+ * Groups (child containers) are hidden by default and when parent is collapsed
+ * Groups are shown only when parent is explicitly expanded
+ */
+
+/* Hide children groups by default and when parent is collapsed */
+.me-component-outline [aria-expanded="false"] + [role="group"],
+.me-component-outline [role="group"][aria-hidden="true"] {
+  display: none;
+}
+
+/* Show children groups when parent is expanded */
+.me-component-outline [aria-expanded="true"] + [role="group"],
+.me-component-outline [role="group"][aria-hidden="false"] {
+  display: block;
+}
+
+[dir="ltr"] .me-component-outline__region-label {
+  padding-left: calc(var(--me-component-outline-tree-inset) + var(--me-component-outline-caret-width) + var(--me-component-outline-icon-width) + (var(--me-component-outline-control-gap) * 2));
+}
+
+[dir="rtl"] .me-component-outline__region-label {
+  padding-right: calc(var(--me-component-outline-tree-inset) + var(--me-component-outline-caret-width) + var(--me-component-outline-icon-width) + (var(--me-component-outline-control-gap) * 2));
+}
+
+.me-component-outline__region-label {
+  flex: 0 0 fit-content;
+  color: #777277;
+  font-size: 0.75rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.me-component-outline__component-label {
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  background: none;
+  border: none;
+  color: black;
+  cursor: pointer;
+  display: block;
+  flex: 0 0 fit-content;
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: bold;
+  margin: 0;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  transition: all 0.25s ease-in-out;
+  width: 100%;
+}
+
+.me-component-outline ul ul .me-component-outline__component-label {
+  font-weight: normal;
+}
+
+.me-component-outline__component-menu-toggle {
+  background-image: url(../../images/icons/component-menu.svg);
+  background-repeat: no-repeat;
+  background-size: 18px 18px;
+  background-color: transparent;
+  background-position: center;
+  border: none;
+  content: "";
+  display: block;
+  height: 24px;
+  margin-left: auto;
+  width: 24px;
+  transition: all 0.25s ease-in-out;
+  cursor: pointer;
+}
+
+.me-component-outline__component-label:hover .me-component-outline__component-menu-toggle,
+.me-component-outline__component-label:focus .me-component-outline__component-menu-toggle {
+  background-image: url(../../images/icons/component-menu-hover.svg);
+}
+
+.me-component-outline__component-label:hover,
+.me-component-outline__component-label:focus {
+  color: var(--lp-focus-outline-color, #0550e6);
+  text-decoration: underline;
+  text-decoration-color: var(--lp-focus-outline-color, #0550e6);
+}
+
+.me-component-outline__component-label--layout,
+.me-component-outline__component-label--component {
+  display: flex;
+  flex-flow: nowrap row;
+  gap: var(--me-component-outline-control-gap);
+}
+
+/** Component Icons **/
+.me-component-outline__component-label--layout:before,
+.me-component-outline__component-label--component:before {
+  -webkit-mask-image: var(--me-component-icon-image);
+          mask-image: var(--me-component-icon-image);
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  -webkit-mask-size: 100%;
+          mask-size: 100%;
+  -webkit-mask-position: center;
+          mask-position: center;
+  background-color: currentColor;
+  content: "";
+  display: block;
+  height: 100%;
+  width: var(--me-component-outline-icon-width);
+  transition: all 0.25s ease-in-out;
+}
+
+.me-component-outline__component-menu {
+  position: relative;
+  margin-left: auto;
+}
+
+.me-component-outline__component-menu-toggle:hover {
+  background-color: transparent;
+}
+
+.me-component-outline__component-menu-toggle:hover {
+  background-color: #e0eaff;
+}
+
+.me-component-outline__component-menu-dialog {
+  position: absolute;
+  z-index: 1000;
+  background-color: white;
+  border: var(--me-border-width, 1px) var(--me-border-style, solid) var(--me-border-color, #e5e5e5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  border-radius: 4px;
+  width: -moz-fit-content;
+  width: fit-content;
+  width: fit-content;
+  right: 10px;
+  left: auto;
+  top: 80%;
+}
+
+.me-component-outline__component-menu-list [role="menuitem"] {
+  margin: 0;
+  padding: 0;
+}
+
+.me-component-outline__component-menu-list [role="menuitem"] {
+  color: #130f13;
+  background-color: transparent;
+  font-size: 0.875rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.57;
+  border: none;
+  border-radius: 0;
+  cursor: pointer;
+}
+
+.me-component-outline__component-menu-list [role="menuitem"]:hover {
+  text-decoration: underline;
+}
+
+.me-component-outline__component-menu-list [role="menuitem"]:focus {
+  outline: 2px solid var(--lp-focus-outline-color, #0550e6);
+}
+
+.me-component-outline__add-button {
+  cursor: pointer;
+  align-items: center;
+  color: #777277;
+  font-weight: 400;
+  background-color: transparent;
+  border: none;
+  opacity: 0;
+  transition: opacity 0.25s ease-in-out;
+  left: 0;
+  padding-left: 0;
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.me-component-outline__region-controls:hover > .me-component-outline__add-button,
+.me-component-outline__component-controls:hover > .me-component-outline__add-button,
+.me-component-outline__add-button:focus {
+  opacity: 1;
+}
+
+.me-component-outline__add-button:hover,
+.me-component-outline__add-button:focus {
+  color: var(--me-component-outline-add-button-color, #003ecc);
+}
+
+.me-component-outline__add-button::before {
+  content: "";
+  display: block;
+  -webkit-mask-image: url("../../images/icons/component-outline-add.svg");
+          mask-image: url("../../images/icons/component-outline-add.svg");
+  -webkit-mask-size: 100%;
+          mask-size: 100%;
+  -webkit-mask-position: top center;
+          mask-position: top center;
+  -webkit-mask-repeat: no-repeat;
+          mask-repeat: no-repeat;
+  background-color: currentColor;
+  width: 1rem;
+  height: 1rem;
+}
+
+/** Drag and Drop Styles **/
+.me-component-outline-drag-image {
+  background-color: #f7faff;
+}
+.me-component-outline-drag-image .me-component-outline__component-toggle {
+  opacity: 0;
+}
+.me-component-outline-drag-image .me-component-outline__component-menu {
+  opacity: 0;
+}
+
+.me-component-outline-sortable-ghost {
+  height: 4px !important;
+  padding: 0 !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  border: none !important;
+}
+
+.me-component-outline-sortable-ghost {
+  margin-top: -4px;
+  background-color: blue;
+}
+.me-component-outline-sortable-ghost > * {
+  display: none !important;
+}
+.me-component-outline-sortable-placeholder {
+  opacity: 0.3;
+}
+.me-component-outline-sortable-placeholder + .me-component-outline-sortable-ghost {
+  display: none;
+}
+.me-is-sorting .me-component-outline__add-button {
+  display: none;
+}

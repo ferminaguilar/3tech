@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * @file
+ * Install file for the Mercury Editor Templates module.
+ */
+
+/**
+ * Update the me_template entity type with the new definition.
+ */
+function mercury_editor_templates_update_9001(&$sandbox) {
+  $entity_type = \Drupal::service('entity_type.manager')->getDefinition('me_template');
+  $field_storage_definitions = \Drupal::service('entity_field.manager')->getFieldStorageDefinitions('me_template');
+  \Drupal::service('entity.definition_update_manager')->updateFieldableEntityType($entity_type, $field_storage_definitions, $sandbox);
+}

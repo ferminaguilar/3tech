@@ -1,0 +1,21 @@
+.me-t-purple {
+  --me-color-background: rgba(33, 0, 128, 1);
+  --me-color-text: #fff;
+
+  /* Buttons */
+  --me-button-color-background: transparent;
+  --me-button-color-text: #FFFFFF;
+  --me-button-color-icon: rgba(255, 255, 255, 0.8);
+  ;
+  --me-button-color-background-hover: transparent;
+  --me-button-color-text-hover: #FFFFFF;
+  --me-button-color-icon-hover: #FFFFFF;
+  --me-button-color-background-primary: rgba(19, 15, 19, 0.5);
+  --me-button-color-text-primary: #FFFFFF;
+  --me-button-color-icon-primary: #FFFFFF;
+  --me-button-color-background-primary-hover: rgba(19, 15, 19, 1);
+  --me-button-color-text-primary-hover: #FFFFFF;
+  --me-button-color-icon-primary-hover: #FFFFFF;
+
+  --me-logo-horizontal: svg-load('me-logo-horizontal-reversed.svg');
+}

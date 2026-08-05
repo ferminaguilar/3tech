@@ -1,0 +1,76 @@
+.lpb-component-list {
+  margin: calc(-1 * var(--me-dialog-space-inset)) !important;
+
+}
+
+.lpb-component-list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  /* Bleed this to the edge of the dialog */
+  width: 40ch;
+  max-width: 90vw;
+  padding: 0;
+
+}
+
+.lpb-component-list .lpb-component-list__search {
+    background-color: #fff;
+    box-shadow:
+      rgba(20, 45, 82, 0.02) 0px 1px 2px,
+      rgba(20, 45, 82, 0.03) 0px 3px 4px,
+      rgba(20, 45, 82, 0.04) 0px 5px 8px;
+    display: flex;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--me-color-border);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+.lpb-component-list .lpb-component-list-search-input {
+    padding: .5em 1em;
+    font-size: 1em;
+    height: auto;
+    width: 100%;
+  }
+
+.lpb-component-list .lpb-component-list__group {
+    padding: 1rem 1.5rem;
+  }
+
+.lpb-component-list .lpb-component-list__group>div {
+      flex-wrap: wrap;
+    }
+
+.lpb-component-list .lpb-component-list__group a {
+      background-color: rgba(var(--me-option-color-background), 0);
+      border: 1px solid rgba(var(--me-option-color-border), 0);
+      border-radius: 3px;
+      font-size: 1em;
+      font-weight: var(--me-font-weight-medium, 600);
+      font-family: var(--me-font-family-sans);
+      margin: 0;
+      padding: .25rem;
+      text-decoration: none;
+      transition: all 0s linear;
+      color: var(--me-option-color-text);
+    }
+
+.lpb-component-list .lpb-component-list__group a:hover,
+      .lpb-component-list .lpb-component-list__group a:focus {
+        background-color: rgba(var(--me-option-color-background-hover), .1);
+        border-color: rgba(var(--me-option-color-border-hover), .25);
+        transition: all .15s linear;
+      }
+
+.lpb-component-list .lpb-component-list__item {
+    position: relative;
+  }
+
+.lpb-component-list .lpb-component-list__item .ajax-progress-throbber {
+    left: auto;
+    right: 0;
+  }
+
+.lpb-dialog .lpb-component-list {}

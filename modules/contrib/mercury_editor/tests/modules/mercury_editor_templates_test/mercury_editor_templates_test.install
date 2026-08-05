@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Mercury Editor Templates Test module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_templates_test_install() {
+  // Update the field widget to all nesting of sections.
+  $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('node', 'me_test_ct');
+  $lp_field = $form_display->getComponent('field_me_test_content');
+  $lp_field['settings']['nesting_depth'] = 1;
+  $form_display->setComponent('field_me_test_content', $lp_field)->save();
+
+  $config = Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $bundles = $config->get('bundles');
+  $bundles['me_template']['me_template'] = 'me_template';
+  $config->set('bundles', $bundles)->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_templates_test_uninstall() {
+  // Delete all me_template entities with the label "-- Me Test Templates --".
+  $templates = Drupal::entityTypeManager()->getStorage('me_template')->loadByProperties(['label' => '-- Mercury Editor Templates Test --']);
+  foreach ($templates as $template) {
+    $template->delete();
+  }
+}

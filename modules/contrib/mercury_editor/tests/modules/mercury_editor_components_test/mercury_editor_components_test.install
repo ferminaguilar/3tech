@@ -1,0 +1,336 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for Mercury Editor Components Test module.
+ */
+
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileExists;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\file\Entity\File;
+use Drupal\media\Entity\Media;
+use Drupal\media\Entity\MediaType;
+use Drupal\paragraphs\Entity\ParagraphsType;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_components_test_install() {
+  mercury_editor_components_test_setup_card_component();
+  mercury_editor_components_test_enable_card_component();
+  mercury_editor_components_test_ensure_media_image();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_components_test_uninstall() {
+  mercury_editor_components_test_remove_card_component();
+  mercury_editor_components_test_remove_media_image();
+}
+
+/**
+ * Ensure the card paragraph type and fields exist.
+ */
+function mercury_editor_components_test_setup_card_component() {
+  $paragraphs_type = ParagraphsType::load('me_test_card');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_card',
+      'label' => 'Card',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+  }
+
+  $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_title');
+  if (!$field_storage) {
+    $field_storage = FieldStorageConfig::create([
+      'field_name' => 'field_me_test_title',
+      'entity_type' => 'paragraph',
+      'type' => 'string',
+      'cardinality' => 1,
+    ]);
+    $field_storage->save();
+  }
+  $field_config = FieldConfig::loadByName('paragraph', 'me_test_card', 'field_me_test_title');
+  if (!$field_config) {
+    $field_config = FieldConfig::create([
+      'field_storage' => $field_storage,
+      'bundle' => 'me_test_card',
+      'label' => 'Heading',
+    ]);
+    $field_config->save();
+  }
+
+  $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_card');
+  $form_display->setComponent('field_me_test_title', ['type' => 'string_textfield']);
+  $form_display->save();
+
+  $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_card');
+  $view_display->setComponent('field_me_test_title', ['type' => 'string', 'label' => 'hidden']);
+  $view_display->save();
+
+  $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_media');
+  if (!$field_storage) {
+    $field_storage = FieldStorageConfig::create([
+      'field_name' => 'field_me_test_media',
+      'entity_type' => 'paragraph',
+      'type' => 'entity_reference',
+      'settings' => [
+        'target_type' => 'media',
+      ],
+      'cardinality' => 1,
+    ]);
+    $field_storage->save();
+  }
+  $field_config = FieldConfig::loadByName('paragraph', 'me_test_card', 'field_me_test_media');
+  if (!$field_config) {
+    $field_config = FieldConfig::create([
+      'field_storage' => $field_storage,
+      'bundle' => 'me_test_card',
+      'label' => 'Media',
+      'settings' => [
+        'handler_settings' => [
+          'target_bundles' => [
+            'image' => 'image',
+            'remote_video' => 'remote_video',
+          ],
+          'sort' => [
+            'field' => '_none',
+            'direction' => 'ASC',
+          ],
+          'auto_create' => FALSE,
+          'auto_create_bundle' => FALSE,
+        ],
+      ],
+    ]);
+    $field_config->save();
+  }
+
+  $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_card');
+  $form_display->setComponent('field_me_test_media', ['type' => 'media_library_widget']);
+  $form_display->save();
+
+  $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_card');
+  $view_display->setComponent('field_me_test_media', ['type' => 'entity_reference_entity_view', 'label' => 'hidden']);
+  $view_display->save();
+  $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_text');
+  if (!$field_storage) {
+    $field_storage = FieldStorageConfig::create([
+      'field_name' => 'field_me_test_text',
+      'entity_type' => 'paragraph',
+      'type' => 'text_long',
+      'cardinality' => 1,
+    ]);
+    $field_storage->save();
+  }
+  $field_config = FieldConfig::loadByName('paragraph', 'me_test_card', 'field_me_test_text');
+  if (!$field_config) {
+    $field_config = FieldConfig::create([
+      'field_storage' => $field_storage,
+      'bundle' => 'me_test_card',
+      'label' => 'Text',
+    ]);
+    $field_config->save();
+  }
+
+  $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_card');
+  $form_display->setComponent('field_me_test_text', ['type' => 'text_textarea']);
+  $form_display->save();
+
+  $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_card');
+  $view_display->setComponent('field_me_test_text', ['type' => 'text_default', 'label' => 'hidden']);
+  $view_display->save();
+  $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_link');
+  if (!$field_storage) {
+    $field_storage = FieldStorageConfig::create([
+      'field_name' => 'field_me_test_link',
+      'entity_type' => 'paragraph',
+      'type' => 'link',
+      'cardinality' => 1,
+    ]);
+    $field_storage->save();
+  }
+  $field_config = FieldConfig::loadByName('paragraph', 'me_test_card', 'field_me_test_link');
+  if (!$field_config) {
+    $field_config = FieldConfig::create([
+      'field_storage' => $field_storage,
+      'bundle' => 'me_test_card',
+      'label' => 'Link / Call to Action',
+    ]);
+    $field_config->save();
+  }
+
+  $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_card');
+  $form_display->setComponent('field_me_test_link', ['type' => 'link_default']);
+  $form_display->save();
+
+  $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_card');
+  $view_display->setComponent('field_me_test_link', ['type' => 'link', 'label' => 'hidden']);
+  $view_display->save();
+}
+
+/**
+ * Enable the card component for the test content type.
+ */
+function mercury_editor_components_test_enable_card_component() {
+  $field_config = FieldConfig::loadByName('node', 'me_test_ct', 'field_me_test_content');
+  if (!$field_config) {
+    return;
+  }
+
+  $handler_settings = $field_config->getSetting('handler_settings') ?? [];
+  $drag_drop = $handler_settings['target_bundles_drag_drop'] ?? [];
+
+  if (!isset($drag_drop['me_test_card'])) {
+    $weights = array_map(static function ($item) {
+      return $item['weight'] ?? 0;
+    }, $drag_drop);
+    $weight = empty($weights) ? 0 : max($weights) + 1;
+
+    $drag_drop['me_test_card'] = [
+      'weight' => $weight,
+      'enabled' => TRUE,
+    ];
+    $handler_settings['target_bundles_drag_drop'] = $drag_drop;
+    $field_config->setSetting('handler_settings', $handler_settings);
+    $field_config->save();
+  }
+}
+
+/**
+ * Remove the card component from the test content type.
+ */
+function mercury_editor_components_test_remove_card_component() {
+  $field_config = FieldConfig::loadByName('node', 'me_test_ct', 'field_me_test_content');
+  if (!$field_config) {
+    return;
+  }
+
+  $handler_settings = $field_config->getSetting('handler_settings') ?? [];
+  $drag_drop = $handler_settings['target_bundles_drag_drop'] ?? [];
+
+  if (isset($drag_drop['me_test_card'])) {
+    unset($drag_drop['me_test_card']);
+    $handler_settings['target_bundles_drag_drop'] = $drag_drop;
+    $field_config->setSetting('handler_settings', $handler_settings);
+    $field_config->save();
+  }
+}
+
+/**
+ * Ensure an image media item exists for the media library.
+ */
+function mercury_editor_components_test_ensure_media_image() {
+  if (!MediaType::load('image')) {
+    return;
+  }
+
+  $file_system = \Drupal::service('file_system');
+  $directory = 'public://mercury_editor_card_test';
+  $file_system->prepareDirectory($directory, FileSystemInterface::CREATE_DIRECTORY);
+
+  // Create first image media (example-1).
+  $existing = \Drupal::entityQuery('media')
+    ->condition('bundle', 'image')
+    ->condition('name', 'example-1')
+    ->accessCheck(FALSE)
+    ->execute();
+
+  if (empty($existing)) {
+    $source = DRUPAL_ROOT . '/core/tests/fixtures/files/image-1.png';
+    if (file_exists($source)) {
+      $destination = $directory . '/example-1.jpg';
+      $copied = $file_system->copy($source, $destination, FileExists::Replace);
+
+      if ($copied) {
+        $file = File::create([
+          'uri' => $destination,
+          'status' => 1,
+        ]);
+        $file->save();
+
+        $media = Media::create([
+          'bundle' => 'image',
+          'name' => 'example-1',
+          'field_media_image' => [
+            'target_id' => $file->id(),
+            'alt' => 'Example 1 image',
+          ],
+        ]);
+        $media->save();
+      }
+    }
+  }
+
+  // Create second image media (example-2).
+  $existing = \Drupal::entityQuery('media')
+    ->condition('bundle', 'image')
+    ->condition('name', 'example-2')
+    ->accessCheck(FALSE)
+    ->execute();
+
+  if (empty($existing)) {
+    $source = DRUPAL_ROOT . '/core/tests/fixtures/files/image-2.jpg';
+    if (file_exists($source)) {
+      $destination = $directory . '/example-2.jpg';
+      $copied = $file_system->copy($source, $destination, FileExists::Replace);
+
+      if ($copied) {
+        $file = File::create([
+          'uri' => $destination,
+          'status' => 1,
+        ]);
+        $file->save();
+
+        $media = Media::create([
+          'bundle' => 'image',
+          'name' => 'example-2',
+          'field_media_image' => [
+            'target_id' => $file->id(),
+            'alt' => 'Example 2 image',
+          ],
+        ]);
+        $media->save();
+      }
+    }
+  }
+}
+
+/**
+ * Remove the test media item and file.
+ */
+function mercury_editor_components_test_remove_media_image() {
+  $media_ids = \Drupal::entityQuery('media')
+    ->condition('bundle', 'image')
+    ->condition('name', ['example-1', 'example-2'], 'IN')
+    ->accessCheck(FALSE)
+    ->execute();
+
+  if (empty($media_ids)) {
+    return;
+  }
+
+  $medias = Media::loadMultiple($media_ids);
+  foreach ($medias as $media) {
+    if (!$media->hasField('field_media_image')) {
+      $media->delete();
+      continue;
+    }
+    $file = $media->get('field_media_image')->entity;
+    if ($file instanceof File) {
+      $file->delete();
+    }
+    $media->delete();
+  }
+}

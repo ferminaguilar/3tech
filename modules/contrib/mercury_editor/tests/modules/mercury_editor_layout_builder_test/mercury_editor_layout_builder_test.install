@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor Layout Builder Test module.
+ */
+
+use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_layout_builder_test_install() {
+  $layout_display = LayoutBuilderEntityViewDisplay::load('node.me_test_ct.default');
+  $layout_display->enableLayoutBuilder()
+    ->setOverridable()
+    ->save();
+}

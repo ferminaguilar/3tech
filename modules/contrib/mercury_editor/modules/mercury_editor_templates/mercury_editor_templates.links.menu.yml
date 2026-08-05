@@ -1,0 +1,10 @@
+entity.me_template.settings:
+  title: 'Mercury Editor Template'
+  description: 'Configure a Mercury Editor Template entity type.'
+  route_name:  entity.me_template.settings
+  parent: system.admin_structure
+entity.me_template.collection:
+  title: 'Mercury Editor Templates'
+  description: 'List of Mercury Editor templates.'
+  route_name: entity.me_template.collection
+  parent: system.admin_content

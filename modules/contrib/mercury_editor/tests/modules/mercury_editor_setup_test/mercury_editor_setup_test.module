@@ -1,0 +1,46 @@
+<?php
+
+/**
+ * @file
+ * Module hooks for Mercury Editor Setup Test module.
+ */
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function mercury_editor_setup_test_entity_type_alter(array &$entity_types) {
+  // Delegate to the demo module.
+  if (function_exists('mercury_editor_startup_demo_entity_type_alter')) {
+    mercury_editor_startup_demo_entity_type_alter($entity_types);
+  }
+}
+
+/**
+ * Implements hook_library_info_alter().
+ */
+function mercury_editor_setup_test_library_info_alter(array &$libraries, $extension) {
+  // Delegate to the demo module.
+  if (function_exists('mercury_editor_startup_demo_library_info_alter')) {
+    mercury_editor_startup_demo_library_info_alter($libraries, $extension);
+  }
+}
+
+/**
+ * Creates a paragraph field for the provided entity type and bundle.
+ *
+ * @deprecated Use mercury_editor_startup_demo_make_paragraph_field() instead.
+ */
+function mercury_editor_setup_test_make_paragraph_field(
+  $entity_type,
+  $bundle,
+  $field_name,
+  $field_label,
+  $handler_settings = [],
+  $widget = 'paragraphs',
+  $formatter = 'entity_reference_revisions_entity_view',
+) {
+  // Delegate to the demo module.
+  if (function_exists('mercury_editor_startup_demo_make_paragraph_field')) {
+    return mercury_editor_startup_demo_make_paragraph_field($entity_type, $bundle, $field_name, $field_label, $handler_settings, $widget, $formatter);
+  }
+}

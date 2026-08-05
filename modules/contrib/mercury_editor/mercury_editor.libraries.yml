@@ -1,0 +1,178 @@
+base:
+  css:
+    base:
+      build/css/base/settings.css: {}
+      build/css/base/base.css: {}
+  dependencies:
+    - mercury_editor/google_fonts
+
+component_form:
+  js:
+    build/js/component-form.js: {}
+  dependencies:
+    - core/once
+
+component_icons:
+  css:
+    component:
+      build/css/component-icons.css: {}
+
+dialog.ajax:
+  js:
+    build/js/dialog.ajax.js: {}
+  dependencies:
+    - core/drupal.dialog.ajax
+    - mercury_editor/dialog.drupal
+
+dialog.drupal:
+  css:
+    component:
+      build/css/dialog.css: {}
+  js:
+    build/js/dialog.drupal.js: {}
+  dependencies:
+    - mercury_editor/dialog.element
+
+dialog.element:
+  js:
+    build/js/dialog.element.min.js: { minified: true }
+
+edit_screen:
+  css:
+    component:
+      build/css/edit-screen.css: {}
+      build/css/components/messages.css: {}
+  js:
+    build/js/mercury-editor-bus.js: {}
+    build/js/edit-screen.js: {}
+    build/js/autosave.js: {}
+    build/js/component.handlers.js: {}
+    build/js/edit-screen.handlers.js: {}
+  dependencies:
+    - core/once
+    - core/jquery
+    - layout_paragraphs/builder
+    - mercury_editor/mercury_editor
+    - mercury_editor/edit_screen.ajax
+    - mercury_editor/focus_helper
+    - mercury_editor/update_states_ui
+    - mercury_editor/select_component
+
+edit_screen.ajax:
+  js:
+    build/js/edit-screen.ajax.js: {}
+  dependencies:
+    - core/drupal.ajax
+
+entity_browser.modal_selection:
+  js:
+    build/js/entity_browser.modal_selection.js: {}
+
+entity_form:
+  css:
+    component:
+      build/css/components/entity-form.css: {}
+  js:
+    build/js/edit-screen-entity-form.js: {}
+
+focus_helper:
+  js:
+    build/js/dialog-focus-helper.js: {}
+
+gin_overrides:
+  css:
+    theme:
+      build/css/theme/gin-overrides.css: {}
+
+google_fonts:
+  css:
+    base:
+      //fonts.googleapis.com/css?family=IBM+Plex+Sans:400,400i,500,700,700i|IBM+Plex+Serif&display=swap:
+        { type: external }
+
+horizontal_tabs:
+  css:
+    component:
+      build/css/horizontal-tabs.css: {}
+  js:
+    build/js/horizontal-tabs.js: {}
+
+image_radios:
+  css:
+    component:
+      build/css/image-radios.css: {}
+
+layout_select:
+  css:
+    component:
+      build/css/components/layout-select.css: {}
+
+lpb_component_delete_form:
+  css:
+    component:
+      build/css/components/lpb-component-delete-form.css: {}
+
+lpb_component_list:
+  css:
+    component:
+      build/css/components/lpb-component-list.css: {}
+  dependencies:
+    - mercury_editor/base
+    - mercury_editor/component_icons
+
+menu:
+  css:
+    component:
+      build/css/menu.css: {}
+
+mercury_editor:
+  css:
+    component:
+      build/css/components/buttons.css: {}
+      build/css/components/component.css: {}
+      build/css/components/empty-message.css: {}
+      build/css/components/entity-browser.css: {}
+      build/css/components/form.css: {}
+      build/css/components/paragraphs-widget.css: {}
+      build/css/components/table.css: {}
+    theme:
+      build/css/theme/theme.css: {}
+  dependencies:
+    - mercury_editor/base
+    - mercury_editor/component_icons
+    - mercury_editor/unpublished_hint
+    - core/once
+
+preview_screen:
+  css:
+    component:
+      build/css/preview-screen.css: {}
+  js:
+    build/js/mercury-editor-bus.js: {}
+    build/js/preview-screen.js: {}
+    build/js/preview-screen.handlers.js: {}
+  dependencies:
+    - layout_paragraphs/builder
+    - mercury_editor/update_states_ui
+
+select_component:
+  js:
+    build/js/select-component.ajax.js: {}
+  dependencies:
+    - core/drupal.ajax
+
+sync_changes:
+  js:
+    build/js/sync-changes.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+
+unpublished_hint:
+  css:
+    component:
+      build/css/components/unpublished-hint.css: {}
+
+update_states_ui:
+  js:
+    build/js/update-states-ui.ajax.js: {}

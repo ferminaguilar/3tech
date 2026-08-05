@@ -1,0 +1,1044 @@
+<?php
+
+/**
+ * @file
+ * Define the hook implementations for the Mercury Editor module.
+ */
+
+use Drupal\Core\Url;
+use Drupal\taxonomy\TermForm;
+use Drupal\Core\Render\Element;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Component\Serialization\Yaml;
+use Drupal\Core\Cache\CacheableMetadata;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\block_content\BlockContentForm;
+use Drupal\Core\Block\BlockPluginInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\mercury_editor\Hook\MercuryEditorFormHooks;
+use Drupal\mercury_editor\MercuryEditorEntityTypeInfo;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
+use Drupal\Core\Hook\Attribute\LegacyHook;
+
+/**
+ * @file
+ * Mercury editor module.
+ */
+
+/**
+ * Implements hook_library_info_alter().
+ *
+ * Attaches our mercury_editor dialog libraries where needed.
+ */
+function mercury_editor_library_info_alter(&$libraries, $extension) {
+  if ($extension == 'core' && isset($libraries['drupal.dialog'])) {
+    $libraries['drupal.dialog']['dependencies'][] = 'mercury_editor/dialog.drupal';
+  }
+  if ($extension == 'entity_browser' && isset($libraries['modal_selection'])) {
+    $libraries['modal_selection']['dependencies'][] = 'mercury_editor/entity_browser.modal_selection';
+  }
+  if ($extension == 'layout_paragraphs' && isset($libraries['builder'])) {
+    $libraries['builder']['dependencies'][] = 'mercury_editor/dialog.ajax';
+  }
+  if ($extension == 'image_radios' && isset($libraries['image_radios'])) {
+    $libraries['image_radios']['dependencies'][] = 'mercury_editor/image_radios';
+  }
+
+  if ($extension == 'gin' && isset($libraries['media_library'])) {
+    // When using the gin_toolbar module, we need to add the gin_base and
+    // gin_accent libraries as dependencies to the media_library library as
+    // they contain CSS custom property definitions that the media library
+    // styles rely on. This should probably be fixed in Gin itself.
+    if (\Drupal::moduleHandler()->moduleExists('gin_toolbar')) {
+      $libraries['media_library']['dependencies'][] = 'gin/gin_base';
+      $libraries['media_library']['dependencies'][] = 'gin/gin_accent';
+    }
+  }
+}
+
+/**
+ * Implements hook_ajax_render_alter().
+ *
+ * Replaces Drupal's ajax Dialog commands with MercuryDialog commands.
+ */
+function mercury_editor_ajax_render_alter(array &$data): void {
+  $route_name = \Drupal::routeMatch()->getRouteName() ?? '';
+  if (str_contains($route_name, 'mercury_editor') || \Drupal::request()->query->has('me_id')) {
+    foreach ($data as &$command) {
+      if ($command['command'] == 'openDialog') {
+        $command['command'] = 'openMercuryDialog';
+      }
+      if ($command['command'] == 'closeDialog') {
+        $command['command'] = 'closeMercuryDialog';
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess().
+ *
+ * @see https://www.drupal.org/project/mercury_editor/issues/3379180
+ * @see contextual_preprocess()
+ */
+function mercury_editor_preprocess(array &$variables, $hook, $info) {
+  if (empty($variables['title_suffix']['contextual_links'])) {
+    return;
+  }
+  if (!\Drupal::service('mercury_editor.context')->isPreview()) {
+    return;
+  }
+  // Determine the primary theme function argument.
+  if (!empty($info['variables'])) {
+    $keys = array_keys($info['variables']);
+    $key = $keys[0];
+  }
+  elseif (!empty($info['render element'])) {
+    $key = $info['render element'];
+  }
+  if (!empty($key) && isset($variables[$key])) {
+    $element = $variables[$key];
+  }
+
+  if (isset($element) && is_array($element) && !empty($element['#contextual_links'])) {
+    // Disable contextual links on the preview route.
+    $variables['title_suffix']['#cache']['contexts'][] = 'route.name.is_mercury_editor_preview';
+    unset($variables['title_suffix']['contextual_links']);
+  }
+}
+
+/**
+ * Implements hook_preprocess_layout_paragraphs_builder_controls().
+ *
+ * Set width on component delete modals.
+ */
+function mercury_editor_preprocess_layout_paragraphs_builder_controls(&$variables) {
+
+  /** @var \Drupal\layout_paragraphs\LayoutParagraphsLayout $layout */
+  $layout = $variables['layout_paragraphs_layout'];
+  $component = $layout->getComponentByUuid($variables['uuid']);
+
+  if (Drupal::service('mercury_editor.context')->isPreview()) {
+    $mercury_editor_entity = Drupal::service('mercury_editor.context')->getEntity();
+    $uuid = $variables['uuid'];
+    $layout = $variables['layout_paragraphs_layout'];
+    $component = $layout->getComponentByUuid($uuid);
+    $type = $component->getEntity()->getParagraphType();
+
+    // Alters the edit link.
+    $variables['controls']['edit_link']['#url'] = Url::fromRoute('mercury_editor.component.action', [
+      'mercury_editor_entity' => $mercury_editor_entity->uuid(),
+      'layout_paragraphs_layout' => $layout->id(),
+      'action' => 'edit',
+      'component_uuid' => $uuid,
+    ]);
+    $variables['controls']['edit_link']['#attributes']['title'] = t('Edit :type', [':type' => $type->label()]);
+    $variables['controls']['edit_link']['#attributes']['data-me-component-action'] = 'edit';
+
+    // Alters the delete link.
+    $variables['controls']['delete_link']['#url'] = Url::fromRoute('mercury_editor.component.action', [
+      'mercury_editor_entity' => $mercury_editor_entity->uuid(),
+      'layout_paragraphs_layout' => $layout->id(),
+      'action' => 'delete',
+      'component_uuid' => $uuid,
+    ]);
+    $variables['controls']['delete_link']['#attributes']['title'] = t('Delete :type', [':type' => $type->label()]);
+    $variables['controls']['delete_link']['#attributes']['data-me-component-action'] = 'delete';
+
+    // Alters the duplicate link.
+    $variables['controls']['duplicate_link']['#url'] = Url::fromRoute('mercury_editor.component.action', [
+      'mercury_editor_entity' => $mercury_editor_entity->uuid(),
+      'layout_paragraphs_layout' => $layout->id(),
+      'action' => 'duplicate',
+      'component_uuid' => $uuid,
+    ]);
+    $variables['controls']['duplicate_link']['#attributes']['title'] = t('Duplicate :type', [':type' => $type->label()]);
+    $variables['controls']['duplicate_link']['#attributes']['data-me-component-action'] = 'duplicate';
+  }
+}
+
+/**
+ * Implements hook_preprocess_layout_paragraphs_insert_component_btn().
+ *
+ * Alters the "insert component" buttons to use window.postMessage instead
+ * of directly invoking an Ajax action.
+ */
+function mercury_editor_preprocess_layout_paragraphs_insert_component_btn(&$variables) {
+  if (!Drupal::service('mercury_editor.context')->isPreview()) {
+    return;
+  }
+  $variables['url'] = Url::fromRoute('mercury_editor.component.action', [
+    'mercury_editor_entity' => Drupal::service('mercury_editor.context')->getEntity()->uuid(),
+    'layout_paragraphs_layout' => $variables['url']->getRouteParameters()['layout_paragraphs_layout'],
+    'action' => 'insert',
+  ], $variables['url']->getOptions());
+  $variables['attributes']['data-me-component-action'] = 'insert';
+  $query = $variables['url']->getOption('query') ?? [];
+  foreach ($query as $key => $value) {
+    $variables['attributes']['data-me-' . str_replace('_', '-', $key)] = $value;
+  }
+}
+
+/**
+ * Helper function to replace layout paragraph routes with mercury editor ones.
+ *
+ * @param \Drupal\Core\Url $url
+ *   The url object.
+ */
+function _mercury_editor_replace_layout_paragraphs_routes(Url &$url) {
+  $route_name = $url->getRouteName();
+  $parameters = $url->getRouteParameters();
+  // Compatibility with layout_paragraphs 2.1.x.
+  if (!empty($parameters['paragraph_type_id']) && empty($parameters['paragraph_type'])) {
+    $parameters['paragraph_type'] = $parameters['paragraph_type_id'];
+  }
+  $options = $url->getOptions();
+  $options['query']['me_id'] = \Drupal::service('mercury_editor.context')->getEntity()->uuid();
+  $route_name = str_replace('layout_paragraphs.', 'mercury_editor.', $route_name);
+  $url = Url::fromRoute($route_name, $parameters, $options);
+}
+
+/**
+ * Implements hook_theme_suggestions_page_alter().
+ */
+function mercury_editor_theme_suggestions_page_alter(array &$suggestions, array $variables) {
+  $request = \Drupal::requestStack()->getCurrentRequest();
+  $exception = $request->attributes->get('exception');
+
+  // If this request is an exception response, remove ME-specific suggestions.
+  if ($exception instanceof HttpExceptionInterface) {
+    // Prune all suggestions starting with "page__mercury_editor".
+    $suggestions = array_filter($suggestions, function ($suggestion) {
+      return !str_starts_with($suggestion, 'page__mercury_editor');
+    });
+  }
+  // Adds template suggestions for the mercury editor preview screen.
+  // This allows themers to create a specific page template for the preview
+  // if needed.
+  if (\Drupal::service('mercury_editor.context')->isPreview()) {
+    $mercury_editor_entity = \Drupal::service('mercury_editor.context')->getEntity();
+    if ($mercury_editor_entity) {
+      $suggestions[] = 'page__' . $mercury_editor_entity->bundle();
+    }
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter().
+ *
+ * Use the mercury_editor theme suggestion for the component menu.
+ */
+function mercury_editor_theme_suggestions_layout_paragraphs_builder_component_menu_alter(array &$suggestions, array $variables) {
+  $route = \Drupal::routeMatch()->getRouteObject();
+  if ($route->hasOption('_mercury_editor_route')) {
+    $suggestions[] = 'layout_paragraphs_builder_component_menu__mercury_editor';
+  }
+}
+
+/**
+ * Implements hook_theme_suggestions_HOOK_alter().
+ *
+ * Since node forms are set to use a specialized template in the node module,
+ * we need to set the template suggestion here.
+ */
+function mercury_editor_theme_suggestions_node_edit_form_alter(array &$suggestions, array $variables) {
+  if (strpos($variables['form']['#form_id'], '_mercury_editor_form') !== FALSE) {
+    $suggestions[] = 'mercury_editor_entity_form';
+  }
+}
+
+/**
+ * Implements hook_entity_build_defaults_alter().
+ *
+ * Add cache context for mercury editor preview screen.
+ */
+function mercury_editor_entity_build_defaults_alter(array &$build, EntityInterface $entity, $view_mode) {
+  $me_entity_types = \Drupal::config('mercury_editor.settings')->get('bundles');
+  if (!empty($me_entity_types[$entity->getEntityTypeId()])) {
+    $build['#cache']['contexts'][] = 'route.name.is_mercury_editor_preview';
+  }
+}
+
+/**
+ * Implements hook_block_build_alter().
+ *
+ * Add cache context for mercury editor preview screen.
+ */
+function mercury_editor_block_build_alter(array &$build, BlockPluginInterface $block) {
+  $me_entity_types = \Drupal::config('mercury_editor.settings')->get('bundles');
+  if (empty($me_entity_types['block_content'])) {
+    return;
+  }
+  $build['#cache']['contexts'][] = 'route.name.is_mercury_editor_preview';
+}
+
+/**
+ * Implements hook_build_alter().
+ */
+function mercury_editor_entity_display_build_alter(&$build, $context) {
+
+  if (empty($context['entity'])) {
+    return;
+  }
+  if (!\Drupal::service('mercury_editor.context')->isPreview()) {
+    return;
+  }
+  $mercury_editor_entity = \Drupal::service('mercury_editor.context')->getEntity();
+  if (empty($mercury_editor_entity)) {
+    return;
+  }
+  if ($context['entity']->uuid() != $mercury_editor_entity->uuid()) {
+    return;
+  }
+
+  // Adds a data attribute to the entity wrapper for Mercury Editor.
+  $build['#attributes']['data-me-edit-screen-key'] = $mercury_editor_entity->uuid();
+  $build['#attributes']['class'][] = 'is-mercury-edit-mode';
+
+  // Turns on Layout Paragraphs builder for Mercury Editor LP fields.
+  $layout_paragraphs_field_ids = \Drupal::service('mercury_editor.tempstore_repository')
+    ->getLayoutParagraphsFieldIds($mercury_editor_entity);
+  foreach ($layout_paragraphs_field_ids as $field_name => $lp_key) {
+    if (isset($build[$field_name])) {
+      $layout = \Drupal::service('layout_paragraphs.tempstore_repository')->getWithStorageKey($lp_key);
+
+      // Skip empty layouts.
+      if (empty($layout)) {
+        continue;
+      }
+
+      $build[$field_name] = [
+        '#type' => 'layout_paragraphs_builder',
+        '#layout_paragraphs_layout' => $layout,
+        '#is_translating' => $layout->getSetting('is_translating'),
+      ];
+    }
+  }
+
+}
+
+/**
+ * Implements hook_theme().
+ */
+function mercury_editor_theme() {
+  return [
+    'page__mercury_editor' => [
+      'base hook' => 'page',
+    ],
+    'mercury_editor_entity_form' => [
+      'render element' => 'form',
+    ],
+    'layout_paragraphs_builder_component_menu__mercury_editor' => [
+      'base hook' => 'layout_paragraphs_builder_component_menu',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_block_alter().
+ *
+ * Swap out the Field Block class with our own to detect when in Mercury Editor
+ * preview mode.
+ */
+function mercury_editor_block_alter(&$definitions) {
+  $matches = array_filter($definitions, function ($definition) {
+    return !empty($definition['default_formatter']) && $definition['default_formatter'] == 'entity_reference_revisions_entity_view';
+  });
+  foreach (array_keys($matches) as $block_id) {
+    $definitions[$block_id]['default_formatter'] = 'mercury_editor_entity_reference_revisions_entity_view';
+    $definitions[$block_id]['class'] = 'Drupal\mercury_editor\MEFieldBlock';
+  }
+}
+
+/**
+ * Implements hook_preprocess_html().
+ *
+ * Removes admin toolbar for Mercury Editor edit screens.
+ */
+function mercury_editor_preprocess_html(&$variables) {
+  if (\Drupal::routeMatch()->getRouteName() == 'mercury_editor.editor') {
+    $variables['attributes']['class'][] = 'me-edit-screen';
+  }
+  if (\Drupal::routeMatch()->getRouteObject()->getOption('_hide_admin_toolbar')) {
+    // Check if toolbar is enabled.
+    // Remove toolbar from the page.
+    unset($variables['page_top']['toolbar']);
+
+    // Remove toolbar classes from the body.
+    $variables['attributes']['class'] = array_filter($variables['attributes']['class'] ?? [], function ($value) {
+      return !empty($value) && strpos($value, 'toolbar-') !== 0;
+    });
+    // Check if gin_toolbar is enabled.
+    if (\Drupal::moduleHandler()->moduleExists('gin_toolbar')) {
+      // Remove toolbar classes from the body.
+      $variables['attributes']['class'] = array_filter($variables['attributes']['class'] ?? [], function ($value) {
+        return !empty($value) && strpos($value, 'gin--') !== 0;
+      });
+      // Remove toolbar attributes from the body.
+      $variables['attributes'] = array_filter($variables['attributes'] ?? [], function ($value) {
+        return strpos($value, 'data-gin') !== 0;
+      }, ARRAY_FILTER_USE_KEY);
+    }
+    // Check if adminimal_admin_toolbar is enabled.
+    if (\Drupal::moduleHandler()->moduleExists('adminimal_admin_toolbar')) {
+      // Remove toolbar classes from the body.
+      $variables['attributes']['class'] = array_filter($variables['attributes']['class'] ?? [], function ($value) {
+        return strpos($value, 'adminimal-admin-toolbar') !== 0;
+      });
+    }
+
+    // Check if navigation is enabled.
+    if (\Drupal::moduleHandler()->moduleExists('navigation')) {
+      // Remove navigation from the page.
+      unset($variables['page_top']['navigation']);
+      unset($variables['page_top']['top_bar']);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function mercury_editor_preprocess_node(&$variables) {
+  $mercury_editor_entity = \Drupal::service('mercury_editor.context')->getEntity();
+  if ($mercury_editor_entity && $variables['node']->uuid() == $mercury_editor_entity->uuid()) {
+    $variables['page'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_preprocess_page().
+ *
+ * Adds a select list to the page for choosing from a list of mobile presets.
+ */
+function mercury_editor_preprocess_page__mercury_editor(&$variables) {
+  $variables['content_attributes']['class'][] = 'me-edit-screen';
+  // Get mobile presets from the Mercury Editor settings.
+  $mobile_presets = \Drupal::config('mercury_editor.settings')->get('mobile_presets') ?? [];
+  if ($mobile_presets) {
+    // Parse mobile presets into an array.
+    $mobile_presets_names = array_map(function ($preset) {
+      return $preset['width'] . 'x' . $preset['height'];
+    }, $mobile_presets);
+    $mobile_presets_values = array_map(function ($preset) {
+      return $preset['name'] . ' (' . $preset['width'] . 'x' . $preset['height'] . ')';
+    }, $mobile_presets);
+    $mobile_presets_options = array_combine($mobile_presets_names, $mobile_presets_values);
+    $variables['mobile_presets'] = [
+      '#type' => 'select',
+      '#options' => $mobile_presets_options,
+      '#attributes' => [
+        'class' => ['me-mobile-presets'],
+        'style' => 'display: none',
+      ],
+    ];
+  }
+  // Get uuid from the route.
+  $mercury_editor_entity = \Drupal::service('mercury_editor.context')->getEntity();
+  if ($mercury_editor_entity) {
+    $variables['preview_url'] = Url::fromRoute('entity.' . $mercury_editor_entity->getEntityTypeId() . '.mercury_editor_preview', [
+      $mercury_editor_entity->getEntityTypeId() => $mercury_editor_entity->uuid(),
+    ])->toString();
+    $variables['component_outline_url'] = Url::fromRoute('mercury_editor.component_outline', [
+      'mercury_editor_entity' => $mercury_editor_entity->uuid(),
+    ])->toString();
+    $variables['uuid'] = $mercury_editor_entity->uuid();
+    $variables['entity_type'] = $mercury_editor_entity->getEntityTypeId();
+    $variables['entity_type_label'] = $mercury_editor_entity->getEntityType()->getLabel();
+    $variables['bundle_label'] = $mercury_editor_entity->type
+      ? $mercury_editor_entity->type->entity->label()
+      : $mercury_editor_entity->getEntityType()->getLabel();
+    if ($mercury_editor_entity->id()) {
+      $variables['dialog_title'] = t('Edit @type', [
+        '@type' => $variables['bundle_label'],
+      ]);
+    }
+    else {
+      $variables['dialog_title'] = t('Create @type', [
+        '@type' => $variables['bundle_label'],
+      ]);
+    }
+    $destination = \Drupal::request()->query->get('destination');
+    $variables['exit_url'] = Url::fromRoute('mercury_editor.exit', [
+      'mercury_editor_entity' => $mercury_editor_entity->uuid(),
+      $destination ? ['destination' => $destination] : NULL,
+    ]);
+  }
+  $variables['#attached']['library'][] = 'core/drupal.dialog';
+
+  // Set the default tray width.
+  $tray_width = \Drupal::config('mercury_editor.settings')->get('dialog_tray_width') ?? '400';
+  if ($tray_width) {
+    $variables['#attached']['drupalSettings']['mercuryEditor']['defaultWidth'] = $tray_width;
+  }
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function mercury_editor_preprocess_page(&$variables) {
+  // Add the rollover padding settings.
+  $rollover_padding_block = \Drupal::config('mercury_editor.settings')->get('rollover_padding_block');
+  if ($rollover_padding_block) {
+    $variables['#attached']['drupalSettings']['mercuryEditor']['rolloverPaddingBlock'] = $rollover_padding_block;
+  }
+  $rollover_padding_inline = \Drupal::config('mercury_editor.settings')->get('rollover_padding_inline');
+  if ($rollover_padding_inline) {
+    $variables['#attached']['drupalSettings']['mercuryEditor']['rolloverPaddingInline'] = $rollover_padding_inline;
+  }
+
+  if ($variables['is_admin']) {
+    // Attach dynamic component icon styles.
+    $component_icon_service = \Drupal::service('mercury_editor.component_icons');
+    $dynamic_css = $component_icon_service->generateDefaultIconStyles();
+    if (!empty($dynamic_css)) {
+      $variables['#attached']['html_head'][] = [
+        [
+          '#tag' => 'style',
+          '#value' => $dynamic_css,
+          '#attributes' => [
+            'data-mercury-editor-dynamic-icons' => TRUE,
+          ],
+        ],
+        'mercury_editor_dynamic_icons',
+      ];
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_paragraph().
+ *
+ * Adds data-me-autosave attribute to paragraphs based on autosave settings.
+ */
+function mercury_editor_preprocess_paragraph(&$variables) {
+  $context_service = \Drupal::service('mercury_editor.context');
+  if (!$context_service->isPreview()) {
+    return;
+  }
+
+  /** @var \Drupal\paragraphs\ParagraphInterface $paragraph */
+  $paragraph = $variables['paragraph'];
+
+  // Check if autosave is enabled for this paragraph type.
+  $autosave_helper = \Drupal::service('mercury_editor.autosave_helper');
+  $is_autosave_enabled = $autosave_helper->isEnabled($paragraph->bundle());
+
+  // Add the data-me-autosave attribute to the paragraph.
+  if (!isset($variables['attributes']['data-me-autosave'])) {
+    $variables['attributes']['data-me-autosave'] = $is_autosave_enabled ? 'true' : 'false';
+  }
+}
+
+/**
+ * Implements hook_preprocess_taxonomy_term().
+ */
+function mercury_editor_preprocess_taxonomy_term(&$variables) {
+  $mercury_editor_entity = \Drupal::service('mercury_editor.context')->getEntity();
+  if ($mercury_editor_entity && $variables['term']->uuid() == $mercury_editor_entity->uuid()) {
+    $variables['page'] = TRUE;
+  }
+}
+
+/**
+ * Implements hook_theme_registry_alter().
+ *
+ * Make sure this module's hook_preprocess_html implementation runs last.
+ */
+function mercury_editor_theme_registry_alter(&$theme_registry) {
+  $index = array_search('mercury_editor_preprocess_html', $theme_registry['html']['preprocess functions']);
+  unset($theme_registry['html']['preprocess functions'][$index]);
+  $theme_registry['html']['preprocess functions'][50] = 'mercury_editor_preprocess_html';
+}
+
+/**
+ * Implements hook_page_attachments().
+ */
+function mercury_editor_page_attachments(&$attachments) {
+  if (\Drupal::service('mercury_editor.context')->isPreview()) {
+    $attachments['#attached']['library'][] = 'mercury_editor/preview_screen';
+  }
+  _mercury_editor_content_translation_page_attachments($attachments);
+}
+
+/**
+ * Copies and modifies the content_translation_page_attachments function.
+ *
+ * It is modified to check entities for an id before trying to create a link to
+ * them.
+ */
+function _mercury_editor_content_translation_page_attachments(&$page) {
+  $cache = CacheableMetadata::createFromRenderArray($page);
+  $route_match = \Drupal::routeMatch();
+
+  // If the current route has no parameters, return.
+  if (!($route = $route_match->getRouteObject()) || !($parameters = $route->getOption('parameters'))) {
+    return;
+  }
+  $is_front = \Drupal::service('path.matcher')->isFrontPage();
+
+  // Determine if the current route represents an entity.
+  foreach ($parameters as $name => $options) {
+    if (!isset($options['type']) || !str_starts_with($options['type'], 'entity:')) {
+      continue;
+    }
+
+    $entity = $route_match->getParameter($name);
+    if ($entity instanceof ContentEntityInterface && $entity->id() && $entity->hasLinkTemplate('canonical')) {
+      // Current route represents a content entity. Build hreflang links.
+      foreach ($entity->getTranslationLanguages() as $language) {
+        // Skip any translation that cannot be viewed.
+        $translation = $entity->getTranslation($language->getId());
+        $access = $translation->access('view', NULL, TRUE);
+        $cache->addCacheableDependency($access);
+        if (!$access->isAllowed()) {
+          continue;
+        }
+        if ($is_front) {
+          // If the current page is front page, do not create hreflang links
+          // from the entity route, just add the languages to root path.
+          $url = Url::fromRoute('<front>', [], [
+            'absolute' => TRUE,
+            'language' => $language,
+          ])->toString();
+        }
+        // Create links for the entity path.
+        else {
+          $url = $entity->toUrl('canonical')
+            ->setOption('language', $language)
+            ->setAbsolute()
+            ->toString();
+        }
+        $page['#attached']['html_head_link'][] = [
+          [
+            'rel' => 'alternate',
+            'hreflang' => $language->getId(),
+            'href' => $url,
+          ],
+        ];
+      }
+    }
+    // Since entity was found, no need to iterate further.
+    break;
+  }
+  // Apply updated caching information.
+  $cache->applyTo($page);
+}
+
+/**
+ * Implements hook_page_attachments_alter().
+ */
+function mercury_editor_page_attachments_alter(array &$attachments) {
+  if (
+    \Drupal::service('mercury_editor.context')->isPreview() ||
+    \Drupal::routeMatch()->getRouteObject()->getOption('_mercury_editor_route')
+  ) {
+    $theme = \Drupal::theme()->getActiveTheme()->getName();
+    if ($theme !== 'gin') {
+      // Remove all gin assets.
+      $attachments['#attached']['library'] = array_filter($attachments['#attached']['library'], function ($library) {
+        return strpos($library, 'gin/') !== 0;
+      });
+    }
+    // Remove Gin Toolbar assets.
+    if (in_array('gin/gin_toolbar', $attachments['#attached']['library'])) {
+      $index = array_search('gin/gin_toolbar', $attachments['#attached']['library']);
+      unset($attachments['#attached']['library'][$index]);
+    }
+  }
+}
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function mercury_editor_element_info_alter(array &$types) {
+  // Attach layout_select overrides.
+  if (isset($types['layout_select'])) {
+    $types['layout_select']['#attached']['library'][] = 'mercury_editor/layout_select';
+  }
+
+  // Register our custom icon select form element.
+  $types['mercury_editor_icon_select'] = [
+    '#input' => TRUE,
+    '#process' => ['\Drupal\mercury_editor\Element\MercuryEditorIconSelect::processElement'],
+    '#element_validate' => ['\Drupal\mercury_editor\Element\MercuryEditorIconSelect::validateElement'],
+    '#value_callback' => ['\Drupal\mercury_editor\Element\MercuryEditorIconSelect::valueCallback'],
+    '#theme_wrappers' => ['form_element'],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_layout_paragraphs_component_menu().
+ */
+function mercury_editor_preprocess_layout_paragraphs_builder_component_menu(&$variables) {
+
+  $route = \Drupal::routeMatch()->getRouteObject();
+  if (!$route->hasOption('_mercury_editor_route')) {
+    return;
+  }
+
+  foreach (['layout', 'content'] as $category) {
+    if (isset($variables['types'][$category])) {
+      foreach ($variables['types'][$category] as $key => $type) {
+        if (!empty($variables['types'][$category][$key]['url_object'])) {
+          _mercury_editor_replace_layout_paragraphs_routes($variables['types'][$category][$key]['url_object']);
+          $variables['types'][$category][$key]['url'] = $variables['types'][$category][$key]['url_object']->toString();
+        }
+      }
+    }
+  }
+
+  $groups = Drupal::config('mercury_editor.menu.settings')->get('groups');
+  $types = $variables['types']['content'] + $variables['types']['layout'];
+  $variables['count'] = count($types);
+
+  if (!empty($groups)) {
+    $groups_array = Yaml::decode($groups);
+    $variables['groups'] = [];
+    foreach ($groups_array as $name => &$group) {
+      $variables['groups'][$name] = [
+        'items' => array_filter(array_map(function ($component) use ($types) {
+            return $types[$component] ?? FALSE;
+        }, array_combine($group['components'], $group['components']))),
+        'label' => $group['label'],
+      ];
+    }
+    $default_group = key(array_filter($groups_array, function ($group) {
+      return !empty($group['default']);
+    })) ?? 'default';
+
+    $variables['groups'] = array_filter($variables['groups'], function ($group, $id) use ($default_group) {
+      return count($group['items']) || $id == $default_group;
+    }, ARRAY_FILTER_USE_BOTH);
+
+    $orphaned_types = array_filter(array_keys($types), function ($type) use ($variables) {
+      foreach ($variables['groups'] as $group) {
+        if (!empty($group['items'][$type])) {
+          return FALSE;
+        }
+      }
+      return TRUE;
+    });
+    foreach ($orphaned_types as $type) {
+      $variables['groups'][$default_group]['items'][$type] = $types[$type];
+    }
+  }
+  else {
+    $variables['groups'] = [
+      'layout' => [
+        'items' => $variables['types']['layout'],
+        'label' => t('Layout'),
+      ],
+      'content' => [
+        'items' => $variables['types']['content'],
+        'label' => t('Content'),
+      ],
+    ];
+  }
+
+  // Add icons to each component in the groups.
+  foreach ($variables['groups'] as $key => &$group) {
+    foreach ($group['items'] as &$item) {
+      // Get the icon from the Mercury Editor component icon service.
+      $item['icon'] = \Drupal::service('mercury_editor.component_icons')->getBundleOutlineIconByBundle($item['id']);
+    }
+  }
+
+  $template_components = array_filter($types, function ($group, $id) {
+    return strpos($id, 'me_template_') === 0;
+  }, ARRAY_FILTER_USE_BOTH);
+  if (!empty($template_components)) {
+    $variables['groups']['templates'] = [
+      'items' => $template_components,
+      'label' => t('Templates'),
+    ];
+
+    // Remove template components from the other groups.
+    foreach ($variables['groups'] as $key => &$group) {
+      if ($key == 'templates') {
+        continue;
+      }
+      $variables['groups'][$key]['items'] = array_filter($variables['groups'][$key]['items'], function ($component) use ($template_components) {
+        return !in_array($component, $template_components);
+      });
+    }
+  }
+
+  $variables['#attached']['library'][] = 'mercury_editor/menu';
+  $variables['#attached']['library'][] = 'mercury_editor/lpb_component_list';
+}
+
+/**
+ * Implements hook_preprocess_layout_paragraphs_builder().
+ */
+function mercury_editor_preprocess_layout_paragraphs_builder(&$variables) {
+  $variables['#attached']['library'][] = 'mercury_editor/mercury_editor';
+}
+
+/**
+ * Implements hook_toolbar_alter().
+ */
+function mercury_editor_toolbar_alter(&$items) {
+  if (isset($items['primary_tasks'])) {
+    $items['primary_tasks']['#weight'] = -1000;
+    $classes =& $items['primary_tasks']['tray']['toolbar_actions']['#attributes']['class'];
+    $classes[] = 'toolbar-menu';
+    if (($key = array_search('toolbar-menu-administration', $classes)) !== FALSE) {
+      unset($classes[$key]);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_field().
+ */
+function mercury_editor_preprocess_field(&$variables) {
+  // If in the mercury editor preview route.
+  if (!\Drupal::service('mercury_editor.context')->isPreview()) {
+    return;
+  }
+  if (isset($variables['entity_type']) && isset($variables['element']['#object'])) {
+    // Add a specific class for title fields to make them easier to target in AJAX updates.
+    $entity = $variables['element']['#object'];
+    $field_name = $variables['field_name'];
+    $entity_type = $entity->getEntityType();
+
+    // Check if this is a title field.
+    $title_fields = ['title', 'name', 'label'];
+    $is_title_field = in_array($field_name, $title_fields);
+
+    // Also check if it's the entity type's defined label field.
+    if (!$is_title_field && $entity_type->hasKey('label')) {
+      $label_field = $entity_type->getKey('label');
+      $is_title_field = ($field_name === $label_field);
+    }
+
+    if ($is_title_field) {
+      $variables['attributes']['class'][] = 'me-entity-title';
+      $variables['attributes']['data-me-entity-title'] = $entity->uuid();
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_type_build().
+ */
+function mercury_editor_entity_type_build(array &$entity_types) {
+  $entity_forms = [
+    'node' => class_exists('Drupal\node\Form\NodeForm')
+      ? 'Drupal\node\Form\NodeForm'
+      : 'Drupal\node\NodeForm',
+    'taxonomy_term' => TermForm::class,
+    'block_content' => BlockContentForm::class,
+  ];
+
+  foreach ($entity_forms as $entity_type => $form_class) {
+    if (isset($entity_types[$entity_type]) && $entity_types[$entity_type] instanceof EntityTypeInterface) {
+      $entity_types[$entity_type]->setFormClass('mercury_editor', $form_class);
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_prepare_form().
+ */
+function mercury_editor_entity_prepare_form(EntityInterface $entity, $operation, FormStateInterface $form_state) {
+  // If content moderation module is enabled.
+  if (\Drupal::moduleHandler()->moduleExists('content_moderation')) {
+    \Drupal::service('class_resolver')
+      ->getInstanceFromDefinition(MercuryEditorEntityTypeInfo::class)
+      ->entityPrepareForm($entity, $operation, $form_state);
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+#[LegacyHook]
+function mercury_editor_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if (\Drupal::moduleHandler()->moduleExists('content_moderation')) {
+    \Drupal::service(MercuryEditorFormHooks::class)
+      ->formAlter($form, $form_state, $form_id);
+  }
+}
+
+/**
+ * Implements hook_module_implements_alter().
+ *
+ * Removes content_moderation's hook_form_alter and hook_entity_prepare_form so
+ * they can be replaced with Mercury Editor's implementations, which check for
+ * the "mercury_editor" form operation.
+ *
+ * Removes content_translation's hook_page_attachments implementation to prevent
+ * throwing and error when an entity doesn't yet have an id (i.e. when a new
+ * entity is rendered in the Mercury Editor preview).
+ *
+ * @see content_translation_page_attachments()
+ * @see content_moderation_form_alter()
+ * @see content_moderation_entity_prepare_form()
+ */
+function mercury_editor_module_implements_alter(&$implementations, $hook) {
+  if ($hook == 'page_attachments') {
+    if (isset($implementations['content_translation'])) {
+      unset($implementations['content_translation']);
+    }
+  }
+  if ($hook == 'form_alter' || $hook == 'entity_prepare_form') {
+    if (isset($implementations['content_moderation'])) {
+      unset($implementations['content_moderation']);
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_layout_paragraphs_builder_formatter().
+ */
+function mercury_editor_preprocess_layout_paragraphs_builder_formatter(&$variables) {
+  $variables['#attached']['library'][] = 'mercury_editor/mercury_editor';
+  $variables['#attached']['library'][] = 'mercury_editor/field_formatter';
+}
+
+/**
+ * Implements hook_form_layout_paragraphs_builder_form_alter().
+ */
+function mercury_editor_form_layout_paragraphs_builder_form_alter(&$form, $form_state) {
+  if (empty($form['#attached']['library'])) {
+    $form['#attached']['library'] = [];
+  }
+  $form['#attached']['library'][] = 'mercury_editor/mercury_editor';
+}
+
+/**
+ * Implements hook_layout_paragraphs_component_form_alter().
+ */
+function mercury_editor_form_layout_paragraphs_component_form_alter(&$form, $form_state) {
+
+  $form['uuid'] = [
+    '#type' => 'hidden',
+    '#value' => $form['#paragraph']->uuid(),
+  ];
+
+  $form['actions']['#attributes']['class'][] = 'me-form-actions';
+  $form['#attached']['library'][] = 'mercury_editor/mercury_editor';
+  $form['#attached']['library'][] = 'mercury_editor/component_form';
+  $form['tabs'] = [
+    '#type' => 'radios',
+    '#options' => [],
+    '#weight' => -1000,
+    '#wrapper_attributes' => [
+      'class' => ['me-horizontal-tab-radios', 'me-tabs'],
+    ],
+    '#after_build' => ['mercury_editor_after_build_radios'],
+  ];
+  if (isset($form['layout_paragraphs'])) {
+    $form['layout_paragraphs']['#process'][] = 'mercury_editor_layout_paragraphs_form_process';
+  }
+  $form['#after_build'][] = 'mercury_editor_after_build_form';
+
+  // Add tab group to custom fields.
+  /** @var Drupal\mercury_editor\Form\EditComponentForm $form_object */
+  $form_object = $form_state->getFormObject();
+  $paragraph = $form_object->getParagraph();
+
+  /** @var \Drupal\Core\Entity\EntityFieldManagerInterface $entity_field_manager */
+  $entity_field_manager = \Drupal::service('entity_field.manager');
+  $field_definitions = $entity_field_manager->getFieldDefinitions($paragraph->getEntityTypeId(), $paragraph->bundle());
+
+  $field_keys = array_filter(
+    Element::children($form),
+    function ($key) use ($field_definitions, $form) {
+      return isset($field_definitions[$key]) && Element::isVisibleElement($form[$key]);
+    });
+  if (count($field_keys)) {
+    $form['tabs']['#options']['content'] = t('Content');
+    $form['tabs']['#default_value'] = 'content';
+    foreach ($field_keys as $key) {
+      $form[$key]['#attributes']['class'][] = 'me-tab-group';
+      $form[$key]['#attributes']['class'][] = 'me-tab-group--content';
+    }
+  }
+
+  // Add tab class to field group elements too.
+  if (isset($form['#fieldgroups'])) {
+    foreach ($form['#fieldgroups'] as $field_group) {
+      $field_group->format_settings["classes"] = "me-tab-group me-tab-group--content";
+    }
+  }
+
+  // @todo Make this work for all behaviors, not just styles.
+  if (isset($form['behavior_plugins'])) {
+    $form['tabs']['#options']['styles'] = t('Styles');
+    $form['behavior_plugins']['#type'] = 'container';
+    $form['behavior_plugins']['#attributes']['class'][] = 'me-tab-group';
+    $form['behavior_plugins']['#attributes']['class'][] = 'me-tab-group--styles';
+  }
+}
+
+/**
+ * Processes the layout paragraphs form element.
+ *
+ * @param array $element
+ *   The form element.
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ *   The form state.
+ *
+ * @return array
+ *   The processed element.
+ */
+function mercury_editor_layout_paragraphs_form_process(array $element, FormStateInterface $form_state, &$form) {
+  if (!empty($element['layout'])) {
+    if (count($element['layout']['#options']) === 1) {
+      $element['layout']['#access'] = FALSE;
+      $element['layout']['#default_value'] = array_key_first($element['layout']['#options']);
+    }
+    else {
+      $form['tabs']['#options']['layout'] = t('Layout');
+      $form['tabs']['#default_value'] = 'layout';
+      $element['layout']['#prefix'] = '<div class="me-tab-group me-tab-group--layout">';
+      $element['layout']['#suffix'] = '</div>';
+    }
+  }
+
+  if (!empty($element['config'])) {
+    // @todo See if there is a better way to update the weight of this element
+    // to come after the layout tab, rather than unsetting and re-adding it.
+    unset($form['tabs']['#options']['styles']);
+    $form['tabs']['#options']['styles'] = t('Styles');
+    $element['config']['#type'] = 'container';
+    $element['config']['#prefix'] = '<div class="me-tab-group me-tab-group--styles ">';
+    $element['config']['#suffix'] = '</div>';
+  }
+  return $element;
+}
+
+/**
+ * After build callback for adding classes to radio tabs.
+ */
+function mercury_editor_after_build_radios($element, $form_state) {
+  foreach (Element::children($element) as $key) {
+    $element[$key]['#wrapper_attributes']['class'][] = 'horizontal-tab--' . $key;
+  }
+  return $element;
+}
+
+/**
+ * After callback for attaching the horizontal tabs library.
+ */
+function mercury_editor_after_build_form($form, $form_state) {
+  if (isset($form['tabs']) && count($form['tabs']['#options']) < 2) {
+    $form['tabs']['#access'] = FALSE;
+  }
+  else {
+    $form['#attached']['library'][] = 'mercury_editor/horizontal_tabs';
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_layout_paragraphs_delete_component_form_alter().
+ */
+function mercury_editor_form_layout_paragraphs_delete_component_form_alter(&$form, $form_state) {
+  $form['actions']['#attributes']['class'][] = 'me-form-actions';
+  $form['#attached']['library'][] = 'mercury_editor/lpb_component_delete_form';
+}

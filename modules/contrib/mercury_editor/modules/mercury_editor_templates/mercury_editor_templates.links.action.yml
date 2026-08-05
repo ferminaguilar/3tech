@@ -1,0 +1,5 @@
+me_template.add_form:
+  title: 'Add mercury editor template'
+  route_name: entity.me_template.add_form
+  appears_on:
+    - entity.me_template.collection

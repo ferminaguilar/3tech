@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Module hooks for Mercury Editor Block Visibility Test module.
+ */
+
+use Drupal\block\Entity\Block;
+
+/**
+ * Loads a test block for Mercury Editor block visibility testing.
+ */
+function mercury_editor_block_visibility_test_block_loader() {
+  $block = Block::load('olivero_mercuryeditortestblock');
+  $block->getVisibility();
+
+}

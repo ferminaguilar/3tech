@@ -1,0 +1,97 @@
+:root {
+  /* Fonts. */
+  --me-base-font-size: 1rem;
+  --me-font-family-sans: 'IBM Plex Sans', Helvetica, "Helvetica Neue", Arial, sans-serif;
+  --me-font-weight-medium: 500;
+  --me-letter-spacing-loose: .1em;
+
+  /* Colors */
+  --me-color-background: #fff;
+  --me-color-text: #363136;
+  --me-color-text-reversed: #fff;
+  --me-color-border: #c3c1c3;
+  --me-color-border-focus: #777277;
+  --me-color-draggable-focus: #fff;
+  --me-color-blue-05: #F7FAFF;
+  --me-color-blue-30: #99B8FF;
+
+  /* Spacing */
+  --me-space-inset-x-xsmall: 8px;
+  --me-space-inset-y-xsmall: 8px;
+  --me-space-inset-x-small: 10px;
+  --me-space-inset-y-small: 10px;
+  --me-space-inset-x: 15px;
+  --me-space-inset-y: 15px;
+  --me-space-inset-x-large: 30px;
+  --me-space-inset-y-large: 30px;
+  --me-space-gap-x-minimal: 1px;
+  --me-space-gap-y-minimal: 1px;
+  --me-space-gap-x-small: 10px;
+  --me-space-gap-y-small: 10px;
+  --me-space-gap-x: 15px;
+  --me-space-gap-y: 15px;
+  --me-space-gap-x-large: 15px;
+  --me-space-gap-y-large: 15px;
+  --me-dialog-header-space-inset-y: 7px;
+
+  /* Transitions */
+  --me-transition: .15s ease-in-out;
+
+  /**
+   * Components
+   */
+
+  /* Buttons */
+  --me-button-color-background: transparent;
+  --me-button-color-text: #130F13;
+  --me-button-color-icon: #777277;
+  --me-button-color-background-hover: transparent;
+  --me-button-color-text-hover: #130F13;
+  --me-button-color-icon-hover: #130F13;
+
+  --me-button-color-background-primary: #F0F4FF;
+  --me-button-color-text-primary: #003ECC;
+  --me-button-color-icon-primary: #777277;
+  --me-button-color-background-primary-hover: #F0F4FF;
+  --me-button-color-text-primary-hover: #003ECC;
+  --me-button-color-icon-primary-hover: #130F13;
+
+  --me-button-color-background-saved: #DFF6DD;
+  --me-button-color-text-saved: #007F2E;
+
+  --me-button-color-background-secondary: #fff;
+  --me-button-color-text-secondary: #003ECC;
+  --me-button-color-icon-secondary: #130F13;
+  --me-button-color-background-secondary-hover: #fff;
+  --me-button-color-text-secondary-hover: #130F13;
+  --me-button-color-icon-secondary-hover: #130F13;
+
+  --me-button-color-background-cancel: #fff;
+  --me-button-color-text-cancel: #363136;
+  --me-button-color-icon-cancel: #777277;
+  --me-button-color-background-cancel-hover: #c3c1c3;
+  --me-button-color-text-cancel-hover: #130F13;
+  --me-button-color-icon-cancel-hover: #130F13;
+
+  --me-button-icon-height: 20px;
+  --me-button-icon-width: 20px;
+
+  /* Dialog */
+  --me-dialog-color-background: #ffffff;
+  --me-dialog-space-inset-x: 30px;
+  --me-dialog-space-inset-y: 30px;
+
+  /* Header */
+  --me-header-color-background: #f7f6f7;
+
+  /* Options */
+  --me-option-color-text: #363136;
+  --me-option-color-text-hover: #222;
+  --me-option-color-background: 36, 148, 219;
+  --me-option-color-background-hover: 36, 148, 219;
+  --me-option-color-border: 36, 148, 219;
+  --me-option-color-border-hover: 36, 148, 219;
+
+  /* Toolbar */
+  --me-logo-horizontal: svg-load('me-logo-horizontal.svg');
+}

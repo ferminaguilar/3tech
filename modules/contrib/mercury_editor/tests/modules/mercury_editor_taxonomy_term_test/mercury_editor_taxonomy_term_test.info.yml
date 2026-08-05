@@ -1,0 +1,16 @@
+name: Mercury Editor Taxonomy Term Test
+description: 'Test module for using Mercury Editor with Taxonomy Terms.'
+package: 'Testing'
+type: module
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - drupal:taxonomy
+  - drupal:contextual
+  - mercury_editor:mercury_editor_startup_demo
+  - media:media
+  - media:media_library
+
+# Information added by Drupal.org packaging script on 2026-06-03
+version: '3.0.0-alpha19'
+project: 'mercury_editor'
+datestamp: 1780507319

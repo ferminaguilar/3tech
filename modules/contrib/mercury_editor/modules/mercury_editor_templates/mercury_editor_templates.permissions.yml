@@ -1,0 +1,16 @@
+administer mercury editor template:
+  title: 'Administer Mercury Editor template settings'
+  restrict access: true
+access mercury editor template overview:
+  title: 'Access the Mercury Editor template overview page'
+  restrict access: true
+delete mercury editor template:
+  title: Delete Mercury Editor template
+create mercury editor template:
+  title: Create Mercury Editor template
+view mercury editor template:
+  title: View Mercury Editor template
+edit mercury editor template:
+  title: Edit Mercury Editor template
+use mercury editor templates:
+  title: Use Mercury Editor templates in ME

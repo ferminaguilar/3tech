@@ -1,0 +1,14 @@
+/* Styles overrides for the default paragraphs widgets. */
+.js .field--widget-paragraphs th .paragraphs-actions {
+  margin-right: 0;
+}
+.js .field--widget-paragraphs td {
+  padding-right: 24px;
+  padding-left: 24px;
+}
+.js .field--widget-paragraphs .field-multiple-drag {
+  padding-top: 15px;
+}
+.js .field--widget-paragraphs .draggable .tabledrag-handle {
+  min-width: 0;
+}

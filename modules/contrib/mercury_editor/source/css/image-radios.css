@@ -1,0 +1,14 @@
+.image-radios__item label.option {
+  flex-direction: column;
+}
+.image-radios__item-image {
+  margin: 0;
+  & img {
+    margin: 0;
+  }
+}
+
+.image-radios__item {
+  flex-basis: auto;
+  margin-left: 0 !important;
+}

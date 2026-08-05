@@ -1,0 +1,83 @@
+<?php
+
+/**
+ * @file
+ * Module hooks for Mercury Editor Demo module.
+ */
+
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Implements hook_entity_type_alter().
+ */
+function mercury_editor_startup_demo_entity_type_alter(array &$entity_types) {
+  // Add validation constraint to the node entity.
+  $entity_types['node']->addConstraint('InvalidTitle');
+}
+
+/**
+ * Implements hook_library_info_alter().
+ */
+function mercury_editor_startup_demo_library_info_alter(array &$libraries, $extension) {
+  if ($extension === 'mercury_editor' && isset($libraries['menu'])) {
+    $libraries['menu']['dependencies'][] = 'mercury_editor_startup_demo/component_menu';
+  }
+}
+
+/**
+ * Creates a paragraph field for the provided entity type and bundle.
+ */
+function mercury_editor_startup_demo_make_paragraph_field(
+  $entity_type,
+  $bundle,
+  $field_name,
+  $field_label,
+  $handler_settings = [],
+  $widget = 'paragraphs',
+  $formatter = 'entity_reference_revisions_entity_view',
+  $extra_settings = [],
+) {
+
+  if (empty($handler_settings)) {
+    $handler_settings = [
+      'target_bundles' => NULL,
+      'negate' => TRUE,
+    ];
+  }
+  $field_storage = FieldStorageConfig::loadByName($entity_type, $field_name);
+  if (!$field_storage) {
+    // Add a paragraphs field.
+    $field_storage = FieldStorageConfig::create([
+      'field_name' => $field_name,
+      'entity_type' => $entity_type,
+      'type' => 'entity_reference_revisions',
+      'cardinality' => '-1',
+      'settings' => [
+        'target_type' => 'paragraph',
+      ],
+    ]);
+    $field_storage->save();
+  }
+  $field_config = FieldConfig::loadByName($entity_type, $bundle, $field_name);
+  if (!$field_config) {
+    $field = FieldConfig::create([
+      'field_storage' => $field_storage,
+      'bundle' => $bundle,
+      'label' => $field_label,
+      'settings' => [
+        'handler' => 'default:paragraph',
+        'handler_settings' => $handler_settings,
+      ],
+    ]);
+    $field->save();
+  }
+
+  $form_display = \Drupal::service('entity_display.repository')->getFormDisplay($entity_type, $bundle);
+  $form_display->setComponent($field_name, ['type' => $widget] + $extra_settings);
+  $form_display->save();
+
+  $view_display = \Drupal::service('entity_display.repository')->getViewDisplay($entity_type, $bundle);
+  $view_display->setComponent($field_name, ['type' => $formatter, 'label' => 'hidden'] + $extra_settings);
+  $view_display->save();
+}

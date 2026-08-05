@@ -1,0 +1,26 @@
+$schema: https://git.drupalcode.org/project/sdc/-/raw/1.x/src/metadata.schema.json
+name: Component Outline
+status: stable
+libraryOverrides:
+  js:
+    component-outline.js: {}
+    component-outline.sortable.js: {}
+  dependencies:
+    - core/once
+    - core/sortable
+    - mercury_editor/component_icons
+props:
+  type: object
+  properties:
+    tree:
+      title: Component Tree
+      type: array
+    mercury_editor_id:
+      title: Mercury Editor ID
+      type: string
+    layout_id:
+      title: Layout ID
+      type: string
+    field_label:
+      title: Field Label
+      type: string

@@ -1,0 +1,34 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor Autosave Test module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_autosave_test_install() {
+  $config = \Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $auto_update = $config->get('auto_update') ?? [];
+
+  $auto_update['enabled'] = $auto_update['enabled'] ?? TRUE;
+  $auto_update['paragraphs'] = $auto_update['paragraphs'] ?? [];
+  $auto_update['paragraphs']['me_test_text'] = TRUE;
+
+  $config->set('auto_update', $auto_update)->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_autosave_test_uninstall() {
+  $config = \Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $auto_update = $config->get('auto_update') ?? [];
+
+  if (!empty($auto_update['paragraphs']['me_test_text'])) {
+    unset($auto_update['paragraphs']['me_test_text']);
+    $config->set('auto_update', $auto_update)->save();
+  }
+
+}

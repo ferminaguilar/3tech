@@ -1,0 +1,22 @@
+color_spectrum:
+  remote: https://github.com/bgrins/spectrum
+  version: 1.6.0
+  js:
+    /libraries/spectrum/spectrum.js: {}
+    js/color-spectrum.jquery.js: {}
+  css:
+    component:
+      /libraries/spectrum/spectrum.css: {}
+  license:
+    name: MIT
+    url: https://github.com/bgrins/spectrum/blob/master/LICENSE
+    gpl-compatible: true
+  dependencies:
+    - core/jquery
+    - core/drupalSettings
+    - core/once
+
+horizontal_tabs:
+  css:
+    component:
+      css/horizontal-tabs.css: {}

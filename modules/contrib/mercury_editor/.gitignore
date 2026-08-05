@@ -1,0 +1,13 @@
+.env
+.DS_Store
+
+/web/
+/vendor/
+/recipes/
+/node_modules
+/.editorconfig
+/.gitattributes
+
+composer.lock
+phpcs.xml.dist
+phpstan-baseline.neon

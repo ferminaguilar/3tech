@@ -1,0 +1,44 @@
+{% set error_count = form_errors|length %}
+{% set show_label %}
+  {% trans %}
+    Show 1 error.
+  {% plural error_count %}
+    Show {{ error_count }} errors.
+  {% endtrans %}
+{% endset %}
+{% set hide_label %}
+  {% trans %}
+    Hide 1 error.
+  {% plural error_count %}
+    Hide {{ error_count }} errors.
+  {% endtrans %}
+{% endset %}
+<div class="me-form-error-messages__wrapper">
+  {% if error_count %}
+  <button
+    class="me-form-error-messages__button"
+    role="button"
+    type="button"
+    aria-expanded="true"
+    aria-label="Toggle error messages"
+    aria-controls="{{ id }}"
+    data-label-show="{{ show_label }}"
+    data-label-hide="{{ hide_label }}">
+    Hide {{ error_count }} errors
+  </button>
+  <div class="me-form-error-messages" id="{{ id }}" hidden>
+    <div class="messages messages--error messages-list__item">
+      <h2 class="messages__header messages__title me-messages__title--error">
+        {{ "Your changes couldn't be saved. Please fix the error below."|t }}
+      </h2>
+      <div class="item-list">
+        <ul class="messages__content">
+        {% for error in form_errors %}
+          <li>{{ error }}</li>
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>

@@ -1,0 +1,15 @@
+# This module is deprecated and will be removed in a future release.
+# Please use drupal.org/project/mercury_editor_live_edit instead.
+# Leaving this .info file in place for backwards compatibility.
+name: Mercury Editor Inline Editor
+description: Deprecated module - use drupal.org/project/mercury_editor_live_edit instead
+type: module
+core_version_requirement: ^9 || ^10 || ^11
+package: Mercury Editor
+dependencies:
+  - layout_paragraphs:layout_paragraphs
+
+# Information added by Drupal.org packaging script on 2026-06-03
+version: '3.0.0-alpha19'
+project: 'mercury_editor'
+datestamp: 1780507319

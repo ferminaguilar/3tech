@@ -1,0 +1,14 @@
+mercury-dialog {
+  /* --gin-spacing-l: 0; */
+  --gin-font-weight-semibold: 600;
+}
+
+mercury-dialog .block-system > form {
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  padding: 0 1px 1rem 0;
+}
+mercury-dialog .block-system-main-block > form > .form-wrapper:first-of-type .form-item {
+  margin-top: 1rem !important;
+}

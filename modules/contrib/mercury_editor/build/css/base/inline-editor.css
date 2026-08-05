@@ -1,0 +1,8 @@
+[data-is-live-editing] .lpb-controls,
+[data-is-live-editing] .lpb-btn,
+[data-is-live-editing] .lpb-btn--add {
+  display: none;
+}
+.me-is-editable:hover {
+  cursor: text;
+}

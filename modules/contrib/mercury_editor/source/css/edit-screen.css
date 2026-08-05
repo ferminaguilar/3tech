@@ -1,0 +1,153 @@
+:root {
+  --me-dialog-min-width: 10px;
+  --me-toolbar-offset-y: 55px;
+  /* Match .ui-front for jQuery UI compatibility */
+  --me-dialog-z-index: 100;
+}
+
+.me-edit-screen {
+  background: #efefef;
+  overflow: hidden;
+}
+
+.path-mercury-editor .page-wrapper {
+  min-height: calc(100vh - 1px);
+  display: flex;
+  flex-direction: column;
+}
+
+#me-iframe-wrapper {
+  container-type: size;
+  container-name: me-iframe-wrapper;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  transition: padding var(--me-dialog-duration, 200) var(--me-dialog-timing, ease-out);
+  padding-right: var(--me-dialog-offset-right, var(--me-dialog-dock-right-width)) !important;
+  overflow: auto;
+}
+
+#me-iframe-canvas {
+  margin: 0;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: hidden;
+  overflow-x: auto;
+}
+
+#me-iframe-wrapper.is-device-preview #me-iframe-canvas {
+  display: grid;
+  align-items: center;
+  justify-content: center;
+}
+
+html:has(#mercury-editor-component-outline[open]) #me-iframe-canvas {
+  padding-left: var(--me-dialog-dock-left-width, 0);
+}
+
+#me-preview {
+  margin: 0 auto;
+  box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.2);
+  align-content: center;
+  @container me-iframe-wrapper (min-width: 0) {
+    width: 100cqw;
+  }
+}
+
+.lpb-dialog {
+  & form {
+    padding: 0 var(--me-space-inset-x, 1rem) 0 var(--me-space-inset-x, 1rem);
+  }
+  & form.layout-paragraphs-delete-component-form {
+    margin-top: var(--me-space-inset-y, 1rem);
+  }
+}
+#me-toolbar {
+  display: flex;
+  gap: 1rem;
+  /* padding: 0 0.5rem 0 1.5rem; */
+  align-items: center;
+  justify-content: flex-start;
+  min-width: fit-content;
+  /* flex-basis: 1;
+  justify-content: space-between; */
+  background-color: var(--me-color-background);
+  width: 100%;
+  /* position: absolute; */
+  z-index: 100;
+  left: 0;
+  top: 0;
+  /* height: var(--me-toolbar-offset-y); */
+  border-bottom: var(--me-border-width, 1px) var(--me-border-style, solid) var(--me-border-color, #e5e5e5);
+  /* & > * {
+    flex-basis: 30%;
+    margin-left: 1rem;
+    margin-right: 1rem;
+  } */
+  & .form-item {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+  }
+  & .me-mobile-presets {
+    margin-left: 1em;
+    padding-right: 35px;
+    border: none;
+    min-height: 2rem;
+    color: #555;
+    &:hover {
+      border: none;
+      box-shadow: none;
+    }
+  }
+  & .ajax-progress {
+    display: none;
+  }
+}
+#me-save-btn {
+  margin-left: 1em;
+}
+
+.me-toolbar__branding {
+  display: flex;
+  align-items: center;
+  margin: 0 1rem;
+}
+
+.me-toolbar__logo {
+  display: block;
+  height: 30px;
+  width: 78px;
+  background-image: var(--me-logo-horizontal);
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  overflow: hidden;
+  text-indent: -9999px;
+  margin: 0;
+}
+
+.me-toolbar__group {
+  display: flex;
+  align-items: center;
+  &:last-child {
+    display: flex;
+    justify-content: flex-end;
+  }
+  &.screen-actions {
+    justify-content: center;
+  }
+}
+.me-toolbar__edit-controls {
+  margin-left: auto;
+  padding-right: 1rem;
+}
+.me-toolbar__save-status {
+  transition: opacity 1s ease-in-out;
+  padding-right: 20px;
+}
+
+mercury-dialog:has(.me-autosave-form) .me-dialog__buttonpane {
+  display: none;
+}

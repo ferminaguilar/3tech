@@ -1,0 +1,11 @@
+{
+  "name": "drupal/style_options",
+  "description": "Provide an API to reuse style options throughout the Drupal ecosystem.",
+  "type": "drupal-module",
+  "homepage": "http://drupal.org/project/style_options",
+  "license": "GPL-2.0-or-later",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/style_options",
+    "source": "https://git.drupalcode.org/project/style_options"
+  }
+}

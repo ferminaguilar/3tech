@@ -1,0 +1,110 @@
+/* Horizontal tab radio buttons */
+.lpb-dialog {
+  & label {
+    font-family: var(--me-font-family-sans);
+  }
+}
+.me-tab-group.hidden-tab {
+  display: none;
+}
+.me-horizontal-tab-radios {
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  clear: left;
+  padding-top: var(--me-space-inset-y);
+  padding-left: 1rem;
+  border-bottom: 1px solid;
+  border-bottom-color: var(--me-border-color, #d1d1d1);
+
+  & .js-form-type-radio:not(:first-child),
+  & .js-form-type-radio:not(:last-child) {
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  & .form-item {
+    /* Address some issues with Prototype setting this with Grid */
+    display: block;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide the radio buttons themselves. */
+  & input[type="radio"] {
+    position: absolute !important;
+    overflow: hidden;
+    clip: rect(1px, 1px, 1px, 1px);
+    width: 1px;
+    height: 1px;
+    word-wrap: normal;
+  }
+
+  & input[type="radio"] + label {
+    font-size: 1em;
+  }
+
+  & input:focus + label {
+    outline: 2px solid blue;
+  }
+
+  & input:checked + label {
+    background-color: #fff;
+    border: 1px solid #d1d1d1;
+    border-bottom: 1px solid #fff;
+    margin-bottom: -1px;
+    color: #504b50;
+  }
+
+  & label.option {
+    padding: 8px 10px;
+    margin: 0;
+    border: 1px solid transparent;
+    border-top-left-radius: 3px;
+    border-top-right-radius: 3px;
+    border-bottom: none;
+    display: inline-block;
+    line-height: 1.5;
+
+    &:before,
+    &:after {
+      content: none;
+    }
+
+    &:before {
+      content: " ";
+      height: 16px;
+      width: 0px;
+      display: inline-block;
+    }
+
+    &:hover {
+      cursor: pointer;
+    }
+  }
+
+  & .horizontal-tab--styles label:before,
+  & .horizontal-tab--layout label:before {
+    content: " ";
+    border: none;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    margin: 0 0.375rem 0 0;
+    background-position: 50% 100%;
+    background-repeat: no-repeat;
+    vertical-align: middle;
+    position: static;
+    border-radius: 0;
+    background-color: transparent;
+  }
+
+  & .horizontal-tab--styles label:before {
+    background-image: url(../../images/tab-icons/icon-styles.svg);
+  }
+
+  & .horizontal-tab--layout label:before {
+    background-image: url(../../images/tab-icons/icon-layout.svg);
+  }
+}

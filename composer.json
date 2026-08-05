@@ -22,6 +22,9 @@
         "drupal/core-recipe-unpack": "^11.4",
         "drupal/core-recommended": "^11.4",
         "drupal/core-vendor-hardening": "^11.4",
+        "drupal/layout_paragraphs": "^3.0@beta",
+        "drupal/mercury_editor": "^3.0@alpha",
+        "drupal/paragraphs": "^1.22",
         "drupal/uswds_base": "^3.12",
         "drush/drush": "^13.7"
     },

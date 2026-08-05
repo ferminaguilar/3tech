@@ -1,0 +1,5 @@
+style_options.migrate_data:
+  title: 'Migrate Data'
+  description: 'Migrates data from option_plugin module.'
+  parent: system.admin_config_content
+  route_name: style_options.migrate_data

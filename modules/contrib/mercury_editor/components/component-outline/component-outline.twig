@@ -1,0 +1,84 @@
+{#
+/**
+ * @file
+ * Component Outline - Components
+ *
+ * Available props:
+ * - components: [array] expects a list of all components or sections, with
+ *    appropriately keyed objects for nested regions and components.
+ */
+#}
+
+{% set attributes = attributes.setAttribute('aria-label', 'Component Outline'|t) %}
+
+{% set classes = [
+  'me-component-outline'
+] %}
+
+<nav {{ attributes.addClass(classes) }}>
+  <h4 class="me-component-outline__heading">{{ field_label }}</h4>
+  <ul class="me-component-outline__list" role="tree" aria-label="{{'Component Outline'|t}}">
+    {{ _self.branch(items, 0) }}
+  </ul>
+  {% if items|length == 0 %}
+    <div class="me-component-outline__no-components">
+      <button class="me-button--add-component" data-action="add-component" data-mercury-editor-id="{{ mercury_editor_id }}" data-layout-id="{{ layout_id }}" aria-label="{{ 'Add first component'|t }}">
+        <span>{{ 'Add a @field_label component'|t({'@field_label': field_label}) }}</span>
+      </button>
+    </div>
+  {% endif %}
+</nav>
+
+{% macro branch(items, depth) %}
+{% for item in items %}
+  {%
+    set li_attributes = item.attributes
+      .addClass('me-component-outline__' ~ item.type)
+      .setAttribute('style', '--me-treeitem-depth: ' ~ depth ~ ';')
+      .setAttribute('data-keep-focus', 'true')
+      .setAttribute('role', 'treeitem')
+      .setAttribute('aria-label', item.type == 'region' ? '@label Region'|t({'@label': item.label}) : '@label Component'|t({'@label': item.label}))
+      .setAttribute('data-type', item['data-type'] is defined ? item['data-type'] : null)
+      .setAttribute('data-me-icon', item['data-me-icon'] is defined ? item['data-me-icon'] : null)
+  %}
+  {% if item.is_layout %}
+    {% set li_attributes = li_attributes.setAttribute('data-layout', 'true') %}
+  {% endif %}
+  <li {{ li_attributes }}>
+    {% if item.type == 'region' %}
+      {% include 'mercury_editor:component-outline-region' with { item, addButton: _self.button(item) } only %}
+    {% else %}
+      {% include 'mercury_editor:component-outline-component' with { item, addButton: _self.button(item) } only %}
+    {% endif %}
+    <ul class="me-component-outline__{{ item.type == 'region' ? 'components' : 'regions' }}" role="group">
+    {% if item.children is not empty %}
+      {{ _self.branch(item.children, depth + 1 ) }}
+    {% endif %}
+    </ul>
+    {# {{ item.type == 'component' ? _self.button(item) : '' }} #}
+  </li>
+{% endfor %}
+{% endmacro %}
+
+{% macro button(item) %}
+  {% if item.type == 'region' %}
+    {% set aria_label = 'Insert into @label Region'|t({'@label': item.label}) %}
+  {% elseif item.type == 'component' %}
+    {% set aria_label = 'Insert after @label Component'|t({'@label': item.label}) %}
+  {% else %}
+    {% set aria_label = 'Add component'|t %}
+  {% endif %}
+  <button
+    class="me-component-outline__add-button"
+    data-action="add-component"
+    data-parent-uuid="{{ item.parent_uuid }}"
+    data-sibling-uuid="{{ item.sibling_uuid }}"
+    data-placement="after"
+    data-region="{{ item.region_id }}"
+    tabindex="0"
+    aria-label="{{ aria_label }}"
+    title="{{ aria_label }}"
+  >
+    <span class="visually-hidden">{{ 'Add component'|t }}</span>
+  </button>
+{% endmacro %}

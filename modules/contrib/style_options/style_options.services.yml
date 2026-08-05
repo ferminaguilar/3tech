@@ -1,0 +1,8 @@
+services:
+  plugin.manager.style_options:
+    class: \Drupal\style_options\StyleOptionPluginManager
+    parent: default_plugin_manager
+
+  style_options.discovery:
+    class: \Drupal\style_options\StyleOptionConfigurationDiscovery
+    arguments: ['@theme_handler', '@module_handler']

@@ -1,0 +1,13 @@
+name: Mercury Editor Content Moderation Test
+description: 'Test module for Mercury Editor Content Moderation integration.'
+package: Testing
+type: module
+core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - drupal:content_moderation
+  - mercury_editor:mercury_editor_setup_test
+
+# Information added by Drupal.org packaging script on 2026-06-03
+version: '3.0.0-alpha19'
+project: 'mercury_editor'
+datestamp: 1780507319

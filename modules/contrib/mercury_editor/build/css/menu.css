@@ -1,0 +1,35 @@
+.lpb-component-list__group-label {
+  font-size: 0.875rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: #666;
+  margin-bottom: .25rem;
+}
+
+.lpb-component-list__group--content label {
+    font-weight: bold;
+    color: gray;
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    margin-bottom: 10px;
+  }
+
+.lpb-component-list__item a::before {
+    background-image: none !important;
+    background-color: currentColor !important;
+  }
+
+.lpb-component-list__item a::before {
+    content: ' ';
+    /** Use mask to apply the icon image */
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    -webkit-mask-image: var(--me-component-icon-image);
+            mask-image: var(--me-component-icon-image);
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-size: cover;
+            mask-size: cover;
+    margin-right: 10px;
+  }

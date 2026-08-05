@@ -1,0 +1,88 @@
+
+.me-component-outline__component {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--component.svg);
+}
+
+[data-me-icon="component"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--component.svg);
+}
+
+[data-me-icon="layout"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--section.svg);
+}
+
+[data-me-icon="text"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--text.svg);
+}
+
+[data-me-icon="button"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--button.svg);
+}
+
+[data-me-icon="card"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--card.svg);
+}
+
+[data-me-icon="divider"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--divider.svg);
+}
+
+[data-me-icon="gallery"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--gallery.svg);
+}
+
+[data-me-icon="grid-6"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--grid-6.svg);
+}
+
+[data-me-icon="grid-9"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--grid-9.svg);
+}
+
+[data-me-icon="heading"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--heading.svg);
+}
+
+[data-me-icon="image"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--image.svg);
+}
+
+[data-me-icon="image-with-download"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--image-with-download.svg);
+}
+
+[data-me-icon="location"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--location.svg);
+}
+
+[data-me-icon="outline"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--outline.svg);
+}
+
+[data-me-icon="outline-stagger"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--outline-stagger.svg);
+}
+
+[data-me-icon="quote"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--quote.svg);
+}
+
+[data-me-icon="region"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--region.svg);
+}
+
+[data-me-icon="section"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--section.svg);
+}
+
+[data-me-icon="star"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--star.svg);
+}
+
+[data-me-icon="user"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--user.svg);
+}
+
+[data-me-icon="video"] {
+  --me-component-icon-image: url(../../images/component-icons/component-icon--video.svg);
+}

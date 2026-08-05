@@ -1,0 +1,3 @@
+.layout-paragraphs-delete-component-form {
+  padding: var(--me-dialog-footer-space-inset-y, var(--me-space-inset-y, 5px)) var(--me-dialog-footer-space-inset-x, var(--me-space-inset-x, 20px));
+}

@@ -1,0 +1,244 @@
+
+  mercury-dialog .messages {
+    --me-message-icon: url("../../../images/icons/message-alert.svg");
+    --me-message-icon-color: #c00;
+    border: none;
+    font-size: 1rem;
+    padding: 1rem;
+    /** very light gray **/
+    background: #f5f5f5;
+    color: #232429;
+    display: grid;
+    grid-gap: 0.75rem;
+    gap: 0.75rem;
+    grid-template-columns: 1fr;
+    
+    div[role="alert"] {
+      grid-gap: 0.75rem;
+      gap: 0.75rem;
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+  }
+    
+mercury-dialog .messages-list {
+    margin-top: 0;
+  }
+    
+mercury-dialog .messages-list__item:first-child {
+    margin-top: 0;
+  }
+    
+mercury-dialog .messages a {
+    color: #232429;
+    text-decoration: none;
+  }
+    
+mercury-dialog .messages a:hover {
+    color: #232429;
+    text-decoration: underline;
+  }
+    
+mercury-dialog .messages .messages__header {
+    background-image: none;
+    margin: 0;
+  }
+    
+mercury-dialog .messages .messages__header::before {
+    background-color: var(--me-message-icon-color);
+    height: 1.25rem;
+    width: 1.25rem;
+    top: 0;
+    position: inherit;
+  }
+    
+mercury-dialog .messages__title {
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0;
+    display: flex;
+    gap: 0.5rem;
+    align-items: top;
+  }
+    
+mercury-dialog .messages__title::before {
+    content: "";
+    display: block;
+    flex: none;
+    height: 1.25rem;
+    width: 1.25rem;
+    -webkit-mask-image: var(--me-message-icon);
+            mask-image: var(--me-message-icon);
+    -webkit-mask-size: 100%;
+            mask-size: 100%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+            mask-position: center;
+    background-color: var(--me-message-icon-color);
+  }
+    
+mercury-dialog .messages__content {
+    margin: 0;
+    padding: 0;
+  }
+/** Status Message **/
+    
+mercury-dialog .messages.messages--status {
+    background: #edf5db;
+  }
+    
+mercury-dialog .messages--status {
+    --me-message-icon: url("../../../images/icons/message-status.svg");
+    --me-message-icon-color: #2e7d32;
+  }
+/** Warning Message **/
+    
+mercury-dialog .messages--warning {
+    --me-message-icon-color: #f9a825;
+  }
+/** Error Message **/
+    
+mercury-dialog .me-form-error-messages__button {
+    position: absolute;
+    right: 0;
+    z-index: 20;
+    border: 0;
+    background-color: #facdd1;
+    color: #000;
+    padding: 0.25rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    line-height: 1.667;
+    gap: 0.125rem;
+  }
+    
+mercury-dialog .me-form-error-messages__button:not([hidden]) {
+    display: flex;
+  }
+    
+mercury-dialog .me-form-error-messages__button::after {
+    content: "";
+    display: block;
+    height: 1.25rem;
+    width: 1.25rem;
+    background-color: currentColor;
+    -webkit-mask-image: url("../../../images/icons/disclosure-show.svg");
+            mask-image: url("../../../images/icons/disclosure-show.svg");
+    -webkit-mask-position: center;
+            mask-position: center;
+    -webkit-mask-size: 100%;
+            mask-size: 100%;
+    -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+  }
+    
+mercury-dialog .me-form-error-messages__button[aria-expanded="true"]::after {
+    -webkit-mask-image: url("../../../images/icons/disclosure-hide.svg");
+            mask-image: url("../../../images/icons/disclosure-hide.svg");
+  }
+    
+mercury-dialog .messages--error {
+    --me-message-icon-color: #f01818;
+  }
+    
+mercury-dialog .messages.messages--error {
+    background: #f7d9d9;
+  }
+    
+mercury-dialog .me-form-error-messages__wrapper {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    transform: translateY(calc(-1 * var(--me-dialog-main-space-inset-y, var(--me-space-inset-y, 20px))));
+  }
+    
+mercury-dialog .me-form-error-messages__wrapper[\:has\(.me-form-error-messages__button\[hidden\]\)] {
+    min-height: 1px;
+  }
+    
+mercury-dialog .me-form-error-messages__wrapper:has(.me-form-error-messages__button[hidden]) {
+    min-height: 1px;
+  }
+    
+mercury-dialog .me-form-error-messages {
+    background: #fbe5e7;
+    box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.12);
+  }
+    
+mercury-dialog .me-form-error-messages .messages {
+    border-radius: 0;
+    padding: 2.25rem calc((var(--me-space-inset-y, 20px) + 0.5rem)) 1.5rem;
+    margin-top: 0;
+  }
+    
+mercury-dialog .me-form-error-messages .messages__content ul {
+    display: grid;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    grid-gap: 0.5rem;
+    gap: 0.5rem;
+    grid-template-columns: 1fr;
+  }
+    
+mercury-dialog .me-form-error-messages .messages__content li {
+    list-style: none;
+    margin: 0;
+  }
+    
+mercury-dialog {
+
+  /* Autosave notice */
+  .unsaved-changes-notice-wrapper {
+    position: sticky;
+    top: 10px;
+    padding-right: 10px;
+    height: 0;
+    display: none;
+    z-index: 10;
+  }
+  .unsaved-changes-notice {
+    width: -moz-max-content;
+    width: max-content;
+    background: #ffe280;
+    color: #000;
+    flex-flow: row;
+    font-weight: 700;
+    margin: 0;
+    margin-left: auto;
+    padding: 5px 10px 5px 5px;
+    font-weight: normal;
+    font-size: 0.75rem;
+    border-radius: 20px;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    height: -moz-fit-content;
+    height: fit-content;
+    display: flex;
+  }
+
+    .unsaved-changes-notice::before {
+      content: "";
+      display: block;
+      flex: none;
+      height: 1.25rem;
+      width: 1.25rem;
+      -webkit-mask-image: url("../../../images/icons/message-alert.svg");
+              mask-image: url("../../../images/icons/message-alert.svg");
+      -webkit-mask-size: 100%;
+              mask-size: 100%;
+      -webkit-mask-repeat: no-repeat;
+              mask-repeat: no-repeat;
+      -webkit-mask-position: center;
+              mask-position: center;
+      background-color: #000;
+      font-size: 0.75rem;
+      opacity: 0.6;
+    }
+
+  [data-form-changed="true"] .unsaved-changes-notice-wrapper {
+    display: flex;
+  }
+}

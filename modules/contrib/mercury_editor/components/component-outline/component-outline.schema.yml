@@ -1,0 +1,24 @@
+# outline.schema.yml
+type: object
+properties:
+  tree:
+    type: array
+    items:
+      $ref: '#/definitions/item'
+
+definitions:
+  item:
+    type: object
+    properties:
+      id: { type: string }
+      type: { type: string, enum: [component, region] }
+      label: { type: string }
+      expanded: { type: boolean, default: true }
+      attrs:
+        type: object
+        additionalProperties: true # pass-through attributes
+      children:
+        type: array
+        items:
+          $ref: '#/definitions/item'
+    required: [id, type, label]

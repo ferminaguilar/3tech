@@ -1,0 +1,12 @@
+name: Autosave Test
+type: module
+description: 'Test module for autosave features with Mercury Editor.'
+core_version_requirement: ^9.4 || ^10 || ^11
+package: 'Mercury Editor Testing'
+dependencies:
+  - mercury_editor:mercury_editor
+
+# Information added by Drupal.org packaging script on 2026-06-03
+version: '3.0.0-alpha19'
+project: 'mercury_editor'
+datestamp: 1780507319

@@ -1,0 +1,5 @@
+mercury_editor_translations_test.drush_commands:
+  class: Drupal\mercury_editor_translations_test\Drush\Commands\MercuryEditorTranslationsTestCommands
+  tags:
+    - { name: drush.command }
+  arguments: [ '@content_translation.manager', '@entity_field.manager']

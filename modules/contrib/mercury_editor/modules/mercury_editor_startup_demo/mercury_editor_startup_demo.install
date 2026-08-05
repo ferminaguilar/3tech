@@ -1,0 +1,905 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor Demo module.
+ */
+
+use Drupal\node\Entity\Node;
+use Drupal\node\Entity\NodeType;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\paragraphs\Entity\Paragraph;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\paragraphs\Entity\ParagraphsType;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_startup_demo_install() {
+
+  $test_node_type = NodeType::load('me_test_ct');
+  if (!$test_node_type) {
+    $type = NodeType::create([
+      'id' => 'me_test_ct',
+      'type' => 'me_test_ct',
+      'name' => 'Mercury Editor Test Content Type',
+      'description' => 'A content type for testing Mercury Editor.',
+      'display_submitted' => FALSE,
+    ]);
+    $type->save();
+  }
+
+  // Create and configure a Layout Paragraphs section paragraph type.
+  $paragraphs_type = ParagraphsType::load('me_test_section');
+  if (!$paragraphs_type) {
+
+    $layoutPluginManager = \Drupal::service('plugin.manager.core.layout');
+    $layoutDefinitions = $layoutPluginManager->getDefinitions();
+    $default_layouts = array_filter($layoutDefinitions, function ($definition) {
+      return $definition->get('provider') == 'layout_discovery';
+    });
+    $layout_keys = array_map(function ($definition) {
+      return $definition->id();
+    }, $default_layouts);
+    $layout_labels = array_map(function ($definition) {
+      return $definition->getLabel()->__toString();
+    }, $default_layouts);
+    $available_layouts = array_combine($layout_keys, $layout_labels);
+
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_section',
+      'label' => 'Section',
+      'enabled_behaviors' => [
+        'layout_paragraphs',
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'layout_paragraphs' => [
+          'enabled' => TRUE,
+          'available_layouts' => $available_layouts,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+  }
+
+  // Create and configure the button component.
+  $paragraphs_type = ParagraphsType::load('me_test_button');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_button',
+      'label' => 'Button',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_button_link');
+    if (!$field_storage) {
+      // Add a link field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_button_link',
+        'entity_type' => 'paragraph',
+        'type' => 'link',
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_button', 'field_me_test_button_link');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_button',
+        'label' => 'Link',
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_button');
+    $form_display = $form_display->setComponent('field_me_test_button_link', ['type' => 'link_default']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_button');
+    $view_display->setComponent('field_me_test_button_link', ['type' => 'link', 'label' => 'hidden']);
+    $view_display->save();
+  }
+
+  // Create and configure the heading component.
+  $paragraphs_type = ParagraphsType::load('me_test_heading');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_heading',
+      'label' => 'Heading',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_heading');
+    if (!$field_storage) {
+      // Add a heading field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_heading',
+        'entity_type' => 'paragraph',
+        'type' => 'heading',
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_heading', 'field_me_test_heading');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_heading',
+        'label' => 'Heading',
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_heading');
+    $form_display = $form_display->setComponent('field_me_test_heading', ['type' => 'heading']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_heading');
+    $view_display->setComponent('field_me_test_heading', ['type' => 'heading', 'label' => 'hidden']);
+    $view_display->save();
+  }
+
+  // Create and configure the divider component.
+  $paragraphs_type = ParagraphsType::load('me_test_divider');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_divider',
+      'label' => 'Divider',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+  }
+
+  // Create and configure the text component.
+  $paragraphs_type = ParagraphsType::load('me_test_text');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_text',
+      'label' => 'Text',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_text');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_text',
+        'entity_type' => 'paragraph',
+        'type' => 'text_long',
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_text', 'field_me_test_text');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_text',
+        'label' => 'Text',
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_text');
+    $form_display = $form_display->setComponent('field_me_test_text', ['type' => 'text_textfield']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_text');
+    $view_display->setComponent('field_me_test_text', ['type' => 'text_default', 'label' => 'hidden']);
+    $view_display->save();
+  }
+
+  // Create and configure an image component.
+  $paragraphs_type = ParagraphsType::load('me_test_image');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_image',
+      'label' => 'Image',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+
+    $paragraphs_type->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_image');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_image',
+        'entity_type' => 'paragraph',
+        'type' => 'entity_reference',
+        'settings' => [
+          'target_type' => 'media',
+        ],
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_image', 'field_me_test_image');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_image',
+        'label' => 'Image',
+        'settings' => [
+          'handler_settings' => [
+            'target_bundles' => [
+              'image' => 'image',
+            ],
+            'sort' => [
+              'field' => '_none',
+              'direction' => 'ASC',
+            ],
+            'auto_create' => FALSE,
+            'auto_create_bundle' => FALSE,
+          ],
+        ],
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_image');
+    $form_display = $form_display->setComponent('field_me_test_image', ['type' => 'media_library_widget']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_image');
+    $view_display->setComponent('field_me_test_image', ['type' => 'entity_reference_entity_view', 'label' => 'hidden']);
+    $view_display->save();
+  }
+
+  // Create and configure a gallery component.
+  $paragraphs_type = ParagraphsType::load('me_test_gallery');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_gallery',
+      'label' => 'Image Gallery',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_title');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'fielfield_me_test_titled_title',
+        'entity_type' => 'paragraph',
+        'type' => 'string',
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'gallery', 'field_me_test_title');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_gallery',
+        'label' => 'Gallery Title',
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_gallery');
+    $form_display = $form_display->setComponent('field_me_test_title', ['type' => 'string_textfield']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_gallery');
+    $view_display->setComponent('field_me_test_title', ['type' => 'string', 'label' => 'hidden']);
+    $view_display->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_gallery_items');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_gallery_items',
+        'entity_type' => 'paragraph',
+        'type' => 'entity_reference',
+        'settings' => [
+          'target_type' => 'media',
+        ],
+        'cardinality' => '-1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_gallery', 'field_me_test_gallery_items');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_gallery',
+        'label' => 'Gallery Items',
+        'settings' => [
+          'handler_settings' => [
+            'target_bundles' => [
+              'image' => 'image',
+            ],
+            'sort' => [
+              'field' => '_none',
+              'direction' => 'ASC',
+            ],
+            'auto_create' => FALSE,
+            'auto_create_bundle' => FALSE,
+          ],
+        ],
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_gallery');
+    $form_display = $form_display->setComponent('field_me_test_gallery_items', ['type' => 'media_library_widget']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_gallery');
+    $view_display->setComponent('field_me_test_gallery_items', [
+      'type' => 'entity_reference_entity_view',
+      'label' => 'hidden',
+    ]);
+    $view_display->save();
+
+  }
+
+  // Create and configure a video component.
+  $paragraphs_type = ParagraphsType::load('me_test_video');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_video',
+      'label' => 'Video',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_video');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_video',
+        'entity_type' => 'paragraph',
+        'type' => 'entity_reference',
+        'settings' => [
+          'target_type' => 'media',
+        ],
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'video', 'field_me_test_video');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_video',
+        'label' => 'Video',
+        'settings' => [
+          'handler_settings' => [
+            'target_bundles' => [
+              'remote_video' => 'remote_video',
+            ],
+            'sort' => [
+              'field' => '_none',
+              'direction' => 'ASC',
+            ],
+            'auto_create' => FALSE,
+            'auto_create_bundle' => FALSE,
+          ],
+        ],
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_video');
+    $form_display = $form_display->setComponent('field_me_test_video', ['type' => 'media_library_widget']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_video');
+    $view_display->setComponent('field_me_test_video', ['type' => 'entity_reference_entity_view', 'label' => 'hidden']);
+    $view_display->save();
+  }
+
+  // Create and configure a card component.
+  $paragraphs_type = ParagraphsType::load('me_test_card');
+  if (!$paragraphs_type) {
+    $paragraphs_type = ParagraphsType::create([
+      'id' => 'me_test_card',
+      'label' => 'Card',
+      'enabled_behaviors' => [
+        'style_options',
+      ],
+      'behavior_plugins' => [
+        'style_options' => [
+          'enabled' => TRUE,
+        ],
+      ],
+    ]);
+    $paragraphs_type->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_title');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_title',
+        'entity_type' => 'paragraph',
+        'type' => 'string',
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_card', 'field_me_test_title');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_card',
+        'label' => 'Heading',
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_card');
+    $form_display = $form_display->setComponent('field_me_test_title', ['type' => 'string_textfield']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_card');
+    $view_display->setComponent('field_me_test_title', ['type' => 'string', 'label' => 'hidden']);
+    $view_display->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_media');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_media',
+        'entity_type' => 'paragraph',
+        'type' => 'entity_reference',
+        'settings' => [
+          'target_type' => 'media',
+        ],
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_card', 'field_me_test_media');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_card',
+        'label' => 'Media',
+        'settings' => [
+          'handler_settings' => [
+            'target_bundles' => [
+              'image' => 'image',
+              'remote_video' => 'remote_video',
+            ],
+            'sort' => [
+              'field' => '_none',
+              'direction' => 'ASC',
+            ],
+            'auto_create' => FALSE,
+            'auto_create_bundle' => FALSE,
+          ],
+        ],
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_card');
+    $form_display = $form_display->setComponent('field_me_test_media', ['type' => 'media_library_widget']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_card');
+    $view_display->setComponent('field_me_test_media', ['type' => 'entity_reference_entity_view', 'label' => 'hidden']);
+    $view_display->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_text');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_text',
+        'entity_type' => 'paragraph',
+        'type' => 'text_long',
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_card', 'field_me_test_text');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_card',
+        'label' => 'Text',
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_card');
+    $form_display = $form_display->setComponent('field_text', ['type' => 'text_me_test_textfield']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_card');
+    $view_display->setComponent('field_me_test_text', ['type' => 'text_default', 'label' => 'hidden']);
+    $view_display->save();
+
+    $field_storage = FieldStorageConfig::loadByName('paragraph', 'field_me_test_link');
+    if (!$field_storage) {
+      // Add a paragraphs field.
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'field_me_test_link',
+        'entity_type' => 'paragraph',
+        'type' => 'link',
+        'cardinality' => '1',
+      ]);
+      $field_storage->save();
+    }
+    $field_config = FieldConfig::loadByName('paragraph', 'me_test_card', 'field_me_test_link');
+    if (!$field_config) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => 'me_test_card',
+        'label' => 'Link / Call to Action',
+      ]);
+      $field->save();
+    }
+
+    $form_display = \Drupal::service('entity_display.repository')->getFormDisplay('paragraph', 'me_test_card');
+    $form_display = $form_display->setComponent('field_me_test_link', ['type' => 'link_default']);
+    $form_display->save();
+
+    $view_display = \Drupal::service('entity_display.repository')->getViewDisplay('paragraph', 'me_test_card');
+    $view_display->setComponent('field_me_test_link', ['type' => 'link', 'label' => 'hidden']);
+    $view_display->save();
+
+  }
+
+  $handler_settings = [
+    'target_bundles' => NULL,
+    'negate' => FALSE,
+    'target_bundles_drag_drop' => [
+      'me_test_section' => [
+        'weight' => 0,
+        'enabled' => TRUE,
+      ],
+      'me_test_text' => [
+        'weight' => 1,
+        'enabled' => TRUE,
+      ],
+      'me_test_image' => [
+        'weight' => 2,
+        'enabled' => TRUE,
+      ],
+      'me_test_gallery' => [
+        'weight' => 3,
+        'enabled' => TRUE,
+      ],
+      'me_test_video' => [
+        'weight' => 4,
+        'enabled' => TRUE,
+      ],
+      'me_test_card' => [
+        'weight' => 5,
+        'enabled' => TRUE,
+      ],
+    ],
+  ];
+
+  // Add the main paragraphs reference field.
+  mercury_editor_startup_demo_make_paragraph_field(
+    'node',
+    'me_test_ct',
+    'field_me_test_content',
+    'Page Content',
+    $handler_settings,
+    'layout_paragraphs',
+    'layout_paragraphs',
+    [
+      'weight' => 1,
+      'settings' => [
+        'empty_message' => 'To get started, add a new component.',
+      ],
+    ]);
+
+  $module_data = \Drupal::service('extension.list.module')
+    ->reset()
+    ->getList();
+  $theme_data = \Drupal::service('extension.list.theme')
+    ->reset()
+    ->getList();
+
+  $m_installer = \Drupal::service('module_installer');
+  $config = \Drupal::configFactory();
+
+  // Install gin and gin toolbar if available.
+  $t_installer = \Drupal::service('theme_installer');
+  if (isset($theme_data['gin'])) {
+    $t_installer->install(['gin']);
+    // Use gin as admin theme.
+    $config->getEditable('system.theme')->set('admin', 'gin')->save();
+  }
+  if (isset($module_data['gin_toolbar'])) {
+    $m_installer->install(['gin_toolbar']);
+    // Use the vertical toolbar for Gin admin theme.
+    $config->getEditable('gin.settings')->set('classic_toolbar', 'vertical')->save();
+  }
+
+  // Use Mercury Editor Edit Tray for basic pages.
+  $config->getEditable('mercury_editor.settings')->set('bundles', [
+    'node' => [
+      'me_test_ct' => 'me_test_ct',
+    ],
+  ])->save();
+  // Use claro as the Mercury Editor theme.
+  $config->getEditable('mercury_editor.settings')->set('edit_screen_theme', 'claro')->save();
+  _mercury_editor_startup_demo_create_content();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_startup_demo_uninstall() {
+  $test_ct = NodeType::load('me_test_ct');
+  $test_ct->delete();
+}
+
+/**
+ * Adds some test content.
+ */
+function _mercury_editor_startup_demo_create_content() {
+
+  // Create a text paragraph.
+  $text_paragraph = Paragraph::create([
+    'type' => 'me_test_text',
+    'field_me_test_text' => [
+      'value' => '<p>Mercury Editor™ is a new way to work with content in Drupal. Designed from the ground up for marketers and editorial teams, it delivers a highly visual, intuitive authoring experience that makes creating and editing content fast and enjoyable.</p>',
+      'format' => 'basic_html',
+    ],
+  ]);
+  $text_paragraph->save();
+
+  // Create an h2 heading paragraph
+  $heading_paragraph = Paragraph::create([
+    'type' => 'me_test_heading',
+    'field_me_test_heading' => [
+      'text' => 'New Experience. Time-Tested Technology.',
+      'size' => 'h2',
+    ],
+  ]);
+  $heading_paragraph->save();
+
+  // Create a text paragraph.
+  $text2_paragraph = Paragraph::create([
+    'type' => 'me_test_text',
+    'field_me_test_text' => [
+      'value' => '<p>Everything about editing content with Mercury Editor™ feels different—but under the hood it’s pure Drupal. Mercury Editor™ is built on widely adopted, proven modules like Paragraphs and Layout API, the same tools powering hundreds of thousands of Drupal sites. The result is an enhanced authoring experience that integrates cleanly with most existing Drupal 10 and 11 websites.</p>',
+      'format' => 'basic_html',
+    ],
+  ]);
+  $text2_paragraph->save();
+
+  $heading2_paragraph = Paragraph::create([
+    'type' => 'me_test_heading',
+    'field_me_test_heading' => [
+      'text' => 'Open Source & Free (as in Free)',
+      'size' => 'h2',
+    ],
+  ]);
+  $heading2_paragraph->save();
+
+  $text3_paragraph = Paragraph::create([
+    'type' => 'me_test_text',
+    'field_me_test_text' => [
+      'value' => 'Mercury Editor™ is free and open source, licensed under the GNU General Public License (GPL). You own your website and your content—no licensing fees, no lock-in.',
+      'format' => 'basic_html',
+    ],
+  ]);
+  $text3_paragraph->save();
+
+  // Add a button paragraph that links to drupal.org/project/mercury_editor.
+  $button_paragraph = Paragraph::create([
+    'type' => 'me_test_button',
+    'field_me_test_button_link' => [
+      'uri' => 'https://www.drupal.org/project/mercury_editor',
+      'title' => 'Download the Drupal Module',
+      'options' => ['attributes' => ['class' => ['button', 'button--primary']]],
+    ],
+  ]);
+  $button_paragraph->save();
+
+  // Add a divider paragraph.
+  $divider_paragraph = Paragraph::create([
+    'type' => 'me_test_divider',
+  ]);
+  $divider_paragraph->save();
+
+  // Add a one column section paragraph.
+  $section_paragraph = Paragraph::create([
+    'type' => 'me_test_section',
+    'behavior_settings' => serialize([
+      'layout_paragraphs' => [
+        'layout' => 'layout_onecol',
+        'regions' => [
+          'content' => [],
+        ],
+      ],
+    ]),
+  ]);
+  $section_paragraph->save();
+
+  // Create a heading paragraph, assign the section as its parent, and save it.
+  $section_heading = Paragraph::create([
+    'type' => 'me_test_heading',
+    'field_me_test_heading' => [
+      'text' => 'Build flexible, engaging, media-rich pages for your website – no developer needed.',
+      'size' => 'h3',
+    ],
+    'behavior_settings' => serialize([
+      'layout_paragraphs' => [
+        'parent_uuid' => $section_paragraph->uuid(),
+        'region' => 'content',
+      ],
+    ]),
+  ]);
+  $section_heading->save();
+
+  // Create a text paragraph, assign the section as its parent, and save it.
+  $section_text = Paragraph::create([
+    'type' => 'me_test_text',
+    'field_me_test_text' => [
+      'value' => '<p>Easily create, edit and rearrange content in Drupal – from simple text and images to slideshows and videos. Mercury Editor works seamlessly with existing Drupal 9 and Drupal 10 websites, without any licensing fees or restrictions.</p>',
+      'format' => 'basic_html',
+    ],
+    'behavior_settings' => serialize([
+      'layout_paragraphs' => [
+        'parent_uuid' => $section_paragraph->uuid(),
+        'region' => 'content',
+      ],
+    ]),
+  ]);
+  $section_text->save();
+
+  // Create a two-column section paragraph.
+  $twocol_section_paragraph = Paragraph::create([
+    'type' => 'me_test_section',
+    'behavior_settings' => serialize([
+      'layout_paragraphs' => [
+        'layout' => 'layout_twocol',
+        'regions' => [
+          'left' => [],
+          'right' => [],
+        ],
+      ],
+    ]),
+  ]);
+  $twocol_section_paragraph->save();
+
+  // Create a heading paragraph and insert it into the header region.
+  $twocol_section_heading = Paragraph::create([
+    'type' => 'me_test_heading',
+    'field_me_test_heading' => [
+      'text' => 'Key Features',
+      'size' => 'h3',
+    ],
+    'behavior_settings' => serialize([
+      'layout_paragraphs' => [
+        'parent_uuid' => $twocol_section_paragraph->uuid(),
+        'region' => 'top',
+      ],
+    ]),
+  ]);
+  $twocol_section_heading->save();
+
+  // Create a card paragraph and insert it into the left region.
+  $card1 = Paragraph::create([
+    'type' => 'me_test_card',
+    'field_me_test_title' => 'Component-Based Editing',
+    'field_me_test_text' => [
+      'value' => '<p>Drag-and-drop custom components to build flexible, visually compelling landing pages.</p>',
+      'format' => 'basic_html',
+    ],
+    'field_me_test_link' => [
+      'uri' => 'https://www.drupal.org/project/mercury_editor',
+      'title' => 'Learn More',
+      'options' => ['attributes' => ['class' => ['button', 'button--secondary']]],
+    ],
+    'behavior_settings' => serialize([
+      'layout_paragraphs' => [
+        'parent_uuid' => $twocol_section_paragraph->uuid(),
+        'region' => 'first',
+      ],
+    ]),
+  ]);
+  $card1->save();
+
+  // Create card2 for right column.
+  $card2 = Paragraph::create([
+    'type' => 'me_test_card',
+    'field_me_test_title' => 'A New Way to Build Pages',
+    'field_me_test_text' => [
+      'value' => '<p>Create custom layouts in seconds with Mercury’s easy-to-use Drupal page builder.</p>',
+      'format' => 'basic_html',
+    ],
+    'field_me_test_link' => [
+      'uri' => 'https://www.drupal.org/project/mercury_editor',
+      'title' => 'Learn More',
+      'options' => ['attributes' => ['class' => ['button', 'button--secondary']]],
+    ],
+    'behavior_settings' => serialize([
+      'layout_paragraphs' => [
+        'parent_uuid' => $twocol_section_paragraph->uuid(),
+        'region' => 'second',
+      ],
+    ]),
+  ]);
+  $card2->save();
+
+  // Create new node.
+  $node = Node::create([
+    'type' => 'me_test_ct',
+    'title' => 'Drupal Like You’ve Never Seen It',
+    'status' => 1,
+    'path' => ['alias' => '/welcome-to-mercury-editor', 'pathauto' => FALSE],
+    'field_me_test_content' => [
+      $text_paragraph,
+      $heading_paragraph,
+      $text2_paragraph,
+      $heading2_paragraph,
+      $text3_paragraph,
+      $button_paragraph,
+      $divider_paragraph,
+      $section_paragraph,
+      $section_heading,
+      $section_text,
+      $twocol_section_paragraph,
+      $twocol_section_heading,
+      $card1,
+      $card2,
+    ],
+  ]);
+  $node->save();
+
+}
