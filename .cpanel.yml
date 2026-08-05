@@ -3,8 +3,8 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/fermpgjg/3tech.io
     - /bin/rsync -a --exclude='.git' ./ $DEPLOYPATH/
-    - chmod 755 $DEPLOYPATH
-    - chmod 644 $DEPLOYPATH/.htaccess
+    - find $DEPLOYPATH -type d -exec chmod 755 {} +
+    - find $DEPLOYPATH -type f -exec chmod 644 {} +
     - cd $DEPLOYPATH && ./vendor/bin/drush updb -y
     - cd $DEPLOYPATH && ./vendor/bin/drush cim -y
     - cd $DEPLOYPATH && ./vendor/bin/drush cr
