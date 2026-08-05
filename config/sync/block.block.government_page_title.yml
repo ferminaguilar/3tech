@@ -1,0 +1,20 @@
+uuid: 5413b2cb-e1c6-4dc1-94c2-467be4e3ee08
+langcode: en
+status: true
+dependencies:
+  theme:
+    - government
+_core:
+  default_config_hash: Eo1VPatlkoIXRVVcYPHHWBTkyA27kpaREwnIsXWhOfU
+id: government_page_title
+theme: government
+region: content
+weight: 0
+provider: null
+plugin: page_title_block
+settings:
+  id: page_title_block
+  label: 'Page title'
+  label_display: '0'
+  provider: core
+visibility: {  }

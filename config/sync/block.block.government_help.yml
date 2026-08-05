@@ -1,0 +1,22 @@
+uuid: f94c060c-9241-4930-a761-cb568c62f65d
+langcode: en
+status: true
+dependencies:
+  module:
+    - help
+  theme:
+    - government
+_core:
+  default_config_hash: '-_1yVunO3on7h9D3dHT2_qfa8B-MpYiJSozfi9A9QXs'
+id: government_help
+theme: government
+region: help
+weight: -30
+provider: null
+plugin: help_block
+settings:
+  id: help_block
+  label: Help
+  label_display: '0'
+  provider: help
+visibility: {  }

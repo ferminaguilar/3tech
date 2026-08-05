@@ -1,0 +1,22 @@
+uuid: 27c9c499-3fd7-4b93-998e-a97d8c7519b0
+langcode: en
+status: true
+dependencies:
+  theme:
+    - government
+_core:
+  default_config_hash: 8r_PlCiUfcv0iqVn7tcMpIGeVamkLsPvBpONcuj_64o
+id: government_local_tasks
+theme: government
+region: content
+weight: 20
+provider: null
+plugin: local_tasks_block
+settings:
+  id: local_tasks_block
+  label: Tabs
+  label_display: '0'
+  provider: core
+  primary: true
+  secondary: true
+visibility: {  }

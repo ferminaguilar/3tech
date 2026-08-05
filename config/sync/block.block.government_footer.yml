@@ -1,0 +1,27 @@
+uuid: 63b31fd7-4b68-419b-ab88-8f92b07e6ed5
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.footer
+  module:
+    - system
+  theme:
+    - government
+_core:
+  default_config_hash: bj_wnd9iUI4QnqsRbEzFbkfJfEawHr1obqoNTOFMOa0
+id: government_footer
+theme: government
+region: footer_menu
+weight: 0
+provider: null
+plugin: 'system_menu_block:footer'
+settings:
+  id: 'system_menu_block:footer'
+  label: 'Footer menu'
+  label_display: '0'
+  provider: system
+  level: 1
+  depth: 0
+  expand_all_items: false
+visibility: {  }

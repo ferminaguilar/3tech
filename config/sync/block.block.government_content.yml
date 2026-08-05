@@ -1,0 +1,22 @@
+uuid: 476d990c-2e3c-4a22-9f82-36922810988c
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - government
+_core:
+  default_config_hash: 9Zcb8-TGLdNvyhL8OG7RJp_ZoWSp9k7j5EUaSP77gNo
+id: government_content
+theme: government
+region: content
+weight: 30
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 'Main page content'
+  label_display: '0'
+  provider: system
+visibility: {  }
