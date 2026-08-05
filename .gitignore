@@ -45,3 +45,5 @@ sites/simpletest
 
 # Ignore multi-site test environment.
 # simpletest
+
+sites/default/settings.local.php
