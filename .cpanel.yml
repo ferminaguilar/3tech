@@ -1,0 +1,5 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/fermpgjg/3tech.io
+    - /bin/rsync -a --exclude='.git' ./ $DEPLOYPATH/
