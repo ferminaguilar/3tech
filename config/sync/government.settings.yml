@@ -16,11 +16,11 @@ cdn_custom_css_min: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/css/u
 cdn_custom_js: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/js/uswds.js'
 cdn_custom_js_min: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/js/uswds.min.js'
 uswds_header_style: extended
-uswds_header_mega: 0
-uswds_header_mega_display_second: 0
-uswds_government_banner: 1
+uswds_header_mega: false
+uswds_header_mega_display_second: false
+uswds_government_banner: false
 uswds_footer_style: big
-uswds_footer_agency: 1
+uswds_footer_agency: true
 uswds_footer_agency_name: 'Name of Agency'
 uswds_footer_agency_url: '#agency'
 uswds_footer_agency_logo: logo.png
@@ -33,11 +33,11 @@ uswds_linkedin: '#linkedin'
 uswds_twitter: '#twitter'
 uswds_youtube: '#youtube'
 uswds_rss: /rss.xml
-uswds_paragraphs_edge_to_edge: 0
-uswds_menu_accordion_duplicate_parent: 0
+uswds_paragraphs_edge_to_edge: false
+uswds_menu_accordion_duplicate_parent: false
 uswds_menu_bypass:
-  primary_menu: 0
-  secondary_menu: 0
-  sidebar_first: 0
-  sidebar_second: 0
-  footer_menu: 0
+  primary_menu: '0'
+  secondary_menu: '0'
+  sidebar_first: '0'
+  sidebar_second: '0'
+  footer_menu: '0'
