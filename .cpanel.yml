@@ -3,3 +3,6 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/fermpgjg/3tech.io
     - /bin/rsync -a --exclude='.git' ./ $DEPLOYPATH/
+    - cd $DEPLOYPATH && ./vendor/bin/drush updb -y
+    - cd $DEPLOYPATH && ./vendor/bin/drush cim -y
+    - cd $DEPLOYPATH && ./vendor/bin/drush cr
