@@ -6,3 +6,16 @@ assets:
   js:
     assets/uswds/js/uswds-init.min.js: {}
     assets/uswds/js/uswds.min.js: {}
+
+hero-slider:
+  version: 1.0
+  css:
+    theme:
+      libraries/accessible-slick/accessible-slick.css: {}
+      libraries/accessible-slick/accessible-slick-theme.css: {}
+  js:
+    libraries/accessible-slick/accessible-slick.min.js: {}
+    js/hero-slider.js: {}
+  dependencies:
+    - core/once
+    - core/jquery

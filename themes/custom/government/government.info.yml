@@ -13,6 +13,7 @@ regions:
   header: 'Header'
   primary_menu: 'Primary Menu'
   secondary_menu: 'Secondary Menu'
+  header_cta: 'Header Action / CTA'
   sidebar_first: 'First sidebar'
   sidebar_second: 'Second sidebar'
   breadcrumb: 'Breadcrumb'
@@ -23,6 +24,8 @@ regions:
   footer_menu: 'Footer Menu'
   footer: 'Primary Footer'
   footer_secondary: 'Secondary Footer'
+  identifier: 'Government Identifier'
 
 libraries:
   - 'government/assets'
+  - 'government/hero-slider'
