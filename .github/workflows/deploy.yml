@@ -23,3 +23,11 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           port: ${{ secrets.FTP_PORT }}
           server-dir: repositories/3tech/
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            core/**
+            vendor/**
+            sites/default/files/**
+            .DS_Store
