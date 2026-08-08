@@ -48,7 +48,9 @@ jobs:
           echo "set net:timeout 15" >> "$LFTP_SCRIPT"
           echo "set cmd:fail-exit false" >> "$LFTP_SCRIPT"
           echo "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21" >> "$LFTP_SCRIPT"
+          echo "cd repositories/3tech" >> "$LFTP_SCRIPT"
           echo "lcd \"$STAGE_DIR\"" >> "$LFTP_SCRIPT"
+
           (
             cd "$STAGE_DIR"
             find . -type f | while read -r f; do
