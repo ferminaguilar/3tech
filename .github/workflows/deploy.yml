@@ -65,7 +65,7 @@ jobs:
               echo "cd" >> "$LFTP_SCRIPT"
               echo "cd repositories/3tech" >> "$LFTP_SCRIPT"
               if [ "$dir" != "." ]; then
-                echo "mkdir -p \"$dir\"" >> "$LFTP_SCRIPT"
+                echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
               fi
               echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
 
@@ -73,7 +73,7 @@ jobs:
               echo "cd" >> "$LFTP_SCRIPT"
               echo "cd 3tech.io" >> "$LFTP_SCRIPT"
               if [ "$dir" != "." ]; then
-                echo "mkdir -p \"$dir\"" >> "$LFTP_SCRIPT"
+                echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
               fi
               echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
             done
