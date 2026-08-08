@@ -1,0 +1,158 @@
+{#
+/**
+ * @file
+ * Theme implementation to display a single Drupal page while offline (maintenance mode).
+ *
+ * All available variables are mirrored in page.html.twig.
+ *
+ * @see \Drupal\Core\Theme\ThemePreprocess::preprocessMaintenancePage()
+ *
+ * @ingroup themeable
+ */
+#}
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #000000 !important;
+    color: #ffffff !important;
+    font-family: "Source Sans Pro Web", "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
+    min-height: 100vh;
+  }
+  .maintenance-wrapper {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #000000;
+    color: #ffffff;
+    padding: 2rem 1.5rem;
+    box-sizing: border-box;
+  }
+  .maintenance-container {
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+  .maintenance-grid {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 2rem;
+  }
+  .maintenance-col-text {
+    flex: 1 1 300px;
+    color: #ffffff;
+  }
+  .maintenance-col-text h1, 
+  .maintenance-col-text h2, 
+  .maintenance-col-text h3,
+  .maintenance-col-text p,
+  .maintenance-col-text div,
+  .maintenance-col-text span {
+    color: #ffffff !important;
+  }
+  .maintenance-col-text a {
+    color: #ffffff !important;
+    text-decoration: underline;
+  }
+  .maintenance-site-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #ffffff;
+  }
+  .maintenance-title {
+    font-size: 2.25rem;
+    font-weight: 700;
+    margin-top: 0;
+    margin-bottom: 1rem;
+    line-height: 1.2;
+    color: #ffffff;
+  }
+  .maintenance-slogan {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+    color: #ffffff;
+  }
+  .maintenance-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #ffffff;
+  }
+  .maintenance-col-logo {
+    flex: 1 1 250px;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    text-align: right;
+  }
+  .maintenance-logo-img {
+    max-width: 100%;
+    max-height: 200px;
+    height: auto;
+    display: block;
+    margin-left: auto;
+  }
+  @media (max-width: 768px) {
+    .maintenance-grid {
+      flex-direction: column-reverse;
+      text-align: center;
+    }
+    .maintenance-col-logo {
+      justify-content: center;
+      text-align: center;
+    }
+    .maintenance-logo-img {
+      margin-right: auto;
+    }
+    .maintenance-col-text {
+      text-align: center;
+    }
+  }
+</style>
+
+<div class="maintenance-wrapper bg-black text-white">
+  <div class="maintenance-container grid-container">
+    <div class="maintenance-grid grid-row flex-align-center">
+      
+      <!-- Column 1: Text Content -->
+      <div class="maintenance-col-text grid-col-12 tablet:grid-col-7">
+        {% if site_name %}
+          <div class="maintenance-site-name">{{ site_name }}</div>
+        {% endif %}
+
+        {% if title %}
+          <h1 class="maintenance-title">{{ title }}</h1>
+        {% endif %}
+
+        {% if site_slogan %}
+          <div class="maintenance-slogan">{{ site_slogan }}</div>
+        {% endif %}
+
+        <div class="maintenance-content">
+          {% if page.content %}
+            {{ page.content }}
+          {% else %}
+            <p>{{ 'The site is currently under maintenance. We will be back online shortly. Thank you for your patience.'|t }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Column 2: Logo (Aligned Right) -->
+      <div class="maintenance-col-logo grid-col-12 tablet:grid-col-5">
+        {% if logo %}
+          <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home" class="display-inline-block">
+            <img src="{{ logo }}" alt="{{ site_name ? site_name : 'Home'|t }}" class="maintenance-logo-img" />
+          </a>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+</div>
+
