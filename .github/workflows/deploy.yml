@@ -53,14 +53,25 @@ jobs:
           echo "set net:timeout 15" >> "$LFTP_SCRIPT"
           echo "set cmd:fail-exit false" >> "$LFTP_SCRIPT"
           echo "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21" >> "$LFTP_SCRIPT"
-          echo "cd repositories/3tech" >> "$LFTP_SCRIPT"
           echo "lcd \"$STAGE_DIR\"" >> "$LFTP_SCRIPT"
-          
+
           (
             cd "$STAGE_DIR"
             find . -type f | while read -r f; do
               rel="${f#./}"
               dir="$(dirname "$rel")"
+              
+              # Upload to repository folder
+              echo "cd" >> "$LFTP_SCRIPT"
+              echo "cd repositories/3tech" >> "$LFTP_SCRIPT"
+              if [ "$dir" != "." ]; then
+                echo "mkdir -p \"$dir\"" >> "$LFTP_SCRIPT"
+              fi
+              echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
+
+              # Upload to live web directory (3tech.io)
+              echo "cd" >> "$LFTP_SCRIPT"
+              echo "cd 3tech.io" >> "$LFTP_SCRIPT"
               if [ "$dir" != "." ]; then
                 echo "mkdir -p \"$dir\"" >> "$LFTP_SCRIPT"
               fi
