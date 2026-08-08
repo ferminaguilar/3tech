@@ -60,7 +60,11 @@ jobs:
             cd "$STAGE_DIR"
             find . -type f | while read -r f; do
               rel="${f#./}"
-              echo "put -d \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
+              dir="$(dirname "$rel")"
+              if [ "$dir" != "." ]; then
+                echo "mkdir -p \"$dir\"" >> "$LFTP_SCRIPT"
+              fi
+              echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
             done
           )
           echo "bye" >> "$LFTP_SCRIPT"
