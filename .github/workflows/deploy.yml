@@ -1,4 +1,4 @@
-name: Deploy to Namecheap cPanel
+name: Deploy to Namecheap via FTP
 
 on:
   push:
@@ -6,20 +6,19 @@ on:
       - main
 
 jobs:
-  deploy:
-    name: Deploy to cPanel
+  web-deploy:
+    name: Sync files via FTP
     runs-on: ubuntu-latest
 
     steps:
-      - name: Execute Deployment Commands on cPanel
-        uses: appleboy/ssh-action@v1.0.3
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Sync files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          host: ${{ secrets.FTP_SERVER }}
-          port: ${{ secrets.FTP_PORT }}
+          server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          script: |
-            cd /home/fermpgjg/repositories/3tech
-            git pull origin main
-            /usr/local/cpanel/bin/git-repo-deploy --repository=/home/fermpgjg/repositories/3tech
-
+          port: ${{ secrets.FTP_PORT }}
+          server-dir: /
