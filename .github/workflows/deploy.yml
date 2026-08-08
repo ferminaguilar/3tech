@@ -1,4 +1,4 @@
-name: Deploy to Namecheap Hosting
+name: Deploy to Namecheap via FTP
 
 on:
   push:
@@ -7,68 +7,19 @@ on:
   workflow_dispatch:
 
 jobs:
-  deploy:
+  web-deploy:
+    name: Sync files via FTP
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Sync files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
-          fetch-depth: 0
-
-      - name: Deploy Changed Files to Namecheap
-        run: |
-          if ! command -v lftp >/dev/null 2>&1; then
-            sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends lftp >/dev/null 2>&1
-          fi
-          before="${{ github.event.before }}"
-          if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
-            before="HEAD~1"
-          fi
-          git diff --name-only --diff-filter=ACMR "$before" "$GITHUB_SHA" > raw_changed_files.txt || true
-          # Exclude repository-only files (.github, .git, .DS_Store) from web server upload
-          grep -v -E '^\.github/|^\.git/|\.DS_Store' raw_changed_files.txt > changed_files.txt || true
-          if [ ! -s changed_files.txt ]; then
-            echo "No website files changed in this commit."
-            exit 0
-          fi
-          echo "Website files changed in this commit:"
-          cat changed_files.txt
-          STAGE_DIR="$(mktemp -d)"
-          while IFS= read -r file; do
-            if [ -f "$file" ]; then
-              mkdir -p "$STAGE_DIR/$(dirname "$file")"
-              cp -a "$file" "$STAGE_DIR/$file"
-            fi
-          done < changed_files.txt
-          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
-          LFTP_SCRIPT="$(mktemp)"
-          echo "set ssl:verify-certificate no" > "$LFTP_SCRIPT"
-          echo "set ftp:passive-mode true" >> "$LFTP_SCRIPT"
-          echo "set net:timeout 15" >> "$LFTP_SCRIPT"
-          echo "set cmd:fail-exit false" >> "$LFTP_SCRIPT"
-          echo "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21" >> "$LFTP_SCRIPT"
-          echo "cd repositories/3tech" >> "$LFTP_SCRIPT"
-          echo "lcd \"$STAGE_DIR\"" >> "$LFTP_SCRIPT"
-
-          (
-            cd "$STAGE_DIR"
-            find . -type f | while read -r f; do
-              rel="${f#./}"
-              dir="$(dirname "$rel")"
-              if [ "$dir" = "." ]; then
-                echo "put \"$rel\"" >> "$LFTP_SCRIPT"
-              else
-                echo "mkdir -p \"$dir\"" >> "$LFTP_SCRIPT"
-                echo "put -O \"$dir\" \"$rel\"" >> "$LFTP_SCRIPT"
-              fi
-            done
-          )
-          echo "bye" >> "$LFTP_SCRIPT"
-          echo "Executing direct upload to $FTP_HOST..."
-          lftp -f "$LFTP_SCRIPT"
-          echo "Deployment finished successfully."
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: ${{ secrets.FTP_PORT }}
+          server-dir: repositories/3tech/
