@@ -145,12 +145,16 @@
 
       <!-- Column 2: Logo (Aligned Right) -->
       <div class="maintenance-col-logo grid-col-12 tablet:grid-col-5">
+      <div class="grid-row">
+      <div class="grid-col-11 grid-offset-1">
         {% if logo %}
           <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home" class="display-inline-block">
             <img src="{{ logo }}" alt="{{ site_name ? site_name : 'Home'|t }}" class="maintenance-logo-img" />
           </a>
         {% endif %}
-      </div>
+        </div>
+
+      </div>  
 
     </div>
   </div>
