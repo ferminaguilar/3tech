@@ -2,7 +2,7 @@
 /**
  * @file
  * Theme implementation to display a single Drupal page while offline (maintenance mode).
- * 3 Tech - Dual Target Upload Test
+ * 3 Tech - Maintenance Page Template
  * All available variables are mirrored in page.html.twig.
  *
  * @see \Drupal\Core\Theme\ThemePreprocess::preprocessMaintenancePage()
@@ -18,32 +18,39 @@
     color: #ffffff !important;
     font-family: "Source Sans Pro Web", "Helvetica Neue", Helvetica, Roboto, Arial, sans-serif;
     min-height: 100vh;
+    overflow-x: hidden;
   }
   .maintenance-wrapper {
     min-height: 100vh;
+    width: 100%;
     display: flex;
     align-items: center;
-    justify-content: center;
     background-color: #000000;
     color: #ffffff;
-    padding: 2rem 1.5rem;
     box-sizing: border-box;
+    padding: 2rem 0;
   }
-  .maintenance-container {
+  .maintenance-inner {
     width: 100%;
-    max-width: 1040px;
-    margin: 0 auto;
-  }
-  .maintenance-grid {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     justify-content: space-between;
     gap: 2rem;
+    padding-left: calc((100vw - 1040px) / 2);
+    padding-right: 0;
+    box-sizing: border-box;
+  }
+  @media (max-width: 1080px) {
+    .maintenance-inner {
+      padding-left: 1.5rem;
+    }
   }
   .maintenance-col-text {
-    flex: 1 1 300px;
+    flex: 1 1 350px;
+    max-width: 600px;
     color: #ffffff;
+    box-sizing: border-box;
   }
   .maintenance-col-text h1, 
   .maintenance-col-text h2, 
@@ -85,81 +92,81 @@
     color: #ffffff;
   }
   .maintenance-col-logo {
-    flex: 1 1 250px;
+    flex: 1 1 300px;
     display: flex;
     justify-content: flex-end;
     align-items: center;
     text-align: right;
-  }
-  .theyellow{
-    background-color: #face0b;
+    padding-right: 0;
+    margin-right: 0;
   }
   .maintenance-logo-img {
     max-width: 100%;
-    max-height: 200px;
+    max-height: 70vh;
     height: auto;
     display: block;
     margin-left: auto;
+    margin-right: 0;
   }
   @media (max-width: 768px) {
-    .maintenance-grid {
+    .maintenance-inner {
       flex-direction: column-reverse;
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
       text-align: center;
     }
     .maintenance-col-logo {
       justify-content: center;
       text-align: center;
+      width: 100%;
     }
     .maintenance-logo-img {
+      margin-left: auto;
       margin-right: auto;
     }
     .maintenance-col-text {
       text-align: center;
+      max-width: 100%;
     }
   }
 </style>
 
 <div class="maintenance-wrapper bg-black text-white">
-  <div class="maintenance-container grid-container">
-    <div class="maintenance-grid grid-row flex-align-center">
-      
-      <!-- Column 1: Text Content -->
-      <div class="maintenance-col-text grid-col-12 tablet:grid-col-7">
-        {% if site_name %}
-          <div class="maintenance-site-name">{{ site_name }}</div>
-        {% endif %}
+  <div class="maintenance-inner">
+    
+    <!-- Column 1: Text Content (Aligned with container margin) -->
+    <div class="maintenance-col-text">
+      {% if site_name %}
+        <div class="maintenance-site-name">{{ site_name }}</div>
+      {% endif %}
 
-        {% if title %}
-          <h1 class="maintenance-title">{{ title }}</h1>
-        {% endif %}
+      {% if title %}
+        <h1 class="maintenance-title">{{ title }}</h1>
+      {% endif %}
 
-        {% if site_slogan %}
-          <div class="maintenance-slogan">{{ site_slogan }}</div>
-        {% endif %}
+      {% if site_slogan %}
+        <div class="maintenance-slogan">{{ site_slogan }}</div>
+      {% endif %}
 
-        <div class="maintenance-content">
-          {% if page.content %}
-            {{ page.content }}
-          {% else %}
-            <p>{{ 'The site is currently under maintenance. We will be back online shortly. Thank you for your patience.'|t }}</p>
-          {% endif %}
-        </div>
+      <div class="maintenance-content">
+        {% if page.content %}
+          {{ page.content }}
+        {% else %}
+          <p>{{ 'The site is currently under maintenance. We will be back online shortly. Thank you for your patience.'|t }}</p>
+        {% endif %}
       </div>
-
-      <!-- Column 2: Logo (Aligned Right) -->
-      <div class="maintenance-col-logo grid-col-12 tablet:grid-col-5">
-      <div class="grid-row theyellow">
-      <div class="grid-col-11 grid-offset-1">
-        {% if logo %}
-          <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home" class="display-inline-block">
-            <img src="{{ logo }}" alt="{{ site_name ? site_name : 'Home'|t }}" class="maintenance-logo-img" />
-          </a>
-        {% endif %}
-        </div>
-
-      </div>  
-
     </div>
+
+    <!-- Column 2: Logo (Touches right edge of browser) -->
+    <div class="maintenance-col-logo">
+      {% if logo %}
+        <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home" class="display-inline-block">
+          <img src="{{ logo }}" alt="{{ site_name ? site_name : 'Home'|t }}" class="maintenance-logo-img" />
+        </a>
+      {% endif %}
+    </div>
+
   </div>
 </div>
+
 
