@@ -1,0 +1,24 @@
+name: Deploy to Namecheap cPanel
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to cPanel
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Execute Deployment Commands on cPanel
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          port: ${{ secrets.SSH_PORT }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /home/fermpgjg/repositories/3tech
+            git pull origin main
+            /usr/local/cpanel/bin/git-repo-deploy --repository=/home/fermpgjg/repositories/3tech
