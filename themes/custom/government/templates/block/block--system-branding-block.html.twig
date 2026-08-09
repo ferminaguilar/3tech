@@ -1,0 +1,29 @@
+{#
+/**
+ * @file
+ * Subtheme override for system branding block with flex alignment and logo size controls.
+ */
+#}
+<div class="usa-logo site-logo" id="logo">
+
+  <em class="usa-logo__text display-flex flex-align-center">
+  {% if site_logo %}
+    <a class="logo-img display-inline-flex flex-align-center margin-right-1" href="{{ path('<front>') }}" accesskey="1" title="{{ 'Home'|t }}" aria-label="Home">
+      <img src="{{ site_logo }}" alt="{{ 'Home'|t }}" width="62" height="52" style="height: {{ header_logo_height|default('40px') }}; max-height: {{ header_logo_height|default('40px') }}; width: auto; display: block;" />
+    </a>
+
+  {% endif %}
+
+  {% if site_name %}
+      <a href="{{ path('<front>') }}" accesskey="2" title="{{ 'Home'|t }}" aria-label="Home">
+        {{ site_name }}
+      </a>
+  {% endif %}
+  </em>
+
+  {% if site_slogan %}
+    <h2 class="usa-font-lead display-block margin-top-05">{{ site_slogan }}</h2>
+  {% endif %}
+
+</div>
+<button class="usa-menu-btn" type="button">{{ 'Menu'|t }}</button>

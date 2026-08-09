@@ -1,0 +1,23 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.identifier
+  module:
+    - system
+  theme:
+    - government
+id: government_identifier
+theme: government
+region: identifier
+weight: 0
+provider: null
+plugin: 'system_menu_block:identifier'
+settings:
+  id: 'system_menu_block:identifier'
+  label: 'Identifier menu'
+  provider: system
+  label_display: '0'
+  level: 1
+  depth: 0
+visibility: { }

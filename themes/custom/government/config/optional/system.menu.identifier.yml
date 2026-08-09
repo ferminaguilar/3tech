@@ -1,0 +1,7 @@
+langcode: en
+status: true
+dependencies: { }
+id: identifier
+label: Identifier
+description: 'USWDS Identifier required links'
+locked: false

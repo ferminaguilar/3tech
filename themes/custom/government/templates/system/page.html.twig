@@ -1,0 +1,409 @@
+{#
+/**
+ * @file
+ * Theme override for page layout in Government subtheme.
+ * Includes USWDS Identifier component at the bottom of pages.
+ */
+#}
+{% if government_banner %}
+  {% block government_banner %}
+    <section class="usa-banner" aria-label="{{ 'Official website of the United States government'|t }}">
+      {{ government_banner }}
+    </section>
+  {% endblock %}
+{% endif %}
+
+<div class="usa-overlay"></div>
+
+{% block header %}
+  <header class="{{ header_classes }}" id="header" role="banner">
+
+  {% if page.header_top %}
+    <div class="usa-banner-inner">
+      {{ page.header_top }}
+    </div>
+  {% endif %}
+
+  {% if header_basic %}
+  <div class="usa-nav-container">
+    {% endif %}
+
+    {{ page.header }}
+
+    <nav class="usa-nav" role="navigation">
+      {% if header_extended %}
+      <div class="usa-nav__inner">
+        {% endif %}
+
+        <button type="button" class="usa-nav__close">
+          <img src="{{ uswds_images }}usa-icons/close.svg" alt="close"/>
+        </button>
+
+        {% if page.mobile_menu %}
+          <div class="usa-nav-mobile">
+            {{ page.mobile_menu }}
+          </div>
+        {% endif %}
+
+        {% if page.mobile_menu %}
+        <div class="usa-nav-desktop">
+          {% endif %}
+
+          {% if page.primary_menu %}
+            {{ page.primary_menu }}
+          {% endif %}
+
+          {% if page.secondary_menu %}
+            {{ page.secondary_menu }}
+          {% endif %}
+
+          {% if page.mobile_menu %}
+        </div>
+        {% endif %}
+
+        {% if header_extended %}
+      </div>
+      {% endif %}
+    </nav>
+
+    {% if header_basic %}
+  </div>
+  {% endif %}
+
+</header>
+{% endblock %}
+
+{% if page.hero %}
+  {% block hero %}
+    <section class="usa-hero">
+      <div class="grid-container">
+        {{ page.hero }}
+      </div>
+    </section>
+  {% endblock %}
+{% endif %}
+
+{% block main %}
+  <main class="main-content usa-layout-docs usa-section {{ main_classes }}" role="main" id="main-content">
+
+    <div class="grid-container">
+
+      {% if page.breadcrumb or page.highlighted or page.help %}
+        {% block breadcrumb %}
+          <div class="grid-row">
+            {{ page.breadcrumb }}
+          </div>
+        {% endblock %}
+
+        {% block highlighted %}
+          <div class="">
+            {{ page.highlighted }}
+          </div>
+        {% endblock %}
+
+        {# Help #}
+        {% if page.help %}
+          {% block help %}
+            <div class="grid-row ">
+              {{ page.help }}
+            </div>
+          {% endblock %}
+        {% endif %}
+      {% endif %}
+
+      <div class="grid-row grid-gap">
+        {% if page.sidebar_first %}
+          {% block sidebar_first %}
+            <div class="usa-layout-docs__sidenav desktop:grid-col-3 layout-sidebar-first">
+              {{ page.sidebar_first }}
+            </div>
+          {% endblock %}
+        {% endif %}
+
+        {% block content %}
+          <div
+            {% if page.sidebar_first and page.sidebar_second %}
+              {% set main_col = "6" %}
+            {% elseif page.sidebar_first or page.sidebar_second %}
+              {% set main_col = "9" %}
+            {% else %}
+              {% set main_col = "fill" %}
+            {% endif %}
+            class="usa-layout-docs__main desktop:grid-col-{{ main_col }}">
+
+            {{ page.content }}
+          </div>{# /.layout-content #}
+        {% endblock %}
+
+        {% if page.sidebar_second %}
+          {% block sidebar_second %}
+            <div class="usa-layout-docs__sidenav desktop:grid-col-3 layout-sidebar-second">
+              {{ page.sidebar_second }}
+            </div>
+            {% endblock %}
+        {% endif %}
+      </div>
+    </div>
+  </main>
+{% endblock %}
+
+{% block footer %}
+  <footer class="{{ footer_classes }}" role="contentinfo">
+    <div class="grid-container usa-footer__return-to-top">
+      <a href="#">{{ 'Return to top'|t }}</a>
+    </div>
+
+    {% if display_footer_primary %}
+      <div class="usa-footer__primary-section">
+
+        <div class="usa-footer__primary-content">
+          {% if footer_style != 'medium' %}
+          <div class="grid-container">
+            <div class="grid-row grid-gap">
+              {% endif %}
+
+              {% if page.footer_menu %}
+                {{ page.footer_menu }}
+              {% endif %}
+
+              {% if footer_slim and (footer_phone or footer_email) %}
+                <div class="mobile-lg:grid-col-4">
+                  <address class="usa-footer__address">
+                    <div class="grid-row grid-gap mobile-lg:grid-gap-0">
+
+                      {% if footer_phone %}
+                        <div class="grid-col-auto mobile-lg:grid-col-12 desktop:grid-col-auto">
+                          <div class="usa-footer-contact_info">
+                            <a href="tel:{{ footer_phone }}">{{ footer_phone }}</a>
+                          </div>
+                        </div>
+                      {% endif %}
+
+                      {% if footer_email %}
+                        <div class="grid-col-auto mobile-lg:grid-col-12 desktop:grid-col-auto">
+                          <div class="usa-footer-contact_info">
+                            <a href="mailto:{{ footer_email }}">{{ footer_email }}</a>
+                          </div>
+                        </div>
+                      {% endif %}
+                    </div>
+                  </address>
+                </div>
+              {% endif %}
+
+              {% if footer_style != 'medium' %}
+            </div>
+          </div>
+          {% endif %}
+
+          {% if page.footer %}
+            <div class="grid-container">
+              <div class="grid-row grid-gap">
+                <div class="grid-col-fill">
+                  {{ page.footer }}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+      </div>
+    {% endif %}
+
+    {% if display_footer_secondary %}
+      <div class="usa-footer__secondary-section">
+        <div class="grid-container">
+          <div class="grid-row grid-gap flex-row flex-align-center">
+            {% if display_footer_agency %}
+            <div class="usa-footer__logo grid-row mobile-lg:grid-col-6 mobile-lg:grid-gap-2">
+
+              {% if footer_agency_url %}
+              <a href="{{ footer_agency_url }}" class="grid-row grid-gap-2 flex-align-center">
+              {% else %}
+              <div class="grid-row grid-gap-2 flex-align-center">
+              {% endif %}
+
+                {% if footer_agency_logo and footer_agency_show_logo %}
+                  <div class="mobile-lg:grid-col-auto">
+                    <img class="usa-footer__logo-img" src="{{ footer_agency_logo }}" alt="{{ 'Agency logo'|t }}" width="62" height="52">
+                  </div>
+                {% endif %}
+
+                {% if footer_agency_name %}
+                  <div class="mobile-lg:grid-col-auto">
+                    <p class="usa-footer__logo-heading">{{ footer_agency_name }}</p>
+                  </div>
+                {% endif %}
+
+              {% if footer_agency_url %}
+              </a>
+              {% else %}
+              </div>
+              {% endif %}
+
+            </div>
+
+
+
+            {% if not footer_slim %}
+              <div class="usa-footer__contact-links desktop:grid-col-6">
+                {% if facebook or twitter or instagram or linkedin or youtube or rss %}
+                <div class="usa-footer__social-links grid-row grid-gap-1">
+                {% if facebook %}
+                  <div class="grid-col-auto">
+                  <a class="usa-social-link usa-social-link--facebook" href="{{ facebook }}">
+                    <img class="usa-social-link__icon" src="{{ uswds_images }}usa-icons/facebook.svg" alt="Facebook">
+                  </a>
+                  </div>
+                {% endif %}
+
+                {% if instagram %}
+                    <div class="grid-col-auto">
+                  <a class="usa-social-link usa-social-link--instagram" href="{{ instagram }}">
+                    <img class="usa-social-link__icon" src="{{ uswds_images }}usa-icons/instagram.svg" alt="Instagram">
+                  </a>
+                    </div>
+                {% endif %}
+
+                {% if linkedin %}
+                    <div class="grid-col-auto">
+                  <a class="usa-social-link usa-social-link--linkedin" href="{{ linkedin }}">
+                    <img class="usa-social-link__icon" src="{{ uswds_images }}usa-icons/linkedin.svg" alt="LinkedIn">
+                  </a>
+                    </div>
+                {% endif %}
+
+                {% if twitter %}
+                  <div class="grid-col-auto">
+                  <a class="usa-social-link usa-social-link--twitter" href="{{ twitter }}">
+                    <img class="usa-social-link__icon" src="{{ uswds_images }}usa-icons/x.svg" alt="Twitter">
+                  </a>
+                  </div>
+                {% endif %}
+
+                {% if youtube %}
+                    <div class="grid-col-auto">
+                  <a class="usa-social-link usa-social-link--youtube" href="{{ youtube }}">
+                    <img class="usa-social-link__icon" src="{{ uswds_images }}usa-icons/youtube.svg" alt="YouTube">
+                  </a>
+                    </div>
+                {% endif %}
+
+                {% if rss %}
+                  <div class="grid-col-auto">
+                  <a class="usa-social-link usa-social-link--rss" href="{{ rss }}">
+                    <img class="usa-social-link__icon" src="{{ uswds_images }}usa-icons/rss_feed.svg" alt="RSS">
+                  </a>
+                  </div>
+                {% endif %}
+                </div>
+                {% endif %}
+                {% if contact_center %}
+                  <p class="usa-footer__contact-heading">{{ contact_center }}</p>
+                {% endif %}
+                <address class="usa-footer__address">
+                  <div class="usa-footer__contact-info grid-row grid-gap">
+                    {% if phone %}
+                      <div class="grid-col-auto">
+                        <a href="tel:{{ phone }}">{{ phone }}</a>
+                      </div>
+                    {% endif %}
+
+                    {% if email %}
+                      <div class="grid-col-auto">
+                        <a href="mailto:{{ email }}">{{ email }}</a>
+                      </div>
+                    {% endif %}
+                  </div>
+                </address>
+              </div>
+            {% endif %}
+
+          </div>
+          {% endif %}
+
+          {% if page.footer_secondary %}
+            <div class="grid-container">
+              <div class="grid-row grid-gap">
+                <div class="grid-col-fill">
+                  {{ page.footer_secondary }}
+                </div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% endif %}
+
+  </footer>
+{% endblock %}
+
+{% if uswds_identifier_enabled %}
+  {% block identifier %}
+    {% set identifier_classes = ['usa-identifier'] %}
+    {% if not identifier_show_logos or identifier_is_no_logo %}
+      {% set identifier_classes = identifier_classes|merge(['usa-identifier--no-logos']) %}
+    {% endif %}
+    <div class="{{ identifier_classes|join(' ') }}">
+      <section class="usa-identifier__section usa-identifier__section--masthead" aria-label="{{ 'Agency identifier'|t }}">
+        <div class="usa-identifier__container">
+          {% if identifier_show_logos and not identifier_is_no_logo %}
+            <div class="usa-identifier__logos">
+              {% if identifier_agency_logo %}
+                <a href="{{ identifier_agency_url|default('#') }}" class="usa-identifier__logo">
+                  <img class="usa-identifier__logo-img" src="{{ identifier_agency_logo }}" alt="{{ identifier_agency_name }} logo" />
+                </a>
+              {% endif %}
+              {% if identifier_is_multiple_parents and identifier_parent2_logo %}
+                <a href="{{ identifier_parent2_url|default('#') }}" class="usa-identifier__logo">
+                  <img class="usa-identifier__logo-img" src="{{ identifier_parent2_logo }}" alt="{{ identifier_parent2_name }} logo" />
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          <section class="usa-identifier__identity" aria-label="{{ 'Agency description'|t }}">
+            {% if identifier_domain %}
+              <p class="usa-identifier__identity-domain">{{ identifier_domain }}</p>
+            {% endif %}
+            <p class="usa-identifier__identity-disclaimer">
+              {% if identifier_is_multiple_parents %}
+                An official website of the <a href="{{ identifier_agency_url|default('#') }}">{{ identifier_agency_name|default('3 Tech Agency') }}</a> and the <a href="{{ identifier_parent2_url|default('#') }}">{{ identifier_parent2_name|default('Parent Department') }}</a>.
+              {% else %}
+                An official website of the <a href="{{ identifier_agency_url|default('#') }}">{{ identifier_agency_name|default('3 Tech Agency') }}</a>.
+              {% endif %}
+              {% if identifier_taxpayer_disclaimer %}
+                Produced and published at taxpayer expense.
+              {% endif %}
+            </p>
+          </section>
+        </div>
+      </section>
+      <nav class="usa-identifier__section usa-identifier__section--required-links" aria-label="{{ 'Important links'|t }}">
+        <div class="usa-identifier__container">
+          {% if page.identifier %}
+            {{ page.identifier }}
+          {% endif %}
+        </div>
+      </nav>
+      {% if identifier_usagov_enabled %}
+        <section class="usa-identifier__section usa-identifier__section--usagov" aria-label="{{ 'U.S. government information and services'|t }}">
+          <div class="usa-identifier__container">
+            <div class="usa-identifier__usagov-description">
+              {{ identifier_usagov_text|default('Looking for U.S. government information and services?') }}
+            </div>
+            <a href="{{ identifier_usagov_url|default('https://www.usa.gov/') }}" class="usa-link">{{ 'Visit USA.gov'|t }}</a>
+          </div>
+        </section>
+      {% endif %}
+    </div>
+  {% endblock %}
+{% else %}
+  {% if page.identifier %}
+    <div class="usa-identifier">
+      <div class="usa-identifier__container">
+        {{ page.identifier }}
+      </div>
+    </div>
+  {% endif %}
+{% endif %}

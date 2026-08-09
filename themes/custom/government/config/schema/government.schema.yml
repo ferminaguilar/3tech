@@ -23,6 +23,10 @@ government.settings:
     uswds_header_style:
       type: string
       label: 'Header Style'
+    uswds_header_logo_height:
+      type: string
+      label: 'Max Header Logo Height'
+
     uswds_header_mega:
       type: boolean
       label: 'Use megamenus'
@@ -38,6 +42,10 @@ government.settings:
     uswds_footer_agency:
       type: boolean
       label: 'Add agency information'
+    uswds_footer_agency_show_logo:
+      type: boolean
+      label: 'Display footer agency logo'
+
     uswds_footer_agency_name:
       type: string
       label: 'Footer agency name'
@@ -85,3 +93,51 @@ government.settings:
       label: 'Bypass USWDS menu processing'
       sequence:
         type: string
+    uswds_identifier_enabled:
+      type: boolean
+      label: 'Display USWDS Identifier component'
+    uswds_identifier_variant:
+      type: string
+      label: 'Identifier Variant'
+    uswds_identifier_show_logos:
+      type: boolean
+      label: 'Display agency logos'
+    uswds_identifier_taxpayer_disclaimer:
+      type: boolean
+      label: 'Include Taxpayer Disclaimer'
+
+
+    uswds_identifier_domain:
+      type: string
+      label: 'Domain name'
+
+    uswds_identifier_agency_name:
+      type: string
+      label: 'Parent Agency / Department Name'
+    uswds_identifier_agency_short_name:
+      type: string
+      label: 'Agency Acronym / Short Name'
+    uswds_identifier_agency_url:
+      type: string
+      label: 'Parent Agency URL'
+    uswds_identifier_agency_logo:
+      type: string
+      label: 'Agency Logo Path'
+    uswds_identifier_parent2_name:
+      type: string
+      label: 'Secondary Parent Agency Name'
+    uswds_identifier_parent2_url:
+      type: string
+      label: 'Secondary Parent Agency URL'
+    uswds_identifier_parent2_logo:
+      type: string
+      label: 'Secondary Agency Logo Path'
+    uswds_identifier_usagov_enabled:
+      type: boolean
+      label: 'Display USA.gov section'
+    uswds_identifier_usagov_text:
+      type: string
+      label: 'USA.gov Disclaimer Text'
+    uswds_identifier_usagov_url:
+      type: string
+      label: 'USA.gov URL'

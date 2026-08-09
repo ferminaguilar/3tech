@@ -5,7 +5,8 @@ name: 'Government Theme by 3 Tech'
 description: 'Uses the USWDS Base and requires download of the USWDS assets'
 package: 'USWDS Base'
 core_version_requirement: ^10 || ^11
-logo: 'logo.png'
+logo: 'logo.svg'
+
 screenshot: 'screenshot.png'
 
 regions:

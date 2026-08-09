@@ -15,3 +15,124 @@ function government_preprocess(&$variables) {
   $variables['active_theme_path'] = base_path() . \Drupal::theme()->getActiveTheme()->getPath();
   $variables['uswds_images'] = $variables['active_theme_path'] . '/node_modules/@uswds/uswds/dist/img/';
 }
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function government_preprocess_page(&$variables) {
+  // Pass USWDS Identifier variables to page template.
+  $variables['uswds_identifier_enabled'] = (bool) (theme_get_setting('uswds_identifier_enabled') ?? TRUE);
+  if ($variables['uswds_identifier_enabled']) {
+    $variables['identifier_variant'] = theme_get_setting('uswds_identifier_variant') ?? 'default';
+
+    $variables['identifier_show_logos'] = (bool) (theme_get_setting('uswds_identifier_show_logos') ?? TRUE);
+    if ($variables['identifier_variant'] === 'no_logo') {
+      $variables['identifier_show_logos'] = FALSE;
+    }
+
+    // Set convenience flags for twig template.
+    $variables['identifier_is_no_logo'] = !$variables['identifier_show_logos'];
+    $variables['identifier_is_multiple_parents'] = ($variables['identifier_variant'] === 'multiple_parents');
+
+    // Determine taxpayer disclaimer flag strictly based on variant.
+    $variables['identifier_taxpayer_disclaimer'] = ($variables['identifier_variant'] === 'taxpayer_disclaimer');
+
+
+
+
+
+
+    $identifier_variables = [
+      'identifier_domain',
+      'identifier_agency_name',
+      'identifier_agency_short_name',
+      'identifier_agency_url',
+      'identifier_agency_logo',
+      'identifier_parent2_name',
+      'identifier_parent2_url',
+      'identifier_parent2_logo',
+      'identifier_usagov_enabled',
+      'identifier_usagov_text',
+      'identifier_usagov_url',
+    ];
+    foreach ($identifier_variables as $var) {
+      $variables[$var] = theme_get_setting('uswds_' . $var);
+    }
+
+    // Resolve logo paths (supporting .svg, .png, etc.).
+    if (!empty($variables['identifier_agency_logo'])) {
+      $variables['identifier_agency_logo'] = _government_resolve_logo_path($variables['identifier_agency_logo']);
+    }
+
+    if (!empty($variables['identifier_parent2_logo'])) {
+      $variables['identifier_parent2_logo'] = _government_resolve_logo_path($variables['identifier_parent2_logo']);
+    }
+  }
+
+  // Footer agency logo toggle & path resolution.
+  $variables['footer_agency_show_logo'] = (bool) (theme_get_setting('uswds_footer_agency_show_logo') ?? TRUE);
+  if (!empty($variables['footer_agency_logo'])) {
+    $variables['footer_agency_logo'] = _government_resolve_logo_path($variables['footer_agency_logo']);
+  }
+}
+
+/**
+ * Helper function to resolve logo path (supporting .svg, .png, .jpg, etc.).
+ */
+function _government_resolve_logo_path($logo_file) {
+  if (empty($logo_file)) {
+    return '';
+  }
+  if (preg_match('/^(http|https|\/\/|\/)/', $logo_file)) {
+    return $logo_file;
+  }
+
+  $active_theme = \Drupal::theme()->getActiveTheme();
+  $theme_path = $active_theme->getPath();
+
+  // Try exact file first.
+  if (function_exists('uswds_base_theme_trail_file')) {
+    $resolved = uswds_base_theme_trail_file($logo_file);
+    if (file_exists($resolved)) {
+      return base_path() . $resolved;
+    }
+  }
+  elseif (file_exists($theme_path . '/' . $logo_file)) {
+    return base_path() . $theme_path . '/' . $logo_file;
+  }
+
+  // Fallback: if specified file is logo.png (or default), test svg candidates.
+  $svg_candidates = [
+    preg_replace('/\.(png|jpg|jpeg)$/i', '.svg', $logo_file),
+    'logo.svg',
+  ];
+  foreach ($svg_candidates as $candidate) {
+    if (function_exists('uswds_base_theme_trail_file')) {
+      $resolved_svg = uswds_base_theme_trail_file($candidate);
+      if (file_exists($resolved_svg)) {
+        return base_path() . $resolved_svg;
+      }
+    }
+    elseif (file_exists($theme_path . '/' . $candidate)) {
+      return base_path() . $theme_path . '/' . $candidate;
+    }
+  }
+
+  if (function_exists('uswds_base_theme_trail_file')) {
+    return base_path() . uswds_base_theme_trail_file($logo_file);
+  }
+  return base_path() . $theme_path . '/' . $logo_file;
+}
+
+/**
+ * Implements hook_preprocess_block__system_branding_block().
+ */
+function government_preprocess_block__system_branding_block(&$variables) {
+  $variables['header_logo_height'] = theme_get_setting('uswds_header_logo_height') ?? '40px';
+}
+
+
+
+
+
+
