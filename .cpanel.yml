@@ -2,13 +2,14 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/fermpgjg/3tech.io
+    - export PATH=/opt/cpanel/ea-php83/root/usr/bin:$PATH
     - export COMPOSER_MEMORY_LIMIT=-1
     - /bin/rsync -a --exclude='.git' ./ $DEPLOYPATH/
     - test -f $DEPLOYPATH/sites/default/settings.php || cp $DEPLOYPATH/sites/default/default.settings.php $DEPLOYPATH/sites/default/settings.php
     - find $DEPLOYPATH -type d -exec chmod 755 {} +
     - find $DEPLOYPATH -type f -exec chmod 644 {} +
-    - cd $DEPLOYPATH && composer install --no-dev --optimize-autoloader || true
+    - cd $DEPLOYPATH && php /usr/local/bin/composer install --no-dev --optimize-autoloader
+    - cd $DEPLOYPATH && ./vendor/bin/drush updb -y
+    - cd $DEPLOYPATH && ./vendor/bin/drush cim -y
+    - cd $DEPLOYPATH && ./vendor/bin/drush cr
 
-    - cd $DEPLOYPATH && ./vendor/bin/drush updb -y || true
-    - cd $DEPLOYPATH && ./vendor/bin/drush cim -y || true
-    - cd $DEPLOYPATH && ./vendor/bin/drush cr || true
