@@ -8,8 +8,6 @@ dependencies:
     - system
   theme:
     - government
-_core:
-  default_config_hash: Yzg1zu73-FIQamy5OMTnLfyM90sxdvDbYAODyVws57w
 id: government_account_menu
 theme: government
 region: secondary_menu
@@ -23,5 +21,4 @@ settings:
   provider: system
   level: 1
   depth: 1
-  expand_all_items: false
 visibility: {  }

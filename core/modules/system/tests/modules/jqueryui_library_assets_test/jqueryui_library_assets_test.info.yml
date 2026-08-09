@@ -2,9 +2,4 @@ name: 'jQuery UI library assets test'
 type: module
 description: 'Tests jQuery UI library asset loading'
 package: Testing
-# version: VERSION
-
-# Information added by Drupal.org packaging script on 2026-07-15
-version: '11.4.4'
-project: 'drupal'
-datestamp: 1784141321
+version: VERSION

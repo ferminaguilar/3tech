@@ -4,8 +4,6 @@ status: true
 dependencies:
   theme:
     - government
-_core:
-  default_config_hash: Eo1VPatlkoIXRVVcYPHHWBTkyA27kpaREwnIsXWhOfU
 id: government_page_title
 theme: government
 region: content

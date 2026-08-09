@@ -1,0 +1,8 @@
+uuid: e93a809e-6b71-4f70-9b08-ff7359b37567
+langcode: en
+status: true
+dependencies: {  }
+id: identifier
+label: Identifier
+description: 'USWDS Identifier required links'
+locked: false

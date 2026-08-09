@@ -464,6 +464,15 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
         $extraAttributesException = null;
         $missingConstructorArgumentsException = null;
         $isNullable = false;
+        $filterBoolFailed = false;
+
+        // property-info reports union members in the order PHP declares them, which always puts
+        // "bool" last, while TypeInfo sorts them by name. Sorting here the same way makes both
+        // paths try the members in the same order and return the same value.
+        if ($isUnionType) {
+            usort($types, static fn (LegacyType $a, LegacyType $b): int => ($a->getClassName() ?? $a->getBuiltinType()) <=> ($b->getClassName() ?? $b->getBuiltinType()));
+        }
+
         foreach ($types as $type) {
             if (null === $data && $type->isNullable()) {
                 return null;
@@ -616,7 +625,11 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
                 }
 
                 if (LegacyType::BUILTIN_TYPE_BOOL === $builtinType && (\is_string($data) || \is_int($data)) && ($context[self::FILTER_BOOL] ?? false)) {
-                    return filter_var($data, \FILTER_VALIDATE_BOOL, \FILTER_NULL_ON_FAILURE);
+                    if (null !== $filtered = filter_var($data, \FILTER_VALIDATE_BOOL, \FILTER_NULL_ON_FAILURE)) {
+                        return $filtered;
+                    }
+
+                    $filterBoolFailed = true;
                 }
 
                 if ((LegacyType::BUILTIN_TYPE_FALSE === $builtinType && false === $data) || (LegacyType::BUILTIN_TYPE_TRUE === $builtinType && true === $data)) {
@@ -681,6 +694,14 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
             return $data;
         }
 
+        if ($filterBoolFailed) {
+            foreach ($types as $t) {
+                if ($t->isNullable()) {
+                    return null;
+                }
+            }
+        }
+
         throw NotNormalizableValueException::createForUnexpectedDataType(\sprintf('The type of the "%s" attribute for class "%s" must be one of "%s" ("%s" given).', $attribute, $currentClass, implode('", "', array_keys($expectedTypes)), get_debug_type($data)), $data, array_keys($expectedTypes), $context['deserialization_path'] ?? $attribute);
     }
 
@@ -706,6 +727,7 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
         $e = null;
         $extraAttributesException = null;
         $missingConstructorArgumentsException = null;
+        $filterBoolFailed = false;
 
         $types = match (true) {
             $type instanceof IntersectionType => throw new LogicException('Unable to handle intersection type.'),
@@ -918,7 +940,11 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
                 }
 
                 if (TypeIdentifier::BOOL === $typeIdentifier && (\is_string($data) || \is_int($data)) && ($context[self::FILTER_BOOL] ?? false)) {
-                    return filter_var($data, \FILTER_VALIDATE_BOOL, \FILTER_NULL_ON_FAILURE);
+                    if (null !== $filtered = filter_var($data, \FILTER_VALIDATE_BOOL, \FILTER_NULL_ON_FAILURE)) {
+                        return $filtered;
+                    }
+
+                    $filterBoolFailed = true;
                 }
 
                 $dataMatchesExpectedType = match ($typeIdentifier) {
@@ -987,6 +1013,10 @@ abstract class AbstractObjectNormalizer extends AbstractNormalizer
 
         if ($context[self::DISABLE_TYPE_ENFORCEMENT] ?? $this->defaultContext[self::DISABLE_TYPE_ENFORCEMENT] ?? false) {
             return $data;
+        }
+
+        if ($filterBoolFailed && $type->isNullable()) {
+            return null;
         }
 
         throw NotNormalizableValueException::createForUnexpectedDataType(\sprintf('The type of the "%s" attribute for class "%s" must be one of "%s" ("%s" given).', $attribute, $currentClass, implode('", "', array_keys($expectedTypes)), get_debug_type($data)), $data, array_keys($expectedTypes), $context['deserialization_path'] ?? $attribute);

@@ -6,8 +6,6 @@ dependencies:
     - system
   theme:
     - government
-_core:
-  default_config_hash: ZBrHhryd9OSblfvFjw-xyo_J_05DMHVCzed7BIUp-y0
 id: government_messages
 theme: government
 region: highlighted

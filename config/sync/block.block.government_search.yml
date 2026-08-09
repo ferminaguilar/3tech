@@ -1,0 +1,18 @@
+uuid: b0121694-1a44-434d-ba7c-86166a2e9eca
+langcode: en
+status: true
+dependencies:
+  theme:
+    - government
+id: government_search
+theme: government
+region: secondary_menu
+weight: 10
+provider: null
+plugin: search_form_block
+settings:
+  id: search_form_block
+  label: Search
+  label_display: visible
+  provider: core
+visibility: {  }

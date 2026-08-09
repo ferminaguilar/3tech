@@ -6,8 +6,6 @@ dependencies:
     - system
   theme:
     - government
-_core:
-  default_config_hash: q_gIwajmS92Gxs_oNjYpaPzwJDy4fMGfNfpNdYd-pjw
 id: government_breadcrumbs
 theme: government
 region: breadcrumb

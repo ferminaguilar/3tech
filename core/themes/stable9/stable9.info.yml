@@ -2,11 +2,11 @@ name: Stable 9
 type: theme
 description: A base theme using Drupal 9.0.0's core markup and CSS.
 package: Core
-# version: VERSION
+version: VERSION
 base theme: false
 hidden: true
 lifecycle: deprecated
-lifecycle_link: https://www.drupal.org/node/3223395#s-stable-9
+lifecycle_link: https://www.drupal.org/node/3223395#s-stable9
 
 libraries-override:
   block/drupal.block.admin:
@@ -333,8 +333,3 @@ libraries-override:
     css:
       theme:
         css/field_ui_display_overview_table.css: css/field_ui/field_ui_display_overview_table.css
-
-# Information added by Drupal.org packaging script on 2026-07-15
-version: '11.4.4'
-project: 'drupal'
-datestamp: 1784141321

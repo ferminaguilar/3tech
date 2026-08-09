@@ -8,8 +8,6 @@ dependencies:
     - system
   theme:
     - government
-_core:
-  default_config_hash: bj_wnd9iUI4QnqsRbEzFbkfJfEawHr1obqoNTOFMOa0
 id: government_footer
 theme: government
 region: footer_menu
@@ -23,5 +21,4 @@ settings:
   provider: system
   level: 1
   depth: 0
-  expand_all_items: false
 visibility: {  }

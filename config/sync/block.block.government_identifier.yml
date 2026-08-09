@@ -1,0 +1,24 @@
+uuid: 1aa90903-ec21-4070-b12c-b215cbb61e4b
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.identifier
+  module:
+    - system
+  theme:
+    - government
+id: government_identifier
+theme: government
+region: identifier
+weight: 0
+provider: null
+plugin: 'system_menu_block:identifier'
+settings:
+  id: 'system_menu_block:identifier'
+  label: 'Identifier menu'
+  label_display: '0'
+  provider: system
+  level: 1
+  depth: 0
+visibility: {  }

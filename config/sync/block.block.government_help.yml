@@ -6,8 +6,6 @@ dependencies:
     - help
   theme:
     - government
-_core:
-  default_config_hash: '-_1yVunO3on7h9D3dHT2_qfa8B-MpYiJSozfi9A9QXs'
 id: government_help
 theme: government
 region: help

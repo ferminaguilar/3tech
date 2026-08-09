@@ -262,5 +262,5 @@ function _paragraphs_migration_entity_type_adjust(array &$migration, $destinatio
  *   - buttons: An array of buttons to display in the modal form.
  */
 function template_preprocess_paragraphs_summary(&$variables) {
-  \Drupal::service(ParagraphsThemeHooks::class)->preprocessParagraphsActions($variables);
+  \Drupal::service(ParagraphsThemeHooks::class)->preprocessParagraphsSummary($variables);
 }

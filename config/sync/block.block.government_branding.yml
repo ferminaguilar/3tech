@@ -6,8 +6,6 @@ dependencies:
     - system
   theme:
     - government
-_core:
-  default_config_hash: 8CSfE4Hfr-0oG-eeCixiGYQNn3gNdyYiZmBjQTsh4jc
 id: government_branding
 theme: government
 region: header
