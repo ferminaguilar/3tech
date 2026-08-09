@@ -39,7 +39,8 @@ jobs:
             set net:max-retries 2
             set net:connection-limit 2
             open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
-            mirror -R --only-newer --parallel=2 --exclude-glob node_modules/ themes/custom/government 3tech.io/themes/custom/government
+            mirror -R --only-newer --parallel=2 --exclude-glob node_modules/ --exclude-glob usa-icons/ --exclude-glob uswds-icons/ themes/custom/government 3tech.io/themes/custom/government
+
             bye
           "
 
