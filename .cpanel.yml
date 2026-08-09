@@ -6,10 +6,10 @@ deployment:
     - export COMPOSER_MEMORY_LIMIT=-1
     - /bin/rsync -a --exclude='.git' ./ $DEPLOYPATH/
     - test -f $DEPLOYPATH/sites/default/settings.php || cp $DEPLOYPATH/sites/default/default.settings.php $DEPLOYPATH/sites/default/settings.php
-    - find $DEPLOYPATH -type d -exec chmod 755 {} +
-    - find $DEPLOYPATH -type f -exec chmod 644 {} +
-    - cd $DEPLOYPATH && php /usr/local/bin/composer install --no-dev --optimize-autoloader
+    - chmod -R 755 $DEPLOYPATH/core $DEPLOYPATH/vendor $DEPLOYPATH/sites/default || true
+    - cd $DEPLOYPATH && composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
     - cd $DEPLOYPATH && ./vendor/bin/drush updb -y
     - cd $DEPLOYPATH && ./vendor/bin/drush cim -y
     - cd $DEPLOYPATH && ./vendor/bin/drush cr
+
 
