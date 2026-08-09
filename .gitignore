@@ -9,7 +9,8 @@
 
 # Ignore core when managing all of a project's dependencies with Composer
 # including Drupal core.
-core/
+# core/
+
 
 
 # Ignore dependencies that are managed with Composer.
