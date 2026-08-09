@@ -68,31 +68,18 @@ jobs:
               fi
             done < changed_files.txt
 
-            LFTP_SCRIPT="$(mktemp)"
-            echo "set ssl:verify-certificate no" > "$LFTP_SCRIPT"
-            echo "set ftp:passive-mode true" >> "$LFTP_SCRIPT"
-            echo "set net:timeout 15" >> "$LFTP_SCRIPT"
-            echo "set cmd:fail-exit false" >> "$LFTP_SCRIPT"
-            echo "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21" >> "$LFTP_SCRIPT"
-            echo "lcd \"$STAGE_DIR\"" >> "$LFTP_SCRIPT"
-
-            (
-              cd "$STAGE_DIR"
-              find . -type f | while read -r f; do
-                rel="${f#./}"
-                dir="$(dirname "$rel")"
-                
-                echo "cd" >> "$LFTP_SCRIPT"
-                echo "cd 3tech.io" >> "$LFTP_SCRIPT"
-                if [ "$dir" != "." ]; then
-                  echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
-                fi
-                echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
-              done
-            )
-            echo "bye" >> "$LFTP_SCRIPT"
-            lftp -f "$LFTP_SCRIPT"
+            lftp -c "
+              set ssl:verify-certificate no
+              set ftp:passive-mode true
+              set net:timeout 10
+              set net:max-retries 2
+              set net:connection-limit 2
+              open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
+              mirror -R --only-newer --parallel=2 \"$STAGE_DIR\" 3tech.io
+              bye
+            "
           fi
+
 
           echo "Deployment finished successfully."
         env:
