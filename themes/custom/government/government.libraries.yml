@@ -4,8 +4,9 @@ assets:
     theme:
       css/styles.css: {}
   js:
-    assets/uswds/js/uswds-init.min.js: {}
-    assets/uswds/js/uswds.min.js: {}
+    assets/js/uswds-init.min.js: {}
+    assets/js/uswds.min.js: {}
+
 
 hero-slider:
   version: 1.0

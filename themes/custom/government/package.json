@@ -1,0 +1,16 @@
+{
+  "name": "government-theme",
+  "version": "1.0.0",
+  "description": "Government theme for 3Tech using official USWDS 3 source code",
+  "main": "gulpfile.js",
+  "scripts": {
+    "init": "gulp init",
+    "compile": "gulp compile",
+    "watch": "gulp watch"
+  },
+  "dependencies": {
+    "@uswds/compile": "^1.1.0",
+    "@uswds/uswds": "^3.13.0",
+    "gulp": "^4.0.2"
+  }
+}
