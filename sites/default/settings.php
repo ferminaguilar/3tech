@@ -918,6 +918,20 @@ $databases['default']['default'] = array (
 
 $settings['config_sync_directory'] = 'config/sync';
 
+/**
+ * Trusted host configuration.
+ */
+$settings['trusted_host_patterns'] = [
+  '^3tech\.io$',
+  '^www\.3tech\.io$',
+  '^.+\.3tech\.io$',
+  '^localhost$',
+  '^127\.0\.0\.1$',
+  '^.+\.local$',
+];
+
+
 if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
   include $app_root . '/' . $site_path . '/settings.local.php';
 }
+
