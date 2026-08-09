@@ -7,9 +7,11 @@ deployment:
     - /bin/rsync -a --exclude='.git' ./ $DEPLOYPATH/
     - test -f $DEPLOYPATH/sites/default/settings.php || cp $DEPLOYPATH/sites/default/default.settings.php $DEPLOYPATH/sites/default/settings.php
     - chmod -R 755 $DEPLOYPATH/core $DEPLOYPATH/vendor $DEPLOYPATH/sites/default || true
+    - rm -rf $DEPLOYPATH/core
     - cd $DEPLOYPATH && composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader
     - cd $DEPLOYPATH && ./vendor/bin/drush updb -y
     - cd $DEPLOYPATH && ./vendor/bin/drush cim -y
     - cd $DEPLOYPATH && ./vendor/bin/drush cr
+
 
 
