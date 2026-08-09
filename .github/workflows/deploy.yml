@@ -37,11 +37,10 @@ jobs:
           git diff --name-only --diff-filter=ACMR "$before" "$GITHUB_SHA" > raw_changed_files.txt || true
           grep -v -E '^\.github/|^\.git/|\.DS_Store' raw_changed_files.txt > changed_files.txt || true
           
-          if grep -qE '^composer\.(json|lock)' changed_files.txt || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "Composer lock or json changed. Building core and vendor..."
-            composer install --no-dev --optimize-autoloader
-            find core vendor -type f >> changed_files.txt
-          fi
+          echo "Building core and vendor dependencies with Composer..."
+          composer install --no-dev --optimize-autoloader
+          find core vendor -type f >> changed_files.txt
+
 
           if [ ! -s changed_files.txt ]; then
             echo "No website files changed in this commit."
