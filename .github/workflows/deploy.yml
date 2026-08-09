@@ -28,6 +28,22 @@ jobs:
             sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends lftp >/dev/null 2>&1
           fi
 
+          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
+
+          # 1. Sync government theme files & assets to production in parallel
+          echo "Syncing government theme assets to production..."
+          lftp -c "
+            set ssl:verify-certificate no
+            set ftp:passive-mode true
+            set net:timeout 10
+            set net:max-retries 2
+            set net:connection-limit 2
+            open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
+            mirror -R --only-newer --parallel=2 --exclude-glob node_modules/ themes/custom/government 3tech.io/themes/custom/government
+            bye
+          "
+
+          # 2. Check changed git files
           before="${{ github.event.before }}"
           if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
             before="HEAD~1"
@@ -36,9 +52,7 @@ jobs:
           git diff --name-only --diff-filter=ACMR "$before" "$GITHUB_SHA" > raw_changed_files.txt || true
           grep -v -E '^\.github/|^\.git/|\.DS_Store' raw_changed_files.txt > changed_files.txt || true
 
-          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
-
-          # If composer.lock or composer.json changed (or manual trigger), build & mirror core/vendor
+          # 3. Build & mirror Composer dependencies if composer changed
           if grep -qE '^composer\.(json|lock)' changed_files.txt || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "Composer dependencies changed. Running composer install..."
             composer install --no-dev --optimize-autoloader
@@ -57,7 +71,7 @@ jobs:
             "
           fi
 
-
+          # 4. Upload any other changed Git files
           if [ -s changed_files.txt ]; then
             echo "Uploading changed Git files..."
             STAGE_DIR="$(mktemp -d)"
@@ -80,11 +94,11 @@ jobs:
             "
           fi
 
-
           echo "Deployment finished successfully."
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+
 
 
