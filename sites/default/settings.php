@@ -931,6 +931,12 @@ $settings['trusted_host_patterns'] = [
   '^.+\.local(:[0-9]+)?$',
 ];
 
+/**
+ * Skip file system permissions hardening to allow automated FTP/deployment pipeline updates.
+ */
+$settings['skip_permissions_hardening'] = FALSE;
+
+
 
 
 if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
