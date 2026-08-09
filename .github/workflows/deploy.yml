@@ -28,22 +28,6 @@ jobs:
             sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends lftp >/dev/null 2>&1
           fi
 
-          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
-
-          echo "Building Composer dependencies with PHP 8.4..."
-          composer install --no-dev --optimize-autoloader
-
-          echo "Syncing core and vendor to production in parallel..."
-          lftp -c "
-            set ssl:verify-certificate no
-            set ftp:passive-mode true
-            set net:timeout 15
-            open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
-            mirror -R --only-newer --parallel=10 core 3tech.io/core
-            mirror -R --only-newer --parallel=10 vendor 3tech.io/vendor
-            bye
-          "
-
           before="${{ github.event.before }}"
           if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
             before="HEAD~1"
@@ -51,6 +35,28 @@ jobs:
           
           git diff --name-only --diff-filter=ACMR "$before" "$GITHUB_SHA" > raw_changed_files.txt || true
           grep -v -E '^\.github/|^\.git/|\.DS_Store' raw_changed_files.txt > changed_files.txt || true
+
+          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
+
+          # If composer.lock or composer.json changed (or manual trigger), build & mirror core/vendor
+          if grep -qE '^composer\.(json|lock)' changed_files.txt || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Composer dependencies changed. Running composer install..."
+            composer install --no-dev --optimize-autoloader
+            
+            echo "Syncing core and vendor to production..."
+            lftp -c "
+              set ssl:verify-certificate no
+              set ftp:passive-mode true
+              set net:timeout 10
+              set net:max-retries 2
+              set net:connection-limit 2
+              open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
+              mirror -R --only-newer --parallel=2 core 3tech.io/core
+              mirror -R --only-newer --parallel=2 vendor 3tech.io/vendor
+              bye
+            "
+          fi
+
 
           if [ -s changed_files.txt ]; then
             echo "Uploading changed Git files..."
