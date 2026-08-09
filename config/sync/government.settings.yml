@@ -16,6 +16,7 @@ cdn_custom_css_min: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/css/u
 cdn_custom_js: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/js/uswds.js'
 cdn_custom_js_min: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/js/uswds.min.js'
 uswds_header_style: extended
+uswds_header_logo_height: 40px
 uswds_header_mega: false
 uswds_header_mega_display_second: false
 uswds_government_banner: false
@@ -53,6 +54,6 @@ uswds_identifier_agency_logo: logo.svg
 uswds_identifier_parent2_name: 'Parent Department'
 uswds_identifier_parent2_url: '#'
 uswds_identifier_parent2_logo: logo.png
-uswds_identifier_usagov_enabled: true
+uswds_identifier_usagov_enabled: false
 uswds_identifier_usagov_text: 'Looking for U.S. government information and services?'
 uswds_identifier_usagov_url: 'https://www.usa.gov/'
