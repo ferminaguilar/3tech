@@ -925,10 +925,12 @@ $settings['trusted_host_patterns'] = [
   '^3tech\.io$',
   '^www\.3tech\.io$',
   '^.+\.3tech\.io$',
-  '^localhost$',
-  '^127\.0\.0\.1$',
-  '^.+\.local$',
+  '^localhost(:[0-9]+)?$',
+  '^127\.0\.0\.1(:[0-9]+)?$',
+  '^3tech(:[0-9]+)?$',
+  '^.+\.local(:[0-9]+)?$',
 ];
+
 
 
 if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
