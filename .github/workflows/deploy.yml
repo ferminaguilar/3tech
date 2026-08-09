@@ -19,7 +19,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.3'
+          php-version: '8.4'
           coverage: none
 
       - name: Deploy to Namecheap
@@ -27,7 +27,23 @@ jobs:
           if ! command -v lftp >/dev/null 2>&1; then
             sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends lftp >/dev/null 2>&1
           fi
-          
+
+          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
+
+          echo "Building Composer dependencies with PHP 8.4..."
+          composer install --no-dev --optimize-autoloader
+
+          echo "Syncing core and vendor to production in parallel..."
+          lftp -c "
+            set ssl:verify-certificate no
+            set ftp:passive-mode true
+            set net:timeout 15
+            open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
+            mirror -R --only-newer --parallel=10 core 3tech.io/core
+            mirror -R --only-newer --parallel=10 vendor 3tech.io/vendor
+            bye
+          "
+
           before="${{ github.event.before }}"
           if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
             before="HEAD~1"
@@ -36,66 +52,46 @@ jobs:
           git diff --name-only --diff-filter=ACMR "$before" "$GITHUB_SHA" > raw_changed_files.txt || true
           grep -v -E '^\.github/|^\.git/|\.DS_Store' raw_changed_files.txt > changed_files.txt || true
 
-          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
-
-          # If composer.lock or composer.json changed (or manual trigger), build & mirror core/vendor in parallel
-          if grep -qE '^composer\.(json|lock)' changed_files.txt || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "Composer lock or json changed. Running composer install..."
-            composer install --no-dev --optimize-autoloader
-            
-            echo "Syncing core and vendor to production in parallel..."
-            lftp -c "
-              set ssl:verify-certificate no
-              set ftp:passive-mode true
-              set net:timeout 15
-              open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
-              mirror -R --only-newer --parallel=10 core 3tech.io/core
-              mirror -R --only-newer --parallel=10 vendor 3tech.io/vendor
-              bye
-            "
-          fi
-
-          if [ ! -s changed_files.txt ]; then
-            echo "No website files changed in this commit."
-            exit 0
-          fi
-
-          echo "Uploading changed Git files..."
-          STAGE_DIR="$(mktemp -d)"
-          while IFS= read -r file; do
-            if [ -f "$file" ]; then
-              mkdir -p "$STAGE_DIR/$(dirname "$file")"
-              cp -a "$file" "$STAGE_DIR/$file"
-            fi
-          done < changed_files.txt
-
-          LFTP_SCRIPT="$(mktemp)"
-          echo "set ssl:verify-certificate no" > "$LFTP_SCRIPT"
-          echo "set ftp:passive-mode true" >> "$LFTP_SCRIPT"
-          echo "set net:timeout 15" >> "$LFTP_SCRIPT"
-          echo "set cmd:fail-exit false" >> "$LFTP_SCRIPT"
-          echo "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21" >> "$LFTP_SCRIPT"
-          echo "lcd \"$STAGE_DIR\"" >> "$LFTP_SCRIPT"
-
-          (
-            cd "$STAGE_DIR"
-            find . -type f | while read -r f; do
-              rel="${f#./}"
-              dir="$(dirname "$rel")"
-              
-              echo "cd" >> "$LFTP_SCRIPT"
-              echo "cd 3tech.io" >> "$LFTP_SCRIPT"
-              if [ "$dir" != "." ]; then
-                echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
+          if [ -s changed_files.txt ]; then
+            echo "Uploading changed Git files..."
+            STAGE_DIR="$(mktemp -d)"
+            while IFS= read -r file; do
+              if [ -f "$file" ]; then
+                mkdir -p "$STAGE_DIR/$(dirname "$file")"
+                cp -a "$file" "$STAGE_DIR/$file"
               fi
-              echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
-            done
-          )
-          echo "bye" >> "$LFTP_SCRIPT"
-          lftp -f "$LFTP_SCRIPT"
+            done < changed_files.txt
+
+            LFTP_SCRIPT="$(mktemp)"
+            echo "set ssl:verify-certificate no" > "$LFTP_SCRIPT"
+            echo "set ftp:passive-mode true" >> "$LFTP_SCRIPT"
+            echo "set net:timeout 15" >> "$LFTP_SCRIPT"
+            echo "set cmd:fail-exit false" >> "$LFTP_SCRIPT"
+            echo "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21" >> "$LFTP_SCRIPT"
+            echo "lcd \"$STAGE_DIR\"" >> "$LFTP_SCRIPT"
+
+            (
+              cd "$STAGE_DIR"
+              find . -type f | while read -r f; do
+                rel="${f#./}"
+                dir="$(dirname "$rel")"
+                
+                echo "cd" >> "$LFTP_SCRIPT"
+                echo "cd 3tech.io" >> "$LFTP_SCRIPT"
+                if [ "$dir" != "." ]; then
+                  echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
+                fi
+                echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
+              done
+            )
+            echo "bye" >> "$LFTP_SCRIPT"
+            lftp -f "$LFTP_SCRIPT"
+          fi
+
           echo "Deployment finished successfully."
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+
 
