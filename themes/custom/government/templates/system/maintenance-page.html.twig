@@ -93,14 +93,23 @@
   .maintenance-col-logo {
     flex: 1 1 300px;
     display: flex;
+    justify-content: flex-end;
     align-items: center;
+    text-align: right;
     padding-left: 10px;
     margin-left: 0;
     background-color: #face0b;
   }
+  .maintenance-logo-link {
+    display: block;
+    width: 100%;
+    max-width: 250px;
+    margin-left: auto;
+  }
   .maintenance-logo-img {
-    max-width: 100%;
-    max-height: 70vh;
+    width: 100%;
+    max-width: 250px;
+    min-width: 80px;
     height: auto;
     display: block;
     margin-left: auto;
@@ -117,6 +126,9 @@
       justify-content: center;
       text-align: center;
       width: 100%;
+    }
+    .maintenance-logo-link {
+      margin-right: auto;
     }
     .maintenance-logo-img {
       margin-left: auto;
@@ -158,8 +170,8 @@
     <!-- Column 2: Logo (Touches right edge of browser) -->
     <div class="maintenance-col-logo padding-y-1">
       {% if logo %}
-        <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home" class="display-inline-block">
-          <img src="{{ logo }}" alt="{{ site_name ? site_name : 'Home'|t }}" class="maintenance-logo-img" />
+        <a href="{{ front_page }}" title="{{ 'Home'|t }}" rel="home" class="maintenance-logo-link display-inline-block">
+          <img src="{{ logo }}" alt="{{ site_name ? site_name : 'Home'|t }}" class="maintenance-logo-img" width="200" height="170" />
         </a>
       {% endif %}
     </div>
