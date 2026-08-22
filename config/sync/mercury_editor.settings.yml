@@ -2,6 +2,7 @@ _core:
   default_config_hash: P7-bkXBGqWivKKivUi5UzJpO8RVGHctaNR8U4kj5aII
 content_types: {  }
 edit_screen_theme: ''
+state_history_limit: 20
 skip_create_form: {  }
 mobile_presets:
   -

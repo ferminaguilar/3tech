@@ -914,10 +914,11 @@ $databases['default']['default'] = array (
   'driver' => 'mysql',
   'namespace' => 'Drupal\\mysql\\Driver\\Database\\mysql',
   'autoload' => 'core/modules/mysql/src/Driver/Database/mysql/',
+  'isolation_level' => 'READ COMMITTED',
 );
 
 $settings['config_sync_directory'] = 'config/sync';
-
+$settings['enable_html5_validation'] = TRUE; // or FALSE to test the Drupal 12 behavior
 /**
  * Trusted host configuration.
  */
