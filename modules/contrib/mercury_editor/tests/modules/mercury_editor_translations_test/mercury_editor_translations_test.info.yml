@@ -10,7 +10,7 @@ dependencies:
   - drupal:language
   - drupal:locale
 
-# Information added by Drupal.org packaging script on 2026-06-03
-version: '3.0.0-alpha19'
+# Information added by Drupal.org packaging script on 2026-08-12
+version: '3.0.0-beta1'
 project: 'mercury_editor'
-datestamp: 1780507319
+datestamp: 1786569475

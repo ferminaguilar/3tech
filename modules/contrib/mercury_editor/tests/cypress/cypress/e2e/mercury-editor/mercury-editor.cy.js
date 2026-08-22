@@ -81,6 +81,8 @@ describe('Mercury Editor e2e tests.', () => {
   });
 
   it('creates multiple revisions of a node with Mercury Editor', () => {
+    let nid;
+
     // Enable the mercury_editor_content_moderation_test module.
     cy.drush('en mercury_editor_content_moderation_test');
     // Create a new page.
@@ -88,15 +90,15 @@ describe('Mercury Editor e2e tests.', () => {
     cy.get('[name="revision_log[0][value]"]').type('First draft.');
     cy.meSavePage();
     cy.meExitEditor();
-    cy.get('.tabs__link')
-      .contains('Revisions')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.location('pathname').then((pathname) => {
+      const match = pathname.match(/\/node\/(\d+)/);
+      expect(match, 'node nid is present in URL').to.not.be.null;
+      nid = match[1];
+    });
+
+    cy.then(() => cy.visit(`/node/${nid}/revisions`));
     cy.get('.revision-current').contains('First draft.');
-    cy.get('.tabs__link')
-      .contains('View')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.then(() => cy.visit(`/node/${nid}`));
     cy.meEditPage();
     cy.meExitEditor();
     cy.meEditPage();
@@ -104,49 +106,31 @@ describe('Mercury Editor e2e tests.', () => {
     cy.get('[name="revision_log[0][value]"]').type('Published draft.');
     cy.meSavePage();
     cy.meExitEditor();
-    cy.get('.tabs__link')
-      .contains('Revisions')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.then(() => cy.visit(`/node/${nid}/revisions`));
     cy.get('.revision-current').contains('Published draft.');
 
-    cy.get('.tabs__link')
-      .contains('View')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.then(() => cy.visit(`/node/${nid}`));
     cy.meEditPage();
     cy.get('[name="moderation_state[0][state]"]').select('Draft');
     cy.get('[name="revision_log[0][value]"]').type('New unpublished draft.');
     cy.meSavePage();
     cy.meExitEditor();
-    cy.get('.tabs__link')
-      .contains('Revisions')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.then(() => cy.visit(`/node/${nid}/revisions`));
     cy.get('.node-revision-table tr:first-child').contains(
       'New unpublished draft.',
     );
 
-    cy.get('.tabs__link')
-      .contains('View')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.then(() => cy.visit(`/node/${nid}`));
     cy.meEditPage();
     cy.get('[name="moderation_state[0][state]"]').select('Published');
     cy.get('[name="revision_log[0][value]"]').type('Latest published draft.');
     cy.meSavePage();
     cy.meExitEditor();
-    cy.get('.tabs__link')
-      .contains('Revisions')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.then(() => cy.visit(`/node/${nid}/revisions`));
     cy.get('.revision-current').contains('Latest published draft.');
 
     // Change moderation state without exiting the editor.
-    cy.get('.tabs__link')
-      .contains('View')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.then(() => cy.visit(`/node/${nid}`));
     cy.meEditPage();
     cy.get('[name="moderation_state[0][state]"]').select('Draft');
     cy.get('[name="revision_log[0][value]"]').type(
@@ -161,10 +145,7 @@ describe('Mercury Editor e2e tests.', () => {
     cy.meSavePage();
     cy.meExitEditor();
 
-    cy.get('.tabs__link')
-      .contains('Revisions')
-      .should('have.attr', 'href')
-      .then((href) => cy.visit(href));
+    cy.then(() => cy.visit(`/node/${nid}/revisions`));
     cy.get('body')
       .find('.revision-current')
       .should('contain', 'Latest published - without exit.');

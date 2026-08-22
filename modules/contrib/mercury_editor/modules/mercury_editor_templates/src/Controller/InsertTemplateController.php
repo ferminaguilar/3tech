@@ -3,17 +3,18 @@
 namespace Drupal\mercury_editor_templates\Controller;
 
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Ajax\CloseDialogCommand;
+use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\layout_paragraphs\Utility\Dialog;
-use Symfony\Component\HttpFoundation\Request;
+use Drupal\layout_paragraphs\Ajax\LayoutParagraphsEventCommand;
 use Drupal\layout_paragraphs\LayoutParagraphsLayout;
-use Drupal\mercury_editor_templates\Entity\MeTemplate;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\layout_paragraphs\LayoutParagraphsLayoutRefreshTrait;
 use Drupal\layout_paragraphs\LayoutParagraphsLayoutTempstoreRepository;
+use Drupal\layout_paragraphs\Utility\Dialog;
+use Drupal\mercury_editor_templates\Entity\MeTemplate;
 use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Controller for inserting a template.
@@ -70,6 +71,7 @@ class InsertTemplateController extends ControllerBase {
     $placement = $request->query->get('placement');
 
     $source_components = $this->cloneList($me_template->content->referencedEntities());
+    $first_uuid = reset($source_components)->uuid();
     $paragraph_reference_field = $this->layoutParagraphsLayout->getParagraphsReferenceField();
     $list = $paragraph_reference_field->getValue();
 
@@ -121,6 +123,13 @@ class InsertTemplateController extends ControllerBase {
       '#type' => 'layout_paragraphs_builder',
       '#layout_paragraphs_layout' => $this->layoutParagraphsLayout,
     ]));
+    $this->iFrameAjaxResponseWrapper->addCommand(
+      new LayoutParagraphsEventCommand(
+        $this->layoutParagraphsLayout,
+        $first_uuid,
+        'component:insert',
+      ),
+    );
     $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
     return $response;
   }

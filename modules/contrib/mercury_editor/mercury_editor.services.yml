@@ -105,6 +105,14 @@ services:
       - '@mercury_editor.tempstore_repository'
       - '@mercury_editor.iframe_ajax_response_wrapper'
       - '@entity_type.manager'
+      - '@event_dispatcher'
+  mercury_editor.render_component_preview_subscriber:
+    class: Drupal\mercury_editor\EventSubscriber\RenderComponentPreviewSubscriber
+    arguments:
+      - '@event_dispatcher'
+      - '@mercury_editor.preview'
+    tags:
+      - { name: event_subscriber }
   mercury_editor.preview_routes_subscriber:
     class: \Drupal\mercury_editor\Routing\MercuryEditorPreviewRoutes
     arguments: ['@entity_type.manager']
@@ -118,7 +126,7 @@ services:
       - { name: event_subscriber }
   mercury_editor.tempstore_repository:
     class: Drupal\mercury_editor\MercuryEditorTempstore
-    arguments: ['@tempstore.private']
+    arguments: ['@tempstore.private', '@config.factory']
   mercury_editor.theme.negotiator:
     class: Drupal\mercury_editor\Theme\ThemeNegotiator
     arguments: ['@config.factory', '@request_stack']

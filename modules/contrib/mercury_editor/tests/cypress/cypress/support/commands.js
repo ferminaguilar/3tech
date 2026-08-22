@@ -132,7 +132,14 @@ Cypress.Commands.add('basicMercuryEditorInteractions', () => {
     });
     cy.meSetCKEditor5Value('field_me_test_text', 'Left');
     cy.meSaveComponent().then((component) => {
-      cy.iframe('#me-preview').find(component).should('contain', 'Left');
+      cy.iframe('#me-preview')
+        .find('.layout__region--first')
+        .find(component)
+        .should('contain', 'Left');
+      cy.iframe('#me-preview')
+        .find('.layout__region--second')
+        .find(component)
+        .should('not.exist');
     });
     cy.meSelectComponent(section.attr('data-uuid'));
 
@@ -142,7 +149,14 @@ Cypress.Commands.add('basicMercuryEditorInteractions', () => {
     });
     cy.meSetCKEditor5Value('field_me_test_text', 'Right');
     cy.meSaveComponent().then((component) => {
-      cy.iframe('#me-preview').find(component).should('contain', 'Right');
+      cy.iframe('#me-preview')
+        .find('.layout__region--second')
+        .find(component)
+        .should('contain', 'Right');
+      cy.iframe('#me-preview')
+        .find('.layout__region--first')
+        .find(component)
+        .should('not.exist');
     });
   });
 

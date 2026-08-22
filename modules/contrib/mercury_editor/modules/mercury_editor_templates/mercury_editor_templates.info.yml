@@ -6,7 +6,7 @@ core_version_requirement: ^9 || ^10 || ^11
 dependencies:
   - mercury_editor:mercury_editor
 
-# Information added by Drupal.org packaging script on 2026-06-03
-version: '3.0.0-alpha19'
+# Information added by Drupal.org packaging script on 2026-08-12
+version: '3.0.0-beta1'
 project: 'mercury_editor'
-datestamp: 1780507319
+datestamp: 1786569475

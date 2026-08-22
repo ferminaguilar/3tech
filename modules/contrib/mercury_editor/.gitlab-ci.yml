@@ -18,13 +18,6 @@ include:
       - '/includes/include.drupalci.variables.yml'
       - '/includes/include.drupalci.workflows.yml'
 
-# cspell:
-#   before_script:
-#     - apt-get update
-#     - apt-get install -y --no-install-recommends libatomic1
-#   variables:
-#     _NODE_VERSION: 'node'
-
 phpstan:
   before_script:
     # Remove any pre-installed core packages from the CI image
@@ -81,9 +74,12 @@ cypress:
     - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
     - apt-get update -y
     - apt-get install -y nodejs
-    - npm install -g npm@latest
+    # - npm install -g npm@latest
     # Check versions
     - node --version && npm --version
+    - composer show drupal/layout_paragraphs
+    - composer show drupal/core
+    - cat composer.json
   script:
     # Print composer file
     - cat composer.json
@@ -142,4 +138,4 @@ variables:
   SKIP_STYLELINT: '1'
   _CSPELL_IGNORE_PATHS: 'images/**, build/**'
   _CSPELL_WORDS: 'fontello,treeitems'
-  _NODE_VERSION: 'v20.15.0'
+  _NODE_VERSION: 'v20'

@@ -36,7 +36,7 @@
         return;
       }
       const rect = component.getBoundingClientRect();
-      const isOffScreen = rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth;
+      const isOffScreen = rect.bottom < 0 || rect.top > window.innerHeight;
       if (isOffScreen) {
         window.scrollTo({ top: rect.top + window.scrollY - window.innerHeight / 2, behavior: 'smooth' });
       }

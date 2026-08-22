@@ -143,6 +143,22 @@ mercury_editor:
     - mercury_editor/unpublished_hint
     - core/once
 
+mercury_morph:
+  js:
+    build/js/mercury-morph.ajax.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupal.ajax
+    - core/drupalSettings
+
+mercury_insert:
+  js:
+    build/js/mercury-insert.ajax.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupal.ajax
+    - core/drupalSettings
+
 preview_screen:
   css:
     component:
@@ -154,6 +170,8 @@ preview_screen:
   dependencies:
     - layout_paragraphs/builder
     - mercury_editor/update_states_ui
+    - mercury_editor/mercury_insert
+    - mercury_editor/mercury_morph
 
 select_component:
   js:

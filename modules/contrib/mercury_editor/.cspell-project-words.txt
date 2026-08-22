@@ -25,6 +25,7 @@ iframed
 jotform
 mercuryeditor
 mercuryeditortestblock
+morphdom
 onecolumn
 onethird
 pxtorem

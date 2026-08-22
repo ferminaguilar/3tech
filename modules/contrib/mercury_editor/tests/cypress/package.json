@@ -15,7 +15,7 @@
     "@types/cypress": "^1.1.6",
     "cypress": "^15.8.2",
     "cypress-iframe": "^1.0.1",
-    "cypress-mercury-editor": "^3.0.12",
+    "cypress-mercury-editor": "^3.0.17",
     "cypress-real-events": "^1.15.0"
   }
 }

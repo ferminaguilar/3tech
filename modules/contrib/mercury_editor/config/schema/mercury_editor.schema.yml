@@ -11,6 +11,9 @@ mercury_editor.settings:
     edit_screen_theme:
       type: string
       label: 'Theme to use for Mercury Editor Edit Tray'
+    state_history_limit:
+      type: integer
+      label: 'Max saved undo/redo states per entity'
     skip_create_form:
       type: sequence
       label: 'Skip create form for these paragraph types'

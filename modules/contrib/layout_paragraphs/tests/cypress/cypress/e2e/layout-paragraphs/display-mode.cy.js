@@ -36,7 +36,7 @@ describe('Layout Paragraphs Display Mode Tests', () => {
 
     // Configure node view display to use the "alternative" paragraph view mode.
     phpEval(
-      '$d = \\Drupal\\Core\\Entity\\Entity\\EntityViewDisplay::load("node.page.default");'
+      '$d = \\Drupal\\Core\\Entity\\Entity\\EntityViewDisplay::load("node.lp_test_ct.default");'
       + ' $d->setComponent("field_lp_test_content", ["type" => "layout_paragraphs", "settings" => ["view_mode" => "alternative"]])->save();',
     );
 
@@ -51,7 +51,7 @@ describe('Layout Paragraphs Display Mode Tests', () => {
 
     // Configure node form display to use alternative form and preview modes.
     phpEval(
-      '$d = \\Drupal\\Core\\Entity\\Entity\\EntityFormDisplay::load("node.page.default");'
+      '$d = \\Drupal\\Core\\Entity\\Entity\\EntityFormDisplay::load("node.lp_test_ct.default");'
       + ' $d->setComponent("field_lp_test_content", ["type" => "layout_paragraphs", "settings" => ["form_display_mode" => "alternative", "preview_view_mode" => "alternative"]])->save();',
     );
 
@@ -69,9 +69,9 @@ describe('Layout Paragraphs Display Mode Tests', () => {
       return cy.exec(cmd);
     };
     phpEval(
-      '$d = \\Drupal\\Core\\Entity\\Entity\\EntityViewDisplay::load("node.page.default");'
+      '$d = \\Drupal\\Core\\Entity\\Entity\\EntityViewDisplay::load("node.lp_test_ct.default");'
       + ' $d->setComponent("field_lp_test_content", ["type" => "layout_paragraphs"])->save();'
-      + ' $d2 = \\Drupal\\Core\\Entity\\Entity\\EntityFormDisplay::load("node.page.default");'
+      + ' $d2 = \\Drupal\\Core\\Entity\\Entity\\EntityFormDisplay::load("node.lp_test_ct.default");'
       + ' $d2->setComponent("field_lp_test_content", ["type" => "layout_paragraphs"])->save();',
     );
     cy.drush('cr');

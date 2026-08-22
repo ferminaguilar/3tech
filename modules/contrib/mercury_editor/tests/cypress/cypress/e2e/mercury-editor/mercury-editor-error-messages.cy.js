@@ -67,7 +67,7 @@ describe('Mercury Editor validation and messages tests.', () => {
         'have.class',
         'me-autosave-initialized',
       );
-      // Click the Content tab.
+      // Open the Content section in the component form.
       cy.get('.layout-paragraphs-component-form')
         .contains('Content')
         .click({ force: true });

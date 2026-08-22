@@ -50,15 +50,24 @@ describe('Mercury Editor Content Translations e2e tests.', () => {
 
     cy.url().then((url) => {
       const nid = url.match(/node\/(\d+)/)[1];
-      cy.visit(`/node/${nid}/translations`);
+      cy.visit(`/es/node/${nid}/translations/add/en/es`);
     });
-    cy.get('a[hreflang="es"]').click();
 
     cy.meFindComponent(2).then(() => {
       cy.meSetCKEditor5Value('field_me_test_text', 'Left (ES)');
     });
+    cy.meSaveComponent().then((newComponent) => {
+      cy.iframe('#me-preview')
+        .find(newComponent)
+        .should('contain', 'Left (ES)');
+    });
     cy.meFindComponent(3).then(() => {
       cy.meSetCKEditor5Value('field_me_test_text', 'Right (ES)');
+    });
+    cy.meSaveComponent().then((newComponent) => {
+      cy.iframe('#me-preview')
+        .find(newComponent)
+        .should('contain', 'Right (ES)');
     });
     cy.meFindComponent(1).then((component) => {
       cy.meAddComponent('me_test_text', {
@@ -78,9 +87,8 @@ describe('Mercury Editor Content Translations e2e tests.', () => {
 
     cy.url().then((url) => {
       const nid = url.match(/node\/(\d+)/)[1];
-      cy.visit(`/node/${nid}/translations`);
+      cy.visit(`/de/node/${nid}/translations/add/en/de`);
     });
-    cy.get('a[hreflang="de"]').click();
 
     cy.meFindComponent(1).then((component) => {
       cy.meDeleteComponent(component);
@@ -122,13 +130,12 @@ describe('Mercury Editor Content Translations e2e tests.', () => {
     cy.meExitEditor();
     cy.url().then((url) => {
       const nid = url.match(/node\/(\d+)/)[1];
-      cy.visit(`/node/${nid}/translations`);
+      cy.visit(`/es/node/${nid}/edit`);
     });
-    cy.get('a[hreflang="es"]').click();
     cy.get('[name="moderation_state[0][state]"]').select('draft');
     cy.meSavePage();
     cy.meExitEditor();
-    cy.contains(/Access denied/i).should('not.exist');
+    cy.contains('New Mercury Editor Test Content Type').should('exist');
   });
 
   it('tests symmetric translations with Mercury Editor', () => {

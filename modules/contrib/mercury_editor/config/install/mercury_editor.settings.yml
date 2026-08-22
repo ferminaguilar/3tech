@@ -1,5 +1,6 @@
 content_types: {}
 edit_screen_theme: ''
+state_history_limit: 20
 skip_create_form: {}
 mobile_presets:
   - name: 'iPhone 12 Pro'

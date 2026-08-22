@@ -52,21 +52,29 @@ describe('Mercury Editor Templates e2e tests.', () => {
 
     cy.meFindComponent(1).then((component) => {
       // Click on component to focus it and reveal controls
-      cy.get(component).click();
       cy.get(component).find('.lpb-save-as-template').click({ force: true });
 
       // Name and save the new template in dialog with updated class
       cy.get(
         'mercury-dialog[id^=lpb-dialog-] .me-template-dialog-form input.form-text',
       ).type('-- Mercury Editor Templates Test --');
+
+      cy.intercept({
+        method: 'POST',
+        pathname: /^(\/[a-z-]*)?\/mercury-editor\/save-as-template\/(.*)/,
+        times: 1
+      }).as('saveTemplate');
+
       cy.get(
         'mercury-dialog[id^=lpb-dialog-] [slot=footer] .lpb-btn--save',
       ).click();
 
+      cy.wait('@saveTemplate');
+
+      cy.get(component).click();
+
       // Delete the section using the new click-based approach
-      cy.meFindComponent(1).then((section) => {
-        cy.meDeleteComponent(section);
-      });
+      cy.meDeleteComponent(component);
     });
 
     // Add a new 3-column section.
@@ -143,6 +151,9 @@ describe('Mercury Editor Templates e2e tests.', () => {
                 .should('have.attr', 'data-layout', 'layout_threecol_25_50_25');
             })
             .then(() => {
+              // Reopen the edit tray to save the page.
+              cy.get('#me-sidebar-toggle-btn').click();
+
               // Tests the following use case:
               // 1. Save a page.
               // 2. Delete all sections from the page.

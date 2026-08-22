@@ -65,6 +65,7 @@ describe('Mercury Editor card component tests.', () => {
       cy.get('input[name="field_me_test_link[0][title]"]').type(
         'Learn More about Mercury Editor',
       );
+      cy.iframe('#me-preview').find('.ajax-progress').should('not.exist');
 
       cy.meSaveComponent().then((component) => {
         const uuid = component.attr('data-uuid');
@@ -73,9 +74,9 @@ describe('Mercury Editor card component tests.', () => {
         // Find and click the remove button to remove the image
         cy.get(
           '.layout-paragraphs-component-form [name="field_me_test_media-0-media-library-remove-button"]',
-        )
+        ).click({ force: true });
+        cy.get('.ajax-progress').should('not.exist');
 
-          .click({ force: true });
         // Re-save the component to confirm removal
         cy.meSaveComponent();
 

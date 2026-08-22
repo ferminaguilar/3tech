@@ -3,11 +3,10 @@
 namespace Drupal\mercury_editor\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\RemoveCommand;
-use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Ajax\CloseDialogCommand;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\layout_paragraphs\Utility\Dialog;
+use Drupal\mercury_editor\MercuryEditorPreviewService;
 use Drupal\mercury_editor\MercuryEditorTempstore;
 use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -26,6 +25,7 @@ class DeleteComponentForm extends LayoutParagraphsDeleteComponentForm {
    */
   protected function __construct(
     LayoutParagraphsLayoutTempstoreRepository $tempstore,
+    protected MercuryEditorPreviewService $previewRendererService,
     protected IFrameAjaxResponseWrapper $iFrameAjaxResponseWrapper,
     protected MercuryEditorTempstore $mercuryEditorTempstore,
   ) {
@@ -38,6 +38,7 @@ class DeleteComponentForm extends LayoutParagraphsDeleteComponentForm {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('layout_paragraphs.tempstore_repository'),
+      $container->get('mercury_editor.preview'),
       $container->get('mercury_editor.iframe_ajax_response_wrapper'),
       $container->get('mercury_editor.tempstore_repository'),
     );
@@ -75,14 +76,15 @@ class DeleteComponentForm extends LayoutParagraphsDeleteComponentForm {
       $mercury_editor_entity
     ));
     $response->addCommand(new CloseDialogCommand(Dialog::dialogSelector($this->layoutParagraphsLayout)));
-    if ($this->needsRefresh()) {
-      $layout = $this->renderLayout();
-      $dom_selector = '[data-lpb-id="' . $this->layoutParagraphsLayout->id() . '"]';
-      $this->iFrameAjaxResponseWrapper->addCommand(new ReplaceCommand($dom_selector, $layout));
-      $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
-      return $response;
-    }
-    $this->iFrameAjaxResponseWrapper->addCommand(new RemoveCommand('[data-uuid="' . $this->componentUuid . '"]'));
+
+    $preview_command = $this->previewRendererService->ajaxRenderComponent(
+      $this->originalLayoutParagraphsLayout,
+      $this->layoutParagraphsLayout,
+      $this->componentUuid,
+      $this->componentUuid,
+      'delete',
+    );
+    $this->iFrameAjaxResponseWrapper->addCommand($preview_command);
     $this->iFrameAjaxResponseWrapper->addCommand(new LayoutParagraphsEventCommand($this->layoutParagraphsLayout, $this->componentUuid, 'component:delete'));
     $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
     return $response;

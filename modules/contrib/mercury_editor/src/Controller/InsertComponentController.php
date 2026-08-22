@@ -3,11 +3,7 @@
 namespace Drupal\mercury_editor\Controller;
 
 use Drupal\Core\Form\FormState;
-use Drupal\Core\Ajax\AfterCommand;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\AppendCommand;
-use Drupal\Core\Ajax\BeforeCommand;
-use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Ajax\OpenDialogCommand;
 use Drupal\Core\Ajax\CloseDialogCommand;
 use Drupal\mercury_editor\DialogService;
@@ -21,6 +17,7 @@ use Drupal\layout_paragraphs\Controller\ComponentFormController;
 use Drupal\layout_paragraphs\LayoutParagraphsLayoutRefreshTrait;
 use Drupal\layout_paragraphs\LayoutParagraphsLayoutTempstoreRepository;
 use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
+use Drupal\mercury_editor\MercuryEditorPreviewService;
 
 /**
  * InsertComponentController class definition.
@@ -38,11 +35,14 @@ class InsertComponentController extends ComponentFormController {
    *   The Mercury Editor dialog service.
    * @param \Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper $iframeAjaxResponseWrapper
    *   The IFrame Ajax response wrapper service.
+   * @param \Drupal\mercury_editor\MercuryEditorPreviewService $previewRendererService
+   *   The Mercury Editor preview service.
    */
   public function __construct(
     protected LayoutParagraphsLayoutTempstoreRepository $tempstore,
     protected DialogService $mercuryEditorDialog,
     protected IFrameAjaxResponseWrapper $iframeAjaxResponseWrapper,
+    protected MercuryEditorPreviewService $previewRendererService,
   ) {
 
   }
@@ -54,7 +54,8 @@ class InsertComponentController extends ComponentFormController {
     return new static(
       $container->get('layout_paragraphs.tempstore_repository'),
       $container->get('mercury_editor.dialog'),
-      $container->get('mercury_editor.iframe_ajax_response_wrapper')
+      $container->get('mercury_editor.iframe_ajax_response_wrapper'),
+      $container->get('mercury_editor.preview')
     );
   }
 
@@ -129,29 +130,22 @@ class InsertComponentController extends ComponentFormController {
       }
 
       $this->tempstore->set($this->layoutParagraphsLayout);
-      $rendered_component = [
-        '#type' => 'layout_paragraphs_builder',
-        '#layout_paragraphs_layout' => $this->layoutParagraphsLayout,
-        '#uuid' => $paragraph->uuid(),
-      ];
+      $source_selector = $sibling_uuid
+        ? '[data-uuid="' . $sibling_uuid . '"]'
+        : ($parent_uuid && $region
+          ? '[data-region-uuid="' . $parent_uuid . '-' . $region . '"]'
+          : '[data-lpb-id="' . $this->layoutParagraphsLayout->id() . '"]');
+      $preview_command = $this->previewRendererService->ajaxRenderComponent(
+        $this->originalLayoutParagraphsLayout,
+        $this->layoutParagraphsLayout,
+        $paragraph->uuid(),
+        $sibling_uuid ?: ($parent_uuid ?: $paragraph->uuid()),
+        $placement ?: ($parent_uuid && $region ? 'append' : 'prepend'),
+        $source_selector,
+      );
 
       $response->addCommand(new CloseDialogCommand(Dialog::dialogSelector($this->layoutParagraphsLayout)));
-      if ($this->needsRefresh()) {
-        $layout = $this->renderLayout();
-        $dom_selector = '[data-lpb-id="' . $this->layoutParagraphsLayout->id() . '"]';
-        $this->iframeAjaxResponseWrapper->addCommand(new ReplaceCommand($dom_selector, $layout));
-      }
-      else {
-        if ($placement == 'before') {
-          $this->iframeAjaxResponseWrapper->addCommand(new BeforeCommand('[data-uuid="' . $sibling_uuid . '"]', $rendered_component));
-        }
-        elseif ($placement == 'after') {
-          $this->iframeAjaxResponseWrapper->addCommand(new AfterCommand('[data-uuid="' . $sibling_uuid . '"]', $rendered_component));
-        }
-        elseif ($parent_uuid && $region) {
-          $this->iframeAjaxResponseWrapper->addCommand(new AppendCommand('[data-region-uuid="' . $parent_uuid . '-' . $region . '"]', $rendered_component));
-        }
-      }
+      $this->iframeAjaxResponseWrapper->addCommand($preview_command);
       $this->iframeAjaxResponseWrapper->addCommand(new LayoutParagraphsEventCommand($this->layoutParagraphsLayout, $paragraph->uuid(), 'component:insert'));
       $response->addCommand($this->iframeAjaxResponseWrapper->getWrapperCommand());
       return $response;

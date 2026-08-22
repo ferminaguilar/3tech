@@ -183,14 +183,18 @@ class LayoutParagraphsBuilder extends RenderElementBase implements ContainerFact
     if ($this->isTranslating()) {
       $element['#translation_warning'] = $this->translationWarning();
     }
+    $components = $this->layoutParagraphsLayout->getComponents();
+    if ($element_uuid) {
+      $components = $this->getComponentsForUuidRender($components, $element_uuid);
+    }
     // Build a flat list of component build arrays.
-    foreach ($this->layoutParagraphsLayout->getComponents() as $component) {
+    foreach ($components as $component) {
       /** @var \Drupal\layout_paragraphs\LayoutParagraphsComponent $component */
       $element['#components'][$component->getEntity()->uuid()] = $this->buildComponent($component, $preview_view_mode);
     }
 
     // Nest child components inside their respective sections and regions.
-    foreach ($this->layoutParagraphsLayout->getComponents() as $component) {
+    foreach ($components as $component) {
       /** @var \Drupal\layout_paragraphs\LayoutParagraphsComponent $component */
       $uuid = $component->getEntity()->uuid();
       if ($component->isLayout()) {
@@ -199,7 +203,9 @@ class LayoutParagraphsBuilder extends RenderElementBase implements ContainerFact
         foreach (array_keys($element['#components'][$uuid]['regions']) as $region_name) {
           foreach ($section->getComponentsForRegion($region_name) as $child_component) {
             $child_uuid = $child_component->getEntity()->uuid();
-            $element['#components'][$uuid]['regions'][$region_name][$child_uuid] =& $element['#components'][$child_uuid];
+            if (isset($element['#components'][$child_uuid])) {
+              $element['#components'][$uuid]['regions'][$region_name][$child_uuid] =& $element['#components'][$child_uuid];
+            }
           }
         }
         $element['#components'][$uuid]['regions'] = $layout_plugin_instance->build($element['#components'][$uuid]['regions']);
@@ -247,6 +253,48 @@ class LayoutParagraphsBuilder extends RenderElementBase implements ContainerFact
       );
     }
     return $element;
+  }
+
+  /**
+   * Gets the component subset needed to render a single component.
+   *
+   * @param \Drupal\layout_paragraphs\LayoutParagraphsComponent[] $components
+   *   The full component list.
+   * @param string $uuid
+   *   The UUID of the component to render.
+   *
+   * @return \Drupal\layout_paragraphs\LayoutParagraphsComponent[]
+   *   The requested component and descendants, or all components if missing.
+   */
+  protected function getComponentsForUuidRender(array $components, string $uuid) {
+    $components_by_uuid = [];
+    $child_uuids_by_parent = [];
+    foreach ($components as $component) {
+      /** @var \Drupal\layout_paragraphs\LayoutParagraphsComponent $component */
+      $component_uuid = $component->getEntity()->uuid();
+      $components_by_uuid[$component_uuid] = $component;
+      if ($parent_uuid = $component->getParentUuid()) {
+        $child_uuids_by_parent[$parent_uuid][] = $component_uuid;
+      }
+    }
+
+    if (!isset($components_by_uuid[$uuid])) {
+      return $components;
+    }
+
+    $render_uuids = [];
+    $queue = [$uuid];
+    while ($current_uuid = array_shift($queue)) {
+      if (isset($render_uuids[$current_uuid]) || !isset($components_by_uuid[$current_uuid])) {
+        continue;
+      }
+      $render_uuids[$current_uuid] = TRUE;
+      foreach ($child_uuids_by_parent[$current_uuid] ?? [] as $child_uuid) {
+        $queue[] = $child_uuid;
+      }
+    }
+
+    return array_intersect_key($components_by_uuid, $render_uuids);
   }
 
   /**

@@ -32,7 +32,7 @@
   ],
   "require": {
     "php": ">=8.1",
-    "drupal/layout_paragraphs": ">=3.0.0-alpha7",
+    "drupal/layout_paragraphs": ">=3.0.0-beta4",
     "drupal/style_options": "^1 || ^2"
   },
   "require-dev": {

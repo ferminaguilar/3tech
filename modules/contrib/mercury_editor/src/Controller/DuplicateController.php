@@ -2,18 +2,17 @@
 
 namespace Drupal\mercury_editor\Controller;
 
-use Drupal\Core\Ajax\AfterCommand;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\ReplaceCommand;
-use Drupal\layout_paragraphs\LayoutParagraphsLayout;
-use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\layout_paragraphs\Ajax\LayoutParagraphsEventCommand;
+use Drupal\layout_paragraphs\Controller\DuplicateController as LayoutParagraphsDuplicateController;
+use Drupal\layout_paragraphs\LayoutParagraphsLayout;
 use Drupal\layout_paragraphs\LayoutParagraphsLayoutTempstoreRepository;
+use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
 use Drupal\mercury_editor\Ajax\MercuryEditorSelectComponentCommand;
 use Drupal\mercury_editor\Ajax\MercuryEditorUpdateStateCommand;
+use Drupal\mercury_editor\MercuryEditorPreviewService;
 use Drupal\mercury_editor\MercuryEditorTempstore;
-use Drupal\layout_paragraphs\Controller\DuplicateController as LayoutParagraphsDuplicateController;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -40,6 +39,13 @@ class DuplicateController extends LayoutParagraphsDuplicateController {
   protected MercuryEditorTempstore $mercuryEditorTempstore;
 
   /**
+   * The Mercury Editor preview service.
+   *
+   * @var \Drupal\mercury_editor\MercuryEditorPreviewService
+   */
+  protected MercuryEditorPreviewService $previewRendererService;
+
+  /**
    * {@inheritDoc}
    */
   public function __construct(
@@ -47,10 +53,12 @@ class DuplicateController extends LayoutParagraphsDuplicateController {
     EventDispatcherInterface $event_dispatcher,
     IFrameAjaxResponseWrapper $iframe_ajax_response_wrapper,
     MercuryEditorTempstore $mercury_editor_tempstore,
+    MercuryEditorPreviewService $preview_renderer_service,
   ) {
     parent::__construct($tempstore, $event_dispatcher);
     $this->iFrameAjaxResponseWrapper = $iframe_ajax_response_wrapper;
     $this->mercuryEditorTempstore = $mercury_editor_tempstore;
+    $this->previewRendererService = $preview_renderer_service;
   }
 
   /**
@@ -62,6 +70,7 @@ class DuplicateController extends LayoutParagraphsDuplicateController {
       $container->get('event_dispatcher'),
       $container->get('mercury_editor.iframe_ajax_response_wrapper'),
       $container->get('mercury_editor.tempstore_repository'),
+      $container->get('mercury_editor.preview'),
     );
   }
 
@@ -135,22 +144,18 @@ class DuplicateController extends LayoutParagraphsDuplicateController {
       $mercury_editor_entity
     ));
 
-    if ($this->needsRefresh()) {
-      $layout = $this->renderLayout();
-      $dom_selector = '[data-lpb-id="' . $this->layoutParagraphsLayout->id() . '"]';
-      $this->iFrameAjaxResponseWrapper->addCommand(new ReplaceCommand($dom_selector, $layout));
-      $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
-      return $response;
-    }
+    $preview_command = $this->previewRendererService->ajaxRenderComponent(
+      $this->originalLayoutParagraphsLayout,
+      $this->layoutParagraphsLayout,
+      $duplicate_component->getEntity()->uuid(),
+      $source_uuid,
+      'after',
+      '[data-uuid="' . $source_uuid . '"]',
+    );
 
     $uuid = $duplicate_component->getEntity()->uuid();
-    $rendered_item = [
-      '#type' => 'layout_paragraphs_builder',
-      '#layout_paragraphs_layout' => $this->layoutParagraphsLayout,
-      '#uuid' => $uuid,
-    ];
-    $this->iFrameAjaxResponseWrapper->addCommand(new AfterCommand('[data-uuid="' . $source_uuid . '"]', $rendered_item));
-    $this->iFrameAjaxResponseWrapper->addCommand(new LayoutParagraphsEventCommand($this->layoutParagraphsLayout, $uuid, 'component:update'));
+    $this->iFrameAjaxResponseWrapper->addCommand($preview_command);
+    $this->iFrameAjaxResponseWrapper->addCommand(new LayoutParagraphsEventCommand($this->layoutParagraphsLayout, $uuid, 'component:insert'));
     $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
     $response->addCommand(new MercuryEditorSelectComponentCommand($uuid));
 

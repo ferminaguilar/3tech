@@ -182,7 +182,7 @@ Cypress.Commands.add(
 /**
  * Creates a basic Layout Paragraphs test page.
  */
-Cypress.Commands.add('lpCreateTestPage', (title, contentType = 'page') => {
+Cypress.Commands.add('lpCreateTestPage', (title, contentType = 'lp_test_ct') => {
   cy.visit(`/node/add/${contentType}`);
   cy.get('input[name="title[0][value]"]').type(title);
 });

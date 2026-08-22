@@ -2,12 +2,7 @@
 
 namespace Drupal\mercury_editor\Form;
 
-use Drupal\Core\Ajax\AfterCommand;
 use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\AppendCommand;
-use Drupal\Core\Ajax\BeforeCommand;
-use Drupal\Core\Ajax\PrependCommand;
-use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\paragraphs\ParagraphsTypeInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
@@ -19,6 +14,7 @@ use Drupal\layout_paragraphs\LayoutParagraphsLayout;
 use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\layout_paragraphs\Ajax\LayoutParagraphsEventCommand;
+use Drupal\mercury_editor\MercuryEditorPreviewService;
 use Drupal\mercury_editor\Ajax\MercuryEditorUpdateStateCommand;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 use Drupal\layout_paragraphs\LayoutParagraphsLayoutTempstoreRepository;
@@ -46,6 +42,7 @@ class InsertComponentForm extends LayoutParagraphsInsertComponentForm {
     ModuleHandlerInterface $module_handler,
     EventDispatcherInterface $event_dispatcher,
     EntityRepositoryInterface $entity_repository,
+    protected MercuryEditorPreviewService $previewRendererService,
     protected IFrameAjaxResponseWrapper $iFrameAjaxResponseWrapper,
     protected MercuryEditorTempstore $mercuryEditorTempstore,
   ) {
@@ -63,6 +60,7 @@ class InsertComponentForm extends LayoutParagraphsInsertComponentForm {
       $container->get('module_handler'),
       $container->get('event_dispatcher'),
       $container->get('entity.repository'),
+      $container->get('mercury_editor.preview'),
       $container->get('mercury_editor.iframe_ajax_response_wrapper'),
       $container->get('mercury_editor.tempstore_repository'),
     );
@@ -109,32 +107,16 @@ class InsertComponentForm extends LayoutParagraphsInsertComponentForm {
     $response = new AjaxResponse();
     $this->ajaxCloseForm($response);
     $uuid = $this->paragraph->uuid();
-
-    if ($this->needsRefresh()) {
-      $layout = $this->renderLayout();
-      $dom_selector = '[data-lpb-id="' . $this->layoutParagraphsLayout->id() . '"]';
-      $this->iFrameAjaxResponseWrapper->addCommand(new ReplaceCommand($dom_selector, $layout));
-    }
-    else {
-      $rendered_item = $this->renderParagraph($uuid);
-      switch ($this->method) {
-        case 'before':
-          $this->iFrameAjaxResponseWrapper->addCommand(new BeforeCommand($this->domSelector, $rendered_item));
-          break;
-
-        case 'after':
-          $this->iFrameAjaxResponseWrapper->addCommand(new AfterCommand($this->domSelector, $rendered_item));
-          break;
-
-        case 'append':
-          $this->iFrameAjaxResponseWrapper->addCommand(new AppendCommand($this->domSelector, $rendered_item));
-          break;
-
-        case 'prepend':
-          $this->iFrameAjaxResponseWrapper->addCommand(new PrependCommand($this->domSelector, $rendered_item));
-          break;
-      }
-    }
+    $source_uuid = $this->siblingUuid ?: ($this->parentUuid ?: $uuid);
+    $preview_command = $this->previewRendererService->ajaxRenderComponent(
+      $this->originalLayoutParagraphsLayout,
+      $this->layoutParagraphsLayout,
+      $uuid,
+      $source_uuid,
+      $this->method,
+      $this->domSelector,
+    );
+    $this->iFrameAjaxResponseWrapper->addCommand($preview_command);
     $this->iFrameAjaxResponseWrapper->addCommand(new LayoutParagraphsEventCommand($this->layoutParagraphsLayout, $uuid, 'component:insert'));
     $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
     $response->addCommand(new MercuryEditorUpdateStateCommand(

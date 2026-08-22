@@ -111,21 +111,6 @@ function layout_paragraphs_setup_test_install() {
     $paragraphs_type->save();
   }
 
-  // Create the page content type with
-  // layout paragraphs field using our helper function.
-  layout_paragraphs_setup_test_make_paragraph_field(
-    'node',
-    'page',
-    'field_lp_test_content',
-    'Content',
-    [
-      'target_bundles' => NULL,
-      'negate' => TRUE,
-    ],
-    'layout_paragraphs',
-    'layout_paragraphs'
-  );
-
   // Also create it for our test content type.
   layout_paragraphs_setup_test_make_paragraph_field(
     'node',

@@ -10,6 +10,26 @@ use Drupal\field\Entity\FieldStorageConfig;
 
 /**
  * Creates a paragraph field for the provided entity type and bundle.
+ *
+ * @param string $entity_type
+ *   The entity type to which the field will be added.
+ * @param string $bundle
+ *   The bundle to which the field will be added.
+ * @param string $field_name
+ *   The machine name of the field to be created.
+ * @param string $field_label
+ *   The human-readable label of the field to be created.
+ * @param array $handler_settings
+ *   (optional) An associative array of handler settings for the field.
+ * @param string $widget
+ *   (optional) The field widget type for the field. Defaults to 'paragraphs'.
+ * @param string $formatter
+ *   (optional) The field formatter type for the field.
+ *   Defaults to 'entity_reference_revisions_entity_view'.
+ * @param array $extra_settings
+ *   (optional) An associative array of additional settings for the field.
+ *   These settings will be merged with both the formatter and widget settings
+ *   for the field.
  */
 function layout_paragraphs_setup_test_make_paragraph_field(
   $entity_type,

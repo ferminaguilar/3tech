@@ -2,14 +2,17 @@
 import resolve from '@rollup/plugin-node-resolve';
 import { terser } from 'rollup-plugin-terser';
 import fs from 'fs';
-import { name } from 'browser-sync';
 
 const config = [];
 
 const sourceDirectories = ['./'];
 
 sourceDirectories.forEach((directory) => {
-  const jsFiles = fs.readdirSync(`${directory}source/js`);
+  const sourceJsPath = `${directory}source/js`;
+  const jsFiles = fs
+    .readdirSync(sourceJsPath)
+    .filter((file) => fs.statSync(`${sourceJsPath}/${file}`).isFile())
+    .filter((file) => file.endsWith('.js'));
 
   jsFiles.forEach((file) => {
     const globalName = file.replace(/\.js$/, '').replace(/[^a-zA-Z0-9]/g, '_');

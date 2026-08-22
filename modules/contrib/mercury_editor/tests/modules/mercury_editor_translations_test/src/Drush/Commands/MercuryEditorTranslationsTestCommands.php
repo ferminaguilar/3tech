@@ -54,7 +54,7 @@ final class MercuryEditorTranslationsTestCommands extends DrushCommands {
     $this->contentTranslationManager->setEnabled('paragraph', 'me_test_text', FALSE);
     // Text field is translatable for symmetrical translations.
     $this->entityFieldManager->getFieldDefinitions('paragraph', 'me_test_text')['field_me_test_text']->setTranslatable(FALSE)->save();
-    $this->logger()->success(dt('Configured for asymmetrical translations.'));
+    $this->logger()->notice(dt('Configured for asymmetrical translations.'));
   }
 
   /**
@@ -71,7 +71,7 @@ final class MercuryEditorTranslationsTestCommands extends DrushCommands {
     $this->contentTranslationManager->setEnabled('paragraph', 'me_test_text', TRUE);
     // Text field is translatable for symmetrical translations.
     $this->entityFieldManager->getFieldDefinitions('paragraph', 'me_test_text')['field_me_test_text']->setTranslatable(TRUE)->save();
-    $this->logger()->success(dt('Configured for symmetrical translations.'));
+    $this->logger()->notice(dt('Configured for symmetrical translations.'));
   }
 
 }

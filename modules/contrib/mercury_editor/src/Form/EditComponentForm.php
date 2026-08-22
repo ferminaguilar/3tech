@@ -4,23 +4,25 @@ namespace Drupal\mercury_editor\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
+use Drupal\Core\Ajax\SettingsCommand;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\mercury_editor\MercuryEditorTempstore;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Layout\LayoutPluginManagerInterface;
-use Drupal\layout_paragraphs\LayoutParagraphsLayout;
-use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Render\RendererInterface;
 use Drupal\layout_paragraphs\Ajax\LayoutParagraphsEventCommand;
-use Drupal\mercury_editor\Ajax\MercuryEditorUpdateStateCommand;
-use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
-use Drupal\layout_paragraphs\LayoutParagraphsLayoutTempstoreRepository;
 use Drupal\layout_paragraphs\Form\EditComponentForm as LayoutParagraphsEditComponentForm;
+use Drupal\layout_paragraphs\LayoutParagraphsLayout;
+use Drupal\layout_paragraphs\LayoutParagraphsLayoutTempstoreRepository;
+use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
 use Drupal\mercury_editor\Ajax\MercuryEditorSelectComponentCommand;
+use Drupal\mercury_editor\Ajax\MercuryEditorUpdateStateCommand;
+use Drupal\mercury_editor\MercuryEditorPreviewService;
+use Drupal\mercury_editor\MercuryEditorTempstore;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Class for editing a component in Mercury Editor.
@@ -40,6 +42,7 @@ class EditComponentForm extends LayoutParagraphsEditComponentForm {
     EventDispatcherInterface $event_dispatcher,
     EntityRepositoryInterface $entity_repository,
     ConfigFactoryInterface $configFactory,
+    protected MercuryEditorPreviewService $previewRendererService,
     protected IFrameAjaxResponseWrapper $iFrameAjaxResponseWrapper,
     protected MercuryEditorTempstore $mercuryEditorTempstore,
     protected RendererInterface $renderer,
@@ -59,6 +62,7 @@ class EditComponentForm extends LayoutParagraphsEditComponentForm {
       $container->get('event_dispatcher'),
       $container->get('entity.repository'),
       $container->get('config.factory'),
+      $container->get('mercury_editor.preview'),
       $container->get('mercury_editor.iframe_ajax_response_wrapper'),
       $container->get('mercury_editor.tempstore_repository'),
       $container->get('renderer'),
@@ -169,18 +173,20 @@ class EditComponentForm extends LayoutParagraphsEditComponentForm {
    */
   public function successfulAjaxSubmit(array $form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
-    if ($this->needsRefresh()) {
-      $layout = $this->renderLayout();
-      $dom_selector = '[data-lpb-id="' . $this->layoutParagraphsLayout->id() . '"]';
-      $this->iFrameAjaxResponseWrapper->addCommand(new ReplaceCommand($dom_selector, $layout));
-      $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
-      return $response;
-    }
-
     $uuid = $this->paragraph->uuid();
-    $rendered_item = $this->renderParagraph($uuid);
-
-    $this->iFrameAjaxResponseWrapper->addCommand(new ReplaceCommand("[data-uuid={$uuid}]", $rendered_item));
+    $this->iFrameAjaxResponseWrapper->addCommand(new SettingsCommand([
+      'mercuryEditor' => [
+        'activeComponentUuid' => $uuid,
+      ],
+    ], TRUE));
+    $preview_command = $this->previewRendererService->ajaxRenderComponent(
+      $this->originalLayoutParagraphsLayout,
+      $this->layoutParagraphsLayout,
+      $uuid,
+      $uuid,
+      'update',
+    );
+    $this->iFrameAjaxResponseWrapper->addCommand($preview_command);
     $this->iFrameAjaxResponseWrapper->addCommand(new LayoutParagraphsEventCommand($this->layoutParagraphsLayout, $uuid, 'component:update', ['editing' => TRUE]));
     $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
     $response->addCommand(new MercuryEditorUpdateStateCommand(

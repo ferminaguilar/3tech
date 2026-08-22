@@ -26,7 +26,10 @@ function mercury_editor_access_test_install() {
  */
 function mercury_editor_access_test_uninstall() {
   // Clean up test user on module uninstall.
-  $user = user_load_by_name('mercury_test_user');
+  $users = \Drupal::entityTypeManager()
+    ->getStorage('user')
+    ->loadByProperties(['name' => 'mercury_test_user']);
+  $user = reset($users);
   if ($user) {
     $user->delete();
   }

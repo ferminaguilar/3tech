@@ -132,6 +132,16 @@ class SettingsForm extends ConfigFormBase {
       '#default_value' => $config->get('edit_screen_theme'),
     ];
 
+    $form['state_history_limit'] = [
+      '#type' => 'number',
+      '#title' => $this->t('Undo/redo state history limit'),
+      '#description' => $this->t('Maximum number of saved states to keep per entity for undo/redo.'),
+      '#default_value' => $config->get('state_history_limit') ?? 20,
+      '#min' => 1,
+      '#step' => 1,
+      '#required' => TRUE,
+    ];
+
     $form['bundles'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Bundles'),
@@ -178,6 +188,7 @@ class SettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->configFactory()->getEditable('mercury_editor.settings');
     $config->set('edit_screen_theme', $form_state->getValue('theme'));
+    $config->set('state_history_limit', max(1, (int) $form_state->getValue('state_history_limit')));
     $bundles = $form_state->getValue('bundles');
 
     $bundle_values = [];
