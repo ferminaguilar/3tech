@@ -48,12 +48,13 @@ jobs:
             lftp -c "
               set ssl:verify-certificate no
               set ftp:passive-mode true
-              set net:timeout 10
-              set net:max-retries 2
-              set net:connection-limit 2
+              set net:timeout 30
+              set net:max-retries 10
+              set net:reconnect-interval-base 5
+              set net:connection-limit 1
               open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
-              mirror -R --only-newer --parallel=2 core 3tech.io/core
-              mirror -R --only-newer --parallel=2 vendor 3tech.io/vendor
+              mirror -R --only-newer --parallel=1 core 3tech.io/core
+              mirror -R --only-newer --parallel=1 vendor 3tech.io/vendor
               bye
             "
           fi
@@ -72,11 +73,12 @@ jobs:
             lftp -c "
               set ssl:verify-certificate no
               set ftp:passive-mode true
-              set net:timeout 10
-              set net:max-retries 2
-              set net:connection-limit 2
+              set net:timeout 30
+              set net:max-retries 10
+              set net:reconnect-interval-base 5
+              set net:connection-limit 1
               open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
-              mirror -R --only-newer --parallel=2 \"$STAGE_DIR\" 3tech.io
+              mirror -R --only-newer --parallel=1 \"$STAGE_DIR\" 3tech.io
               bye
             "
           fi
