@@ -1,0 +1,19 @@
+uuid: ef066548-0b47-4851-8ee5-495573f68161
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_listing_subheading
+    - paragraphs.paragraphs_type.dynamic_listing
+id: paragraph.dynamic_listing.field_listing_subheading
+field_name: field_listing_subheading
+entity_type: paragraph
+bundle: dynamic_listing
+label: Subheading
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

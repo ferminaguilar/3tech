@@ -46,7 +46,8 @@
       "cweagans/composer-patches": true,
       "phpstan/extension-installer": true,
       "drupal/core-composer-scaffold": true,
-      "dealerdirect/phpcodesniffer-composer-installer": true
+      "dealerdirect/phpcodesniffer-composer-installer": true,
+      "symfony/runtime": true
     }
   },
   "extra": {

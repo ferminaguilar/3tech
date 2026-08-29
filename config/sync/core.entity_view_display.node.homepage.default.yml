@@ -1,0 +1,30 @@
+uuid: 49c0e7ec-da2f-483e-9955-b8f3321ad2ee
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.homepage.field_sections
+    - node.type.homepage
+  module:
+    - entity_reference_revisions
+    - user
+id: node.homepage.default
+targetEntityType: node
+bundle: homepage
+mode: default
+content:
+  field_sections:
+    type: entity_reference_revisions_entity_view
+    label: hidden
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden: {  }

@@ -1,0 +1,26 @@
+<section class="usa-section padding-y-6 government-listing-section">
+  <div class="grid-container">
+    
+    {# Optional Section Header #}
+    {% if paragraph.field_listing_heading.value or paragraph.field_listing_subheading.value %}
+      <div class="margin-bottom-4">
+        {% if paragraph.field_listing_heading.value %}
+          <h2 class="font-sans-2xl text-primary margin-top-0 margin-bottom-1">
+            {{ paragraph.field_listing_heading.value }}
+          </h2>
+        {% endif %}
+        {% if paragraph.field_listing_subheading.value %}
+          <p class="font-sans-lg text-base-dark margin-0">
+            {{ paragraph.field_listing_subheading.value }}
+          </p>
+        {% endif %}
+      </div>
+    {% endif %}
+
+    {# Rendered View #}
+    <div class="government-listing-content">
+      {{ content.field_view_ref }}
+    </div>
+
+  </div>
+</section>

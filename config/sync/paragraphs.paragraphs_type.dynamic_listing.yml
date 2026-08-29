@@ -1,0 +1,10 @@
+uuid: 07d8b28f-84b7-4cf2-b608-0a0aafdf4e26
+langcode: en
+status: true
+dependencies: {  }
+id: dynamic_listing
+label: 'Dynamic Listing'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

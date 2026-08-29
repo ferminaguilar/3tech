@@ -857,10 +857,8 @@ function mercury_editor_entity_prepare_form(EntityInterface $entity, $operation,
  */
 #[LegacyHook]
 function mercury_editor_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  if (\Drupal::moduleHandler()->moduleExists('content_moderation')) {
-    \Drupal::service(MercuryEditorFormHooks::class)
-      ->formAlter($form, $form_state, $form_id);
-  }
+  \Drupal::service(MercuryEditorFormHooks::class)
+    ->formAlter($form, $form_state, $form_id);
 }
 
 /**

@@ -1,0 +1,23 @@
+uuid: f37b29ce-c00c-4610-aa43-8273abe8a81d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_service_link
+    - paragraphs.paragraphs_type.service_item
+  module:
+    - link
+id: paragraph.service_item.field_service_link
+field_name: field_service_link
+entity_type: paragraph
+bundle: service_item
+label: Link
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  title: 1
+  link_type: 17
+field_type: link

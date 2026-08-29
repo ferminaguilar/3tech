@@ -41,7 +41,7 @@ function stringifyOptions(options) {
  */
 Cypress.Commands.add('drush', (command, args = [], options = {}) => {
   const drushCommand = `${command} ${stringifyArguments(args)} ${stringifyOptions(options)} -y`;
-  const execCommand = Cypress.env('drushCommand').replace(
+  const execCommand = Cypress.expose('drushCommand').replace(
     '$COMMAND',
     drushCommand,
   );

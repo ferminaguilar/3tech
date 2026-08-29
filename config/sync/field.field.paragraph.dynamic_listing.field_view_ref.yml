@@ -1,0 +1,29 @@
+uuid: 3b2b7f13-e680-4f6a-80f0-097beb3b8d15
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_view_ref
+    - paragraphs.paragraphs_type.dynamic_listing
+  module:
+    - viewsreference
+id: paragraph.dynamic_listing.field_view_ref
+field_name: field_view_ref
+entity_type: paragraph
+bundle: dynamic_listing
+label: 'View Reference'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:view'
+  handler_settings:
+    target_bundles: null
+    auto_create: false
+  plugin_types:
+    block: block
+  preselect_views: {  }
+  enabled_settings: {  }
+field_type: viewsreference

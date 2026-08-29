@@ -1,0 +1,22 @@
+uuid: 6b1a991d-34a0-4267-91dd-39451a0094d3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_slide_caption
+    - paragraphs.paragraphs_type.hero_slide
+  module:
+    - text
+id: paragraph.hero_slide.field_slide_caption
+field_name: field_slide_caption
+entity_type: paragraph
+bundle: hero_slide
+label: Caption
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text

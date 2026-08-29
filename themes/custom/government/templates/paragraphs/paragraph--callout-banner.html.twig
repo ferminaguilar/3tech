@@ -1,0 +1,66 @@
+{# Map select list values to USWDS color classes #}
+{% set bg_style = paragraph.field_callout_style.value|default('light') %}
+
+{% if bg_style == 'dark' %}
+  {% set section_classes = 'bg-primary-darker text-white' %}
+  {% set heading_classes = 'text-white' %}
+  {% set sub_classes = 'text-base-lightest' %}
+  {% set btn_classes = 'usa-button--accent-warm' %}
+{% elseif bg_style == 'primary' %}
+  {% set section_classes = 'bg-primary text-white' %}
+  {% set heading_classes = 'text-white' %}
+  {% set sub_classes = 'text-accent-cool-lighter' %}
+  {% set btn_classes = 'usa-button--secondary' %}
+{% else %}
+  {# Default light #}
+  {% set section_classes = 'bg-base-lightest text-base-darkest' %}
+  {% set heading_classes = 'text-primary' %}
+  {% set sub_classes = 'text-base-darker' %}
+  {% set btn_classes = 'usa-button--primary' %}
+{% endif %}
+
+<section class="usa-section padding-y-6 government-callout {{ section_classes }}">
+  <div class="grid-container">
+    <div class="grid-row grid-gap flex-align-center">
+      
+      {# Text Column #}
+      <div class="grid-col-12 tablet:grid-col-7">
+        {% if paragraph.field_callout_heading.value %}
+          <h2 class="font-sans-2xl margin-top-0 margin-bottom-1 {{ heading_classes }}">
+            {{ paragraph.field_callout_heading.value }}
+          </h2>
+        {% endif %}
+
+        {% if paragraph.field_callout_subheading.value %}
+          <p class="font-sans-lg font-serif-italic margin-bottom-2 {{ sub_classes }}">
+            {{ paragraph.field_callout_subheading.value }}
+          </p>
+        {% endif %}
+
+        {% if content.field_callout_body|render %}
+          <div class="usa-prose margin-bottom-3">
+            {{ content.field_callout_body }}
+          </div>
+        {% endif %}
+
+        {% if paragraph.field_callout_link.0.url %}
+          <div class="margin-top-3">
+            <a href="{{ paragraph.field_callout_link.0.url }}" class="usa-button {{ btn_classes }}">
+              {{ paragraph.field_callout_link.0.title|default('Learn More'|t) }}
+            </a>
+          </div>
+        {% endif %}
+      </div>
+
+      {# Image Column #}
+      {% if content.field_callout_image|render %}
+        <div class="grid-col-12 tablet:grid-col-5 text-center tablet:text-right margin-top-3 tablet:margin-top-0">
+          <div class="government-callout__media">
+            {{ content.field_callout_image }}
+          </div>
+        </div>
+      {% endif %}
+
+    </div>
+  </div>
+</section>

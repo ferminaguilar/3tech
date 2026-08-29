@@ -1,0 +1,30 @@
+uuid: 19c5bb8d-b60e-480b-908d-c0ff03cef973
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+id: paragraph.field_callout_style
+field_name: field_callout_style
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: light
+      label: 'Light Gray'
+    -
+      value: dark
+      label: 'Dark Navy'
+    -
+      value: primary
+      label: 'Primary Blue'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

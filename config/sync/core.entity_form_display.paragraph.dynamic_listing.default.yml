@@ -1,0 +1,41 @@
+uuid: 3bfcfa98-7f0c-4e28-a188-7a42a1dd19b7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.dynamic_listing.field_listing_heading
+    - field.field.paragraph.dynamic_listing.field_listing_subheading
+    - field.field.paragraph.dynamic_listing.field_view_ref
+    - paragraphs.paragraphs_type.dynamic_listing
+  module:
+    - viewsreference
+id: paragraph.dynamic_listing.default
+targetEntityType: paragraph
+bundle: dynamic_listing
+mode: default
+content:
+  field_listing_heading:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_listing_subheading:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_view_ref:
+    type: viewsreference_select
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true

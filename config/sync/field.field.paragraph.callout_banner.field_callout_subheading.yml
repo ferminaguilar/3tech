@@ -1,0 +1,19 @@
+uuid: 59310a7b-b2fa-4598-a73e-41ce7c0b776f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_callout_subheading
+    - paragraphs.paragraphs_type.callout_banner
+id: paragraph.callout_banner.field_callout_subheading
+field_name: field_callout_subheading
+entity_type: paragraph
+bundle: callout_banner
+label: Subheading
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

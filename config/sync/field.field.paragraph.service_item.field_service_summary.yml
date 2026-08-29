@@ -1,0 +1,24 @@
+uuid: 2a4d9b7e-7cfb-4869-a249-4d02c69aae89
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_service_summary
+    - filter.format.plain_text
+    - paragraphs.paragraphs_type.service_item
+  module:
+    - text
+id: paragraph.service_item.field_service_summary
+field_name: field_service_summary
+entity_type: paragraph
+bundle: service_item
+label: Summary
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats:
+    - plain_text
+field_type: text_long

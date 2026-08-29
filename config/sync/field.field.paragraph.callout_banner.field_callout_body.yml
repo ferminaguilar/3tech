@@ -1,0 +1,22 @@
+uuid: b8dc3e6b-0b0a-4e1a-b506-9ce112e2cdfd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_callout_body
+    - paragraphs.paragraphs_type.callout_banner
+  module:
+    - text
+id: paragraph.callout_banner.field_callout_body
+field_name: field_callout_body
+entity_type: paragraph
+bundle: callout_banner
+label: Body
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

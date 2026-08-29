@@ -1,0 +1,21 @@
+uuid: 23ec038b-da7f-4316-a487-c6ec8f697fa7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_callout_style
+    - paragraphs.paragraphs_type.callout_banner
+  module:
+    - options
+id: paragraph.callout_banner.field_callout_style
+field_name: field_callout_style
+entity_type: paragraph
+bundle: callout_banner
+label: 'Background Style'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

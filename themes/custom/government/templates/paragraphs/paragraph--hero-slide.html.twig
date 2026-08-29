@@ -1,0 +1,12 @@
+<div class="government-hero-slide">
+  <div class="slide-image">
+    {{ content.field_slide_image }}
+  </div>
+  <div class="slide-content usa-prose">
+    <h2>{{ content.field_slide_title }}</h2>
+    <div class="slide-caption">{{ content.field_slide_caption }}</div>
+    {% if content.field_slide_link %}
+      <div class="slide-link">{{ content.field_slide_link }}</div>
+    {% endif %}
+  </div>
+</div>

@@ -1,0 +1,20 @@
+uuid: 6a1f5f81-f7fd-492e-9ce2-c62460f517e8
+langcode: en
+status: true
+dependencies:
+  module:
+    - media
+    - paragraphs
+id: paragraph.field_callout_image
+field_name: field_callout_image
+entity_type: paragraph
+type: entity_reference
+settings:
+  target_type: media
+module: core
+locked: false
+cardinality: 2
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

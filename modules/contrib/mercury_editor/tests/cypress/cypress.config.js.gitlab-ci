@@ -5,7 +5,7 @@ module.exports = defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
-    env: {
+    expose: {
       "drushCommand": process.env.CI ? `${process.env.CI_PROJECT_DIR}/vendor/bin/drush $COMMAND` : "drush $COMMAND"
     },
     baseUrl: process.env.CYPRESS_baseUrl || 'http://localhost',

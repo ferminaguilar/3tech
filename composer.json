@@ -27,6 +27,7 @@
         "drupal/mercury_editor": "^3.0@alpha",
         "drupal/paragraphs": "^1.22",
         "drupal/uswds_base": "^3.12",
+        "drupal/viewsreference": "^2.0@beta",
         "drush/drush": "^13.7"
     },
     "conflict": {

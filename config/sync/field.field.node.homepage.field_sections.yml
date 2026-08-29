@@ -1,0 +1,52 @@
+uuid: dc40736c-16fa-44b1-94e7-af00d248064b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_sections
+    - node.type.homepage
+    - paragraphs.paragraphs_type.callout_banner
+    - paragraphs.paragraphs_type.dynamic_listing
+    - paragraphs.paragraphs_type.hero_slider
+    - paragraphs.paragraphs_type.services_and_information
+  module:
+    - entity_reference_revisions
+id: node.homepage.field_sections
+field_name: field_sections
+entity_type: node
+bundle: homepage
+label: Sections
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    target_bundles:
+      hero_slider: hero_slider
+      callout_banner: callout_banner
+      dynamic_listing: dynamic_listing
+      services_and_information: services_and_information
+    negate: 0
+    target_bundles_drag_drop:
+      callout_banner:
+        weight: 6
+        enabled: true
+      dynamic_listing:
+        weight: 8
+        enabled: true
+      hero_slide:
+        weight: 3
+        enabled: false
+      hero_slider:
+        weight: 4
+        enabled: true
+      service_item:
+        weight: 7
+        enabled: false
+      services_and_information:
+        weight: 8
+        enabled: true
+field_type: entity_reference_revisions

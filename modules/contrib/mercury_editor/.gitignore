@@ -6,7 +6,6 @@
 /recipes/
 /node_modules
 /.editorconfig
-/.gitattributes
 
 composer.lock
 phpcs.xml.dist

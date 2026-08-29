@@ -1,0 +1,22 @@
+<div class="grid-col-12 tablet:grid-col-3 margin-bottom-2 tablet:margin-bottom-0">
+  <div class="usa-card usa-card--flag bg-white border-base-lighter padding-2 height-full">
+    {% if paragraph.field_service_icon.value %}
+      <div class="usa-card__media margin-bottom-1 text-primary">
+        {# Render as Font Awesome icon #}
+        <i class="{{ paragraph.field_service_icon.value }} fa-2x" aria-hidden="true"></i>
+      </div>
+    {% endif %}
+    <div class="usa-card__header padding-0 margin-bottom-1">
+      <h3 class="usa-card__heading font-sans-md">
+        <a href="{{ paragraph.field_service_link.0.url }}" class="usa-link text-no-underline hover:text-underline">
+          {{ paragraph.field_service_title.value }}
+        </a>
+      </h3>
+    </div>
+    <div class="usa-card__body padding-0">
+      <p class="font-sans-2xs text-base-dark margin-0">
+        {{ paragraph.field_service_summary.value }}
+      </p>
+    </div>
+  </div>
+</div>

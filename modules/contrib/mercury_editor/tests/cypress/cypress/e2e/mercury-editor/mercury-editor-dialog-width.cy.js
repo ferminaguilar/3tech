@@ -47,7 +47,7 @@ describe('Mercury Editor dialog width tests.', () => {
     // Remove any component-specific dialog_settings that could interfere with
     // width assertions (e.g. me_test_text_form.width overwriting the user's
     // drag-resized width via _applySizingVars when the dialog opens).
-    const cleanAllCmd = Cypress.env('drushCommand').replace(
+    const cleanAllCmd = Cypress.expose('drushCommand').replace(
       '$COMMAND',
       `php:eval '$config = \\Drupal::configFactory()->getEditable("mercury_editor.settings"); $settings = $config->get("dialog_settings") ?? []; unset($settings["me_test_text_form"]); unset($settings["dock_me_test_text_form"]); $config->set("dialog_settings", $settings)->save();' -y`,
     );
@@ -240,7 +240,7 @@ describe('Mercury Editor dialog width tests.', () => {
     // 'dock_{paragraph_type}_form', so for me_test_text it is
     // 'dock_me_test_text_form'.
     // Single-quoted shell string keeps $variables literal; PHP uses double quotes.
-    const setConfigCmd = Cypress.env('drushCommand').replace(
+    const setConfigCmd = Cypress.expose('drushCommand').replace(
       '$COMMAND',
       `php:eval '$config = \\Drupal::configFactory()->getEditable("mercury_editor.settings"); $settings = $config->get("dialog_settings") ?? []; $settings["dock_me_test_text_form"] = ["width" => ${componentWidth}]; $config->set("dialog_settings", $settings)->save();' -y`,
     );
@@ -261,7 +261,7 @@ describe('Mercury Editor dialog width tests.', () => {
     getCSSVar('--me-dialog-dock-right-width').should('equal', `${componentWidth}px`);
 
     // Clean up: remove the component-specific setting.
-    const cleanupCmd = Cypress.env('drushCommand').replace(
+    const cleanupCmd = Cypress.expose('drushCommand').replace(
       '$COMMAND',
       `php:eval '$config = \\Drupal::configFactory()->getEditable("mercury_editor.settings"); $settings = $config->get("dialog_settings") ?? []; unset($settings["dock_me_test_text_form"]); $config->set("dialog_settings", $settings)->save();' -y`,
     );

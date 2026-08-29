@@ -1,0 +1,10 @@
+uuid: 995bfa2a-f213-455a-8423-ddb877391dbb
+langcode: en
+status: true
+dependencies: {  }
+id: callout_banner
+label: 'Callout Banner'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }
