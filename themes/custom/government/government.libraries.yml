@@ -6,17 +6,18 @@ assets:
   js:
     assets/js/uswds-init.min.js: {}
     assets/js/uswds.min.js: {}
-
+    js/header.js: {}
 
 hero-slider:
   version: 1.0
   css:
     theme:
-      libraries/accessible-slick/accessible-slick.css: {}
-      libraries/accessible-slick/accessible-slick-theme.css: {}
+      libraries/accessible-slick/slick.min.css: {}
+      libraries/accessible-slick/accessible-slick-theme.min.css: {}
   js:
-    libraries/accessible-slick/accessible-slick.min.js: {}
+    libraries/accessible-slick/slick.min.js: {}
     js/hero-slider.js: {}
   dependencies:
+    - core/drupal
     - core/once
     - core/jquery

@@ -1,0 +1,8 @@
+uuid: 188cdb38-fd19-47ce-a416-e07b283d9ae2
+langcode: en
+status: true
+dependencies: {  }
+id: event_accessible
+label: 'Accessible Event Date'
+locked: false
+pattern: 'l, F j, Y - g:ia'

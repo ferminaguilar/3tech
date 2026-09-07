@@ -1,0 +1,13 @@
+{#
+/**
+ * @file
+ * Theme override for Events view unformatted rows in CityGov style.
+ */
+#}
+<div class="front_events_list">
+  {% for row in rows %}
+    <div class="item front_event tranz p-border margin-bottom-3 padding-bottom-3 border-bottom-1px border-base-lighter">
+      {{ row.content }}
+    </div>
+  {% endfor %}
+</div>

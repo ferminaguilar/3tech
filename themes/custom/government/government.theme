@@ -74,6 +74,18 @@ function government_preprocess_page(&$variables) {
   if (!empty($variables['footer_agency_logo'])) {
     $variables['footer_agency_logo'] = _government_resolve_logo_path($variables['footer_agency_logo']);
   }
+
+  // Build dynamic Resources menu for CityGov header.
+  $menu_tree = \Drupal::menuTree();
+  $parameters = new \Drupal\Core\Menu\MenuTreeParameters();
+  $parameters->setMaxDepth(1);
+  $tree = $menu_tree->load('resources', $parameters);
+  $manipulators = [
+    ['callable' => 'menu.default_tree_manipulators:checkAccess'],
+    ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
+  ];
+  $tree = $menu_tree->transform($tree, $manipulators);
+  $variables['resources_menu'] = $menu_tree->build($tree);
 }
 
 /**

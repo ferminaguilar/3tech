@@ -1,12 +1,29 @@
 <div class="government-hero-slide">
-  <div class="slide-image">
+  <div class="slide-background">
     {{ content.field_slide_image }}
   </div>
-  <div class="slide-content usa-prose">
-    <h2>{{ content.field_slide_title }}</h2>
-    <div class="slide-caption">{{ content.field_slide_caption }}</div>
-    {% if content.field_slide_link %}
-      <div class="slide-link">{{ content.field_slide_link }}</div>
-    {% endif %}
+
+  <div class="grid-container height-full display-flex flex-align-center">
+    <div class="eleslideinside">
+      {% if paragraph.field_slide_title.value %}
+      <h2 class="slide-title">
+        {{ paragraph.field_slide_title.value }}
+      </h2>
+      {% endif %}
+
+      {% if paragraph.field_slide_caption.value %}
+      <p class="slide-caption">
+        {{ paragraph.field_slide_caption.value }}
+      </p>
+      {% endif %}
+
+      {% if paragraph.field_slide_link.0.url %}
+      <div class="margin-top-3">
+        <a href="{{ paragraph.field_slide_link.0.url }}" class="usa-button usa-button--accent-warm">
+          {{ paragraph.field_slide_link.0.title|default('Learn More'|t) }}
+        </a>
+      </div>
+      {% endif %}
+    </div>
   </div>
 </div>

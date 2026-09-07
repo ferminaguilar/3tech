@@ -1,0 +1,70 @@
+{#
+/**
+* @file
+* Theme override for Info with Images paragraph matching CityGov 2-column content & images section.
+*/
+#}
+{% set sidebar_pos = paragraph.field_sidebar_position.value|default('left') %}
+{% set is_flipped = (sidebar_pos == 'right') %}
+{% set bg_color = paragraph.field_background_color.value|default('white') %}
+
+<section
+  class="government-info-images-section {{ is_flipped ? 'is-layout-flipped' : 'is-layout-default' }} section-bg-{{ bg_color }}">
+  <div class="grid-container">
+    <div class="grid-row grid-gap-6 flex-align-center">
+
+      {# Text / Information Column #}
+      <div class="grid-col-12 desktop:grid-col-6 info-text-col">
+        <div class="info-text-inner">
+
+          {% if paragraph.field_title.value %}
+          <h2 class="info-section-title">
+            {{ paragraph.field_title.value }}
+          </h2>
+          {% endif %}
+
+          {% if paragraph.field_subheading.value %}
+          <h3 class="info-section-subtitle dekoline">
+            {{ paragraph.field_subheading.value }}
+          </h3>
+          {% endif %}
+
+          {% if content.field_body|render|trim %}
+          <div class="info-section-body">
+            {{ content.field_body }}
+          </div>
+          {% endif %}
+
+          {% if paragraph.field_link.0.url %}
+          <div class="info-section-action margin-top-4">
+            <a href="{{ paragraph.field_link.0.url }}" class="usa-button usa-button--outline">
+              {{ paragraph.field_link.0.title|default('Learn More'|t) }} <span class="margin-left-1"
+                aria-hidden="true">→</span>
+            </a>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+
+      {# Images Column #}
+      <div class="grid-col-12 desktop:grid-col-6 info-images-col">
+        <div class="info-images-showcase">
+          {% for item in paragraph.field_images %}
+          {% if item.entity %}
+          {% set media_entity = item.entity %}
+          {% set image_uri = media_entity.field_media_image.entity.uri.value %}
+          {% set image_alt = media_entity.field_media_image.alt|default(paragraph.field_title.value) %}
+          {% if image_uri %}
+          <div class="info-image-card info-image-card--{{ loop.index }}">
+            <img src="{{ file_url(image_uri) }}" alt="{{ image_alt }}" loading="lazy" />
+          </div>
+          {% endif %}
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>

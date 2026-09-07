@@ -1,0 +1,22 @@
+uuid: 2710f7cb-709b-473c-915a-38103a66fbe6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_body
+    - paragraphs.paragraphs_type.dynamic_listing
+  module:
+    - text
+id: paragraph.dynamic_listing.field_body
+field_name: field_body
+entity_type: paragraph
+bundle: dynamic_listing
+label: 'Left Column Body'
+description: 'Body text or basic information for the left column.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

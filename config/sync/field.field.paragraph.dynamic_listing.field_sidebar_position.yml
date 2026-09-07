@@ -1,0 +1,23 @@
+uuid: e47884fd-5a8e-4be1-b0f9-60fd045e76fa
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_sidebar_position
+    - paragraphs.paragraphs_type.dynamic_listing
+  module:
+    - options
+id: paragraph.dynamic_listing.field_sidebar_position
+field_name: field_sidebar_position
+entity_type: paragraph
+bundle: dynamic_listing
+label: 'Layout Orientation'
+description: 'Choose which side the full-height background image and quote should appear.'
+required: false
+translatable: true
+default_value:
+  -
+    value: left
+default_value_callback: ''
+settings: {  }
+field_type: list_string

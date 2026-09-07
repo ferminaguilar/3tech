@@ -1,0 +1,3 @@
+# Project-level Drush configuration
+options:
+  uri: 'http://localhost/3tech'

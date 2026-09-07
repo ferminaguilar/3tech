@@ -19,12 +19,12 @@
   {% set btn_classes = 'usa-button--primary' %}
 {% endif %}
 
-<section class="usa-section padding-y-6 government-callout {{ section_classes }}">
+<section class="usa-section padding-0 government-callout section-callout-{{ bg_style }} {{ section_classes }}">
   <div class="grid-container">
-    <div class="grid-row grid-gap flex-align-center">
+    <div class="grid-row grid-gap flex-align-end government-callout__row">
       
       {# Text Column #}
-      <div class="grid-col-12 tablet:grid-col-7">
+      <div class="grid-col-12 tablet:grid-col-7 government-callout__text-col">
         {% if paragraph.field_callout_heading.value %}
           <h2 class="font-sans-2xl margin-top-0 margin-bottom-1 {{ heading_classes }}">
             {{ paragraph.field_callout_heading.value }}
@@ -54,7 +54,7 @@
 
       {# Image Column #}
       {% if content.field_callout_image|render %}
-        <div class="grid-col-12 tablet:grid-col-5 text-center tablet:text-right margin-top-3 tablet:margin-top-0">
+        <div class="grid-col-12 tablet:grid-col-5 government-callout__image-col">
           <div class="government-callout__media">
             {{ content.field_callout_image }}
           </div>

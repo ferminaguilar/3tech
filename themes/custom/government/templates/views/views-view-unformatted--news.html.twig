@@ -1,0 +1,13 @@
+{#
+/**
+ * @file
+ * Theme override for News view unformatted rows in CityGov front_blogger style.
+ */
+#}
+<div class="front_blogger">
+  {% for row in rows %}
+    <div class="item front_post tranz p-border margin-bottom-3 padding-bottom-3 border-bottom-1px border-base-lighter">
+      {{ row.content }}
+    </div>
+  {% endfor %}
+</div>

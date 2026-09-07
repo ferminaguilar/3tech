@@ -1,0 +1,21 @@
+{#
+/**
+ * @file
+ * Theme override for Resources menu matching CityGov quick links / resources bar.
+ */
+#}
+{% import _self as menus %}
+
+{{ menus.menu_links(items, 0, attributes) }}
+
+{% macro menu_links(items, menu_level, attributes) %}
+  {% if items %}
+    <ul class="quick-links-list">
+      {% for item in items %}
+        <li class="quick-links-item">
+          <a href="{{ item.url }}" class="quick-links-link">{{ item.title }}</a>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endmacro %}

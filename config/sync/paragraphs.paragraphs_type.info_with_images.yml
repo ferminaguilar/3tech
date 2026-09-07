@@ -1,0 +1,10 @@
+uuid: f7ff99f6-74d3-4310-be32-436a6aeeef9e
+langcode: en
+status: true
+dependencies: {  }
+id: info_with_images
+label: 'Info with Images'
+icon_uuid: null
+icon_default: null
+description: 'A flexible 2-column section with heading, subheading, body text, button link on one side and images on the other.'
+behavior_plugins: {  }

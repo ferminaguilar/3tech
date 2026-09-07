@@ -1,0 +1,61 @@
+{#
+/**
+ * @file
+ * Theme override for Primary Menu matching CityGov 2-line header navigation.
+ */
+#}
+{% import _self as menus %}
+
+{{ menus.menu_links(items, 0, attributes) }}
+
+{% macro menu_links(items, menu_level, attributes) %}
+  {% import _self as menus %}
+
+  {% if items %}
+    {% if menu_level == 0 %}
+      <ul class="usa-nav__primary usa-accordion citygov-nav-primary">
+    {% else %}
+      <ul class="usa-nav__submenu" hidden="">
+    {% endif %}
+
+    {% for item in items %}
+      {% set desc = item.original_link ? item.original_link.getDescription() : '' %}
+      {% set is_cta = (item.title|lower == 'report an issue' or item.title|lower == 'report a concern') %}
+      
+      {% if menu_level == 0 %}
+        {% if item.below %}
+          <li class="usa-nav__primary-item usa-nav__primary-item--has-children">
+            <button type="button" class="usa-accordion__button usa-nav__link display-flex flex-column" aria-expanded="false" aria-controls="extended-nav-section-{{ loop.index }}">
+              <span class="nav-title">{{ item.title }}</span>
+              {% if desc %}
+                <span class="menu-item-description">{{ desc }}</span>
+              {% endif %}
+            </button>
+            <ul id="extended-nav-section-{{ loop.index }}" class="usa-nav__submenu" hidden="">
+              {% for child in item.below %}
+                <li class="usa-nav__submenu-item">
+                  <a href="{{ child.url }}" class="usa-nav__submenu-link">{{ child.title }}</a>
+                </li>
+              {% endfor %}
+            </ul>
+          </li>
+        {% else %}
+          <li class="usa-nav__primary-item {{ is_cta ? 'usa-nav__primary-item--cta' : '' }}">
+            <a href="{{ item.url }}" class="usa-nav__link display-flex flex-column {{ is_cta ? 'citygov-cta-link' : '' }}">
+              <span class="nav-title">{{ item.title }}</span>
+              {% if desc %}
+                <span class="menu-item-description">{{ desc }}</span>
+              {% endif %}
+            </a>
+          </li>
+        {% endif %}
+      {% else %}
+        <li class="usa-nav__submenu-item">
+          <a href="{{ item.url }}" class="usa-nav__submenu-link">{{ item.title }}</a>
+        </li>
+      {% endif %}
+    {% endfor %}
+
+    </ul>
+  {% endif %}
+{% endmacro %}

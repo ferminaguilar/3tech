@@ -8,6 +8,7 @@ dependencies:
     - paragraphs.paragraphs_type.callout_banner
     - paragraphs.paragraphs_type.dynamic_listing
     - paragraphs.paragraphs_type.hero_slider
+    - paragraphs.paragraphs_type.info_with_images
     - paragraphs.paragraphs_type.services_and_information
   module:
     - entity_reference_revisions
@@ -29,6 +30,7 @@ settings:
       callout_banner: callout_banner
       dynamic_listing: dynamic_listing
       services_and_information: services_and_information
+      info_with_images: info_with_images
     negate: 0
     target_bundles_drag_drop:
       callout_banner:
@@ -42,6 +44,9 @@ settings:
         enabled: false
       hero_slider:
         weight: 4
+        enabled: true
+      info_with_images:
+        weight: 9
         enabled: true
       service_item:
         weight: 7

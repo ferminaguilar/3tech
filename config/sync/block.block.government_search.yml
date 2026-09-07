@@ -2,6 +2,8 @@ uuid: b0121694-1a44-434d-ba7c-86166a2e9eca
 langcode: en
 status: true
 dependencies:
+  module:
+    - search
   theme:
     - government
 id: government_search
@@ -15,4 +17,5 @@ settings:
   label: Search
   label_display: visible
   provider: core
+  page_id: null
 visibility: {  }

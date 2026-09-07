@@ -3,20 +3,50 @@ langcode: en
 status: true
 dependencies:
   config:
+    - field.field.paragraph.dynamic_listing.field_background_color
+    - field.field.paragraph.dynamic_listing.field_background_image
+    - field.field.paragraph.dynamic_listing.field_body
     - field.field.paragraph.dynamic_listing.field_listing_heading
     - field.field.paragraph.dynamic_listing.field_listing_subheading
+    - field.field.paragraph.dynamic_listing.field_sidebar_position
+    - field.field.paragraph.dynamic_listing.field_title
     - field.field.paragraph.dynamic_listing.field_view_ref
     - paragraphs.paragraphs_type.dynamic_listing
   module:
+    - options
+    - text
     - viewsreference
 id: paragraph.dynamic_listing.default
 targetEntityType: paragraph
 bundle: dynamic_listing
 mode: default
 content:
+  field_background_color:
+    type: list_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 5
+    region: content
+  field_background_image:
+    type: entity_reference_entity_view
+    label: above
+    settings:
+      view_mode: default
+      link: false
+    third_party_settings: {  }
+    weight: 3
+    region: content
+  field_body:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 1
+    region: content
   field_listing_heading:
     type: string
-    label: above
+    label: hidden
     settings:
       link_to_entity: false
       link_rel: canonical
@@ -25,16 +55,32 @@ content:
     region: content
   field_listing_subheading:
     type: string
-    label: above
+    label: hidden
     settings:
       link_to_entity: false
       link_rel: canonical
     third_party_settings: {  }
     weight: 1
     region: content
+  field_sidebar_position:
+    type: list_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_title:
+    type: string
+    label: hidden
+    settings:
+      link_to_entity: false
+      link_rel: canonical
+    third_party_settings: {  }
+    weight: 0
+    region: content
   field_view_ref:
     type: viewsreference_formatter
-    label: above
+    label: hidden
     settings:
       plugin_types:
         - block

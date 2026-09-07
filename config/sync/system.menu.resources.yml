@@ -1,0 +1,8 @@
+uuid: 1091d4b5-1a99-49b8-b496-97a5d142de9a
+langcode: en
+status: true
+dependencies: {  }
+id: resources
+label: Resources
+description: 'Site resources and quick links'
+locked: false

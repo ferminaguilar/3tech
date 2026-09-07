@@ -1,0 +1,35 @@
+{#
+/**
+ * @file
+ * Theme override for Events view row fields matching CityGov event items.
+ */
+#}
+<div class="citygov-event-item display-flex flex-row flex-align-start">
+  {% if fields.field_image %}
+    <div class="imgwrap margin-right-3 flex-shrink-0">
+      {{ fields.field_image.content }}
+    </div>
+  {% endif %}
+
+  <div class="event-content display-flex flex-column flex-fill">
+    <h3 class="event-title font-sans-md text-bold margin-top-0 margin-bottom-1 line-height-sans-2">
+      {{ fields.title.content }}
+    </h3>
+
+    <div class="event-meta font-sans-2xs text-base-dark margin-0 margin-bottom-1 display-flex flex-wrap flex-align-center gap-2">
+      {% if fields.field_event_date and fields.field_event_date.content|striptags|trim %}
+        <span class="event-date display-flex flex-align-center text-primary-dark">
+          <span class="margin-right-05" aria-hidden="true">📅</span>
+          {{ fields.field_event_date.content }}
+        </span>
+      {% endif %}
+
+      {% if fields.field_location and fields.field_location.content|striptags|trim %}
+        <span class="event-location display-flex flex-align-center text-base-dark">
+          <span class="margin-right-05" aria-hidden="true">📍</span>
+          {{ fields.field_location.content }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</div>

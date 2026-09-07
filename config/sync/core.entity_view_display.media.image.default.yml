@@ -20,7 +20,7 @@ content:
     label: visually_hidden
     settings:
       image_link: ''
-      image_style: large
+      image_style: ''
       image_loading:
         attribute: lazy
     third_party_settings: {  }

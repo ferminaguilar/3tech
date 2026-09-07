@@ -1,26 +1,86 @@
-<section class="usa-section padding-y-6 government-listing-section">
-  <div class="grid-container">
-    
-    {# Optional Section Header #}
-    {% if paragraph.field_listing_heading.value or paragraph.field_listing_subheading.value %}
-      <div class="margin-bottom-4">
-        {% if paragraph.field_listing_heading.value %}
-          <h2 class="font-sans-2xl text-primary margin-top-0 margin-bottom-1">
-            {{ paragraph.field_listing_heading.value }}
-          </h2>
-        {% endif %}
-        {% if paragraph.field_listing_subheading.value %}
-          <p class="font-sans-lg text-base-dark margin-0">
-            {{ paragraph.field_listing_subheading.value }}
-          </p>
-        {% endif %}
-      </div>
-    {% endif %}
+{#
+/**
+* @file
+* Theme override for Dynamic Listing paragraph matching CityGov Town Highlights & Events.
+*/
+#}
+{% set sidebar_pos = paragraph.field_sidebar_position.value|default('left') %}
+{% set is_flipped = (sidebar_pos == 'right') %}
+{% set bg_color = paragraph.field_background_color.value|default(is_flipped ? 'primary' : 'white') %}
 
-    {# Rendered View #}
-    <div class="government-listing-content">
-      {{ content.field_view_ref }}
+<section
+  class="government-listing-section position-relative overflow-hidden {{ is_flipped ? 'is-layout-flipped' : 'is-layout-default' }} section-bg-{{ bg_color }}">
+
+  {# Split Background Layer: Spans from screen edge to the 1/3 column boundary #}
+  {% if content.field_background_image|render|trim %}
+  <div class="{{ is_flipped ? 'citygov-split-right-bg' : 'citygov-split-left-bg' }}">
+    <div class="split-bg-image">
+      {{ content.field_background_image }}
     </div>
+    <div class="split-bg-overlay"></div>
+  </div>
+  {% endif %}
 
+  <div class="grid-container position-relative z-10 height-full">
+    <div class="grid-row grid-gap-6 flex-align-stretch height-full {{ is_flipped ? 'desktop:flex-row-reverse' : '' }}">
+
+      {# 1/3 Column: Title + Body Text / Information #}
+      <div
+        class="grid-col-12 desktop:grid-col-4 display-flex flex-column justify-center citygov-quote-col {{ is_flipped ? 'citygov-right-quote-col' : 'citygov-left-col' }}">
+        <div class="citygov-highlight-quote">
+          {% if paragraph.field_title.value %}
+          <h2 class="font-sans-2xl text-bold line-height-sans-2 margin-0">
+            {{ paragraph.field_title.value }}
+          </h2>
+          {% endif %}
+
+          {% if content.field_body|render|trim %}
+          <div class="citygov-highlight-body margin-top-2">
+            {{ content.field_body }}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {# 2/3 Column: Main Heading/Subheading + News/Events List #}
+      <div
+        class="grid-col-12 desktop:grid-col-8 display-flex flex-column justify-center citygov-main-col {{ is_flipped ? 'citygov-left-main-col' : 'citygov-right-col' }}">
+        <div class="citygov-highlight-main width-full">
+
+          {# Section Header #}
+          {% if paragraph.field_listing_heading.value or paragraph.field_listing_subheading.value %}
+          <div class="citygov-highlight-header margin-bottom-4">
+            {% if paragraph.field_listing_heading.value %}
+            <h2 class="font-sans-xl text-bold margin-0 margin-bottom-1 text-primary-darkest">
+              {{ paragraph.field_listing_heading.value }}
+            </h2>
+            {% endif %}
+            {% if paragraph.field_listing_subheading.value %}
+            <h4 class="font-sans-md text-base-dark margin-0 dekoline">
+              {{ paragraph.field_listing_subheading.value }}
+            </h4>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          {# Rendered News or Events View #}
+          <div class="citygov-highlight-posts">
+            {{ content.field_view_ref }}
+          </div>
+
+          {# Bottom Button #}
+          <div class="margin-top-4">
+            {% set btn_url = is_flipped ? '/events' : '/news' %}
+            {% set btn_text = is_flipped ? 'More Events' : 'More News' %}
+            {% set is_dark_bg = (bg_color == 'primary' or bg_color == 'primary-dark') %}
+            <a href="{{ btn_url }}" class="usa-button usa-button--outline {{ is_dark_bg ? 'usa-button--inverse' : '' }}">
+              {{ btn_text|t }} <span class="margin-left-1" aria-hidden="true">→</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
   </div>
 </section>

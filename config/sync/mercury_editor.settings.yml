@@ -24,6 +24,13 @@ dialog_settings:
     dialogClass: lpb-dialog
     resizable: true
 dialog_tray_width: 400
+bundles:
+  block_content: {  }
+  node:
+    event: event
+    homepage: homepage
+    news_item: news_item
+  taxonomy_term: {  }
 auto_update:
   enabled: true
   paragraphs: {  }

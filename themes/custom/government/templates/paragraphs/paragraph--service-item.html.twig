@@ -1,20 +1,27 @@
-<div class="grid-col-12 tablet:grid-col-3 margin-bottom-2 tablet:margin-bottom-0">
-  <div class="usa-card usa-card--flag bg-white border-base-lighter padding-2 height-full">
+<div class="grid-col-12 tablet:grid-col-6 desktop:grid-col-3 margin-bottom-3 desktop:margin-bottom-0">
+  <div class="citygov-service-card bg-white padding-3 height-full display-flex flex-column">
     {% if paragraph.field_service_icon.value %}
-      <div class="usa-card__media margin-bottom-1 text-primary">
-        {# Render as Font Awesome icon #}
-        <i class="{{ paragraph.field_service_icon.value }} fa-2x" aria-hidden="true"></i>
+      <div class="service-card__icon margin-bottom-2">
+        {% if 'http' in paragraph.field_service_icon.value or '.png' in paragraph.field_service_icon.value or '.svg' in paragraph.field_service_icon.value or '/' in paragraph.field_service_icon.value %}
+          <img src="{{ paragraph.field_service_icon.value }}" alt="" width="56" height="56" class="service-card-img" />
+        {% else %}
+          <i class="{{ paragraph.field_service_icon.value }} fa-2x" aria-hidden="true"></i>
+        {% endif %}
       </div>
     {% endif %}
-    <div class="usa-card__header padding-0 margin-bottom-1">
-      <h3 class="usa-card__heading font-sans-md">
-        <a href="{{ paragraph.field_service_link.0.url }}" class="usa-link text-no-underline hover:text-underline">
+    <div class="service-card__header margin-bottom-1">
+      <h3 class="service-card__title font-sans-md text-bold margin-0">
+        {% if paragraph.field_service_link.0.url %}
+          <a href="{{ paragraph.field_service_link.0.url }}" class="service-card__link text-no-underline">
+            {{ paragraph.field_service_title.value }}
+          </a>
+        {% else %}
           {{ paragraph.field_service_title.value }}
-        </a>
+        {% endif %}
       </h3>
     </div>
-    <div class="usa-card__body padding-0">
-      <p class="font-sans-2xs text-base-dark margin-0">
+    <div class="service-card__body">
+      <p class="font-sans-2xs text-base-dark margin-0 line-height-sans-4">
         {{ paragraph.field_service_summary.value }}
       </p>
     </div>

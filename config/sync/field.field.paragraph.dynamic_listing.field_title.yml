@@ -1,0 +1,19 @@
+uuid: 9a4fe0ab-f043-4b66-9f7f-c66aed13c29c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_title
+    - paragraphs.paragraphs_type.dynamic_listing
+id: paragraph.dynamic_listing.field_title
+field_name: field_title
+entity_type: paragraph
+bundle: dynamic_listing
+label: 'Left Column Title'
+description: 'Title or tagline for the left column.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

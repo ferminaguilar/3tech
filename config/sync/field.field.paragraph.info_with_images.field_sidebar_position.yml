@@ -1,0 +1,23 @@
+uuid: 8e74eae0-2518-49bb-a296-0676aef5b757
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_sidebar_position
+    - paragraphs.paragraphs_type.info_with_images
+  module:
+    - options
+id: paragraph.info_with_images.field_sidebar_position
+field_name: field_sidebar_position
+entity_type: paragraph
+bundle: info_with_images
+label: 'Layout Orientation'
+description: 'Select whether the text info is on the Left (default) or Right.'
+required: false
+translatable: true
+default_value:
+  -
+    value: left
+default_value_callback: ''
+settings: {  }
+field_type: list_string

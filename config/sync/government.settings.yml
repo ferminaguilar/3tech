@@ -10,11 +10,11 @@ features:
 logo:
   use_default: true
 cdn_provider: custom
-cdn_custom_img: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/img'
-cdn_custom_css: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/css/uswds.css'
-cdn_custom_css_min: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/css/uswds.min.css'
-cdn_custom_js: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/js/uswds.js'
-cdn_custom_js_min: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.13.0/dist/js/uswds.min.js'
+cdn_custom_img: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.14.0/dist/img'
+cdn_custom_css: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.14.0/dist/css/uswds.css'
+cdn_custom_css_min: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.14.0/dist/css/uswds.min.css'
+cdn_custom_js: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.14.0/dist/js/uswds.js'
+cdn_custom_js_min: 'https://cdn.jsdelivr.net/npm/@uswds/uswds@3.14.0/dist/js/uswds.min.js'
 uswds_header_style: extended
 uswds_header_logo_height: 40px
 uswds_header_mega: false
@@ -46,14 +46,14 @@ uswds_menu_bypass:
 uswds_identifier_enabled: true
 uswds_identifier_variant: default
 uswds_identifier_show_logos: true
-uswds_identifier_domain: 3tech.gov
-uswds_identifier_agency_name: '3 Tech Agency'
+uswds_identifier_domain: 3tech.io
+uswds_identifier_agency_name: '3 Tech Services LLC'
 uswds_identifier_agency_short_name: 3Tech
 uswds_identifier_agency_url: '#'
 uswds_identifier_agency_logo: logo.svg
 uswds_identifier_parent2_name: 'Parent Department'
 uswds_identifier_parent2_url: '#'
 uswds_identifier_parent2_logo: logo.png
-uswds_identifier_usagov_enabled: false
+uswds_identifier_usagov_enabled: true
 uswds_identifier_usagov_text: 'Looking for U.S. government information and services?'
 uswds_identifier_usagov_url: 'https://www.usa.gov/'

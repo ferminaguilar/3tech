@@ -1,0 +1,8 @@
+uuid: 21f171c4-47fd-4878-8b2f-0794b60d3f3e
+langcode: en
+status: true
+dependencies: {  }
+id: quick-links
+label: 'Quick Links'
+description: 'Quick links bar displayed in the header bottom bar.'
+locked: false

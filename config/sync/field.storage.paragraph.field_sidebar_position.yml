@@ -1,0 +1,27 @@
+uuid: 1450497e-7f33-431e-a17c-3744e042101b
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+id: paragraph.field_sidebar_position
+field_name: field_sidebar_position
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: left
+      label: 'Image & Quote on Left, List on Right (Default)'
+    -
+      value: right
+      label: 'List on Left, Image & Quote on Right'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
