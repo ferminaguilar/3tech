@@ -21,3 +21,14 @@ i.e.
 */
 
 @use "uswds-core" as *;
+@use "government/government";
+
+html {
+  scroll-behavior: smooth;
+}
+
+section[id] {
+  scroll-margin-top: 7.5rem;
+}
+
+

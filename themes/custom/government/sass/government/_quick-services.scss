@@ -1,0 +1,111 @@
+@use "uswds-core" as *;
+
+/* ==========================================================================
+   GOVERNMENT THEME - 4 QUICK SERVICES & INFORMATION
+   ========================================================================== */
+
+.government-services-section {
+    position: relative !important;
+    z-index: 30 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    pointer-events: none !important;
+}
+
+.government-services-section .grid-container {
+    position: relative !important;
+    top: -6.5rem !important;
+    pointer-events: auto !important;
+    max-width: 64rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
+@media all and (max-width: 64em) {
+    .government-services-section .grid-container {
+        top: -4rem !important;
+    }
+}
+
+@media all and (max-width: 30em) {
+    .government-services-section {
+        height: auto !important;
+        max-height: none !important;
+        margin: 0 !important;
+        padding: 2rem 0 !important;
+    }
+    .government-services-section .grid-container {
+        top: 0 !important;
+    }
+}
+
+.government-service-card {
+    background: color('yellow-20v') !important;
+    border-radius: 8px !important;
+    border: none !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28) !important;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    pointer-events: auto !important;
+}
+
+.government-service-card:hover {
+    transform: translateY(-6px) !important;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.38) !important;
+}
+
+/* All 4 Service Cards are Yellow 20v */
+.government-services-section .government-service-card,
+.government-service-card.card-color-yellow-20v,
+.government-service-card.service-card--yellow-20v,
+.government-service-card.bg-yellow-20v {
+    background-color: color('yellow-20v') !important;
+}
+
+.government-service-card .service-card__icon {
+    display: flex;
+    align-items: center;
+    min-height: 56px;
+}
+
+.government-service-card .service-card-img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    display: block;
+}
+
+.government-service-card .service-card__icon i,
+.government-service-card .service-card__icon svg {
+    color: color('black') !important;
+    fill: currentColor !important;
+    font-size: 2.25rem !important;
+    line-height: 1 !important;
+}
+
+.government-service-card .service-card__title {
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    line-height: 1.35 !important;
+}
+
+.government-service-card .service-card__link {
+    color: color('black') !important;
+    transition: color 0.2s ease !important;
+}
+
+.government-service-card .service-card__link:hover {
+    color: color('gray-90') !important;
+    text-decoration: underline !important;
+}
+
+.government-service-card .service-card__body p {
+    color: color('gray-90') !important;
+    font-size: 0.9rem !important;
+    line-height: 1.55 !important;
+    font-weight: 500 !important;
+}
+

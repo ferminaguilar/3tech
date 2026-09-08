@@ -1,6 +1,6 @@
 {{ attach_library('government/hero-slider') }}
 
-<section class="government-hero-slider-section usa-section padding-0">
+<section id="hero-slider" class="government-hero-slider-section usa-section padding-0">
   <div class="government-hero-slider">
     {% for key, item in content.field_slides %}
       {% if key|first != '#' %}

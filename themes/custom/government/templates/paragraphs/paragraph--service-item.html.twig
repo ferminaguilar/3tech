@@ -1,11 +1,21 @@
 <div class="grid-col-12 tablet:grid-col-6 desktop:grid-col-3 margin-bottom-3 desktop:margin-bottom-0">
-  <div class="citygov-service-card bg-white padding-3 height-full display-flex flex-column">
-    {% if paragraph.field_service_icon.value %}
+  <div class="government-service-card padding-3 height-full display-flex flex-column">
+    {% set icon_val = paragraph.field_service_icon.value|trim %}
+    {% if icon_val %}
       <div class="service-card__icon margin-bottom-2">
-        {% if 'http' in paragraph.field_service_icon.value or '.png' in paragraph.field_service_icon.value or '.svg' in paragraph.field_service_icon.value or '/' in paragraph.field_service_icon.value %}
-          <img src="{{ paragraph.field_service_icon.value }}" alt="" width="56" height="56" class="service-card-img" />
+        {% if '<svg' in icon_val %}
+          {{ icon_val|raw }}
+        {% elseif 'http' in icon_val or '.png' in icon_val or '.svg' in icon_val or '/' in icon_val %}
+          <img src="{{ icon_val }}" alt="" width="56" height="56" class="service-card-img" />
         {% else %}
-          <i class="{{ paragraph.field_service_icon.value }} fa-2x" aria-hidden="true"></i>
+          {# Font Awesome icon handling #}
+          {% if 'fa-solid' in icon_val or 'fa-regular' in icon_val or 'fa-brands' in icon_val or 'fas ' in icon_val or 'far ' in icon_val or 'fab ' in icon_val %}
+            <i class="{{ icon_val }} fa-2x" aria-hidden="true"></i>
+          {% elseif 'fa-' in icon_val %}
+            <i class="fa-solid {{ icon_val }} fa-2x" aria-hidden="true"></i>
+          {% else %}
+            <i class="fa-solid fa-{{ icon_val }} fa-2x" aria-hidden="true"></i>
+          {% endif %}
         {% endif %}
       </div>
     {% endif %}

@@ -1,17 +1,17 @@
 /**
  * @file
- * Header utilities for CityGov layout (Search toggle, Scroll states, Submenu toggles).
+ * Header utilities for Government layout (Search toggle, Scroll states, Submenu toggles).
  */
 (function (Drupal, once) {
   'use strict';
 
-  Drupal.behaviors.citygovHeader = {
+  Drupal.behaviors.governmentHeader = {
     attach: function (context) {
       // Search dropdown toggle
-      once('citygov-search', '.citygov-search-toggle', context).forEach(function (btn) {
+      once('government-search', '.government-search-toggle', context).forEach(function (btn) {
         btn.addEventListener('click', function (e) {
           e.preventDefault();
-          var dropdown = btn.closest('.citygov-header-search').querySelector('.citygov-search-dropdown');
+          var dropdown = btn.closest('.government-header-search').querySelector('.government-search-dropdown');
           if (dropdown) {
             var isHidden = dropdown.hasAttribute('hidden');
             if (isHidden) {
@@ -29,8 +29,8 @@
 
       // Close search when clicking outside
       document.addEventListener('click', function (e) {
-        if (!e.target.closest('.citygov-header-search')) {
-          var dropdown = document.querySelector('.citygov-search-dropdown:not([hidden])');
+        if (!e.target.closest('.government-header-search')) {
+          var dropdown = document.querySelector('.government-search-dropdown:not([hidden])');
           if (dropdown) {
             dropdown.setAttribute('hidden', '');
             dropdown.classList.remove('is-open');

@@ -1,0 +1,129 @@
+@use "uswds-core" as *;
+
+/* ==========================================================================
+   GOVERNMENT THEME - CALLOUT BANNER SECTION
+   ========================================================================== */
+
+.government-callout {
+    position: relative !important;
+    z-index: 10 !important;
+    padding-top: 8.5rem !important; /* Breathing room for overlapping floating cards */
+    padding-bottom: 0 !important;   /* Flush with bottom for touching image */
+    overflow: hidden !important;
+    background-color: color('black') !important;
+    color: color('white') !important;
+}
+
+@media all and (max-width: 64em) {
+    .government-callout {
+        padding-top: 6rem !important;
+        padding-bottom: 0 !important;
+    }
+}
+
+@media all and (max-width: 30em) {
+    .government-callout {
+        padding-top: 2.5rem !important;
+        padding-bottom: 0 !important;
+    }
+}
+
+.government-callout .grid-container {
+    height: 100% !important;
+}
+
+.government-callout__row {
+    display: flex !important;
+    align-items: flex-end !important;
+    min-height: 100% !important;
+}
+
+.government-callout__text-col {
+    padding-top: 1rem !important;
+    padding-bottom: 4.5rem !important;
+}
+
+.government-callout h2 {
+    color: color('white') !important;
+    font-size: clamp(1.8rem, 3vw, 2.5rem) !important;
+    font-weight: 800 !important;
+    line-height: 1.18 !important;
+    letter-spacing: -0.02em !important;
+}
+
+.government-callout .usa-prose,
+.government-callout p {
+    color: color('gray-10') !important;
+    font-size: 1.05rem !important;
+    line-height: 1.65 !important;
+}
+
+.government-callout .usa-button {
+    background-color: color('yellow-20v') !important;
+    color: color('black') !important;
+    border: none !important;
+    font-weight: 700 !important;
+}
+
+.government-callout .usa-button:hover {
+    background-color: color('yellow-30v') !important;
+}
+
+.government-callout__image-col {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+    align-self: flex-end !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+}
+
+.government-callout__media {
+    position: relative !important;
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+    line-height: 0 !important;
+}
+
+.government-callout__media .field,
+.government-callout__media .field__item,
+.government-callout__media .media,
+.government-callout__media article,
+.government-callout__media picture {
+    display: flex !important;
+    align-items: flex-end !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: 0 !important;
+}
+
+.government-callout__media img {
+    display: block !important;
+    width: auto !important;
+    max-width: 100% !important;
+    max-height: 480px !important;
+    margin: 0 0 0 auto !important;
+    padding: 0 !important;
+    object-fit: contain !important;
+    object-position: bottom right !important;
+    vertical-align: bottom !important;
+}
+
+@media all and (max-width: 48em) {
+    .government-callout__text-col {
+        padding-bottom: 1.5rem !important;
+    }
+    .government-callout__image-col {
+        justify-content: center !important;
+    }
+    .government-callout__media img {
+        margin: 0 auto !important;
+        max-height: 320px !important;
+    }
+}

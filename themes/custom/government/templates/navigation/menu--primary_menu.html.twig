@@ -1,7 +1,7 @@
 {#
 /**
  * @file
- * Theme override for Primary Menu matching CityGov 2-line header navigation.
+ * Theme override for Primary Menu matching Government 2-line header navigation.
  */
 #}
 {% import _self as menus %}
@@ -13,7 +13,7 @@
 
   {% if items %}
     {% if menu_level == 0 %}
-      <ul class="usa-nav__primary usa-accordion citygov-nav-primary">
+      <ul class="usa-nav__primary usa-accordion government-nav-primary">
     {% else %}
       <ul class="usa-nav__submenu" hidden="">
     {% endif %}
@@ -41,7 +41,7 @@
           </li>
         {% else %}
           <li class="usa-nav__primary-item {{ is_cta ? 'usa-nav__primary-item--cta' : '' }}">
-            <a href="{{ item.url }}" class="usa-nav__link display-flex flex-column {{ is_cta ? 'citygov-cta-link' : '' }}">
+            <a href="{{ item.url }}" class="usa-nav__link display-flex flex-column {{ is_cta ? 'government-cta-link' : '' }}">
               <span class="nav-title">{{ item.title }}</span>
               {% if desc %}
                 <span class="menu-item-description">{{ desc }}</span>

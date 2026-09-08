@@ -2,14 +2,19 @@
 ----------------------------------------
 USWDS with settings overrides
 ----------------------------------------
-Uncomment the following lines and add a list of changed settings
-in the form $setting: value,
-----------------------------------------
 */
 
-//
-//  @use "uswds-core" with (
-//    $setting: value,
-//    $setting: value
-//  );
-//
+@use "uswds-core" with (
+  $theme-color-primary: 'black',
+  $theme-color-primary-dark: 'gray-90',
+  $theme-color-primary-darker: 'black',
+  $theme-color-primary-darkest: 'black',
+  $theme-color-secondary: 'yellow-20v',
+  $theme-color-secondary-dark: 'yellow-30v',
+  $theme-color-accent-warm: 'yellow-20v',
+  $theme-color-accent-warm-dark: 'yellow-30v',
+  $theme-color-accent-cool: 'yellow-20v',
+  $theme-link-reverse-color: 'yellow-20v',
+  $theme-link-reverse-hover-color: 'white',
+  $theme-link-reverse-active-color: 'yellow-30v'
+);

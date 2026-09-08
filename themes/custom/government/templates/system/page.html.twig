@@ -16,21 +16,21 @@
 <div class="usa-overlay"></div>
 
 {% block header %}
-  <header class="usa-header citygov-header is-boxed" id="header" role="banner">
+  <header class="usa-header government-header is-boxed" id="header" role="banner">
     <div class="grid-container">
-      <div class="citygov-header-card">
+      <div class="government-header-card">
 
         {# Top / Main Header Bar: Logo + 2-Line Nav + CTA Button #}
-        <div class="citygov-header-main">
+        <div class="government-header-main">
           <div class="display-flex flex-align-center flex-justify">
             
             {# Logo / Site Branding #}
-            <div class="citygov-header-branding">
+            <div class="government-header-branding">
               {{ page.header }}
             </div>
 
             {# Desktop Primary Navigation #}
-            <nav class="usa-nav citygov-desktop-nav" role="navigation" aria-label="{{ 'Main Menu'|t }}">
+            <nav class="usa-nav government-desktop-nav" role="navigation" aria-label="{{ 'Main Menu'|t }}">
               <button type="button" class="usa-nav__close" aria-label="{{ 'Close Menu'|t }}">
                 <img src="{{ uswds_images }}usa-icons/close.svg" alt="close"/>
               </button>
@@ -38,34 +38,35 @@
               {{ page.primary_menu }}
 
               {# Mobile-only Resources & Social in drawer #}
-              <div class="citygov-mobile-drawer-extras display-none">
-                <div class="mobile-quick-links margin-top-3">
-                  <span class="text-bold text-base-darker font-sans-xs display-block margin-bottom-1">{{ 'RESOURCES'|t }}</span>
-                  {% if resources_menu %}
-                    {{ resources_menu }}
-                  {% endif %}
+              {% set rendered_resources = resources_menu ? resources_menu|render|trim : '' %}
+              {% if rendered_resources %}
+                <div class="government-mobile-drawer-extras display-none">
+                  <div class="mobile-quick-links margin-top-3">
+                    <span class="text-bold text-base-darker font-sans-xs display-block margin-bottom-1">{{ 'RESOURCES'|t }}</span>
+                    {{ rendered_resources|raw }}
+                  </div>
                 </div>
-              </div>
+              {% endif %}
             </nav>
 
           </div>
         </div>
 
         {# Bottom Header Bar: Resources + Social Links & Search Toggle #}
-        <div class="citygov-header-bottom">
+        <div class="government-header-bottom">
           <div class="display-flex flex-align-center flex-justify">
             
             {# Left: Resources #}
-            <div class="citygov-quick-links display-flex flex-align-center">
-              <span class="quick-links-label">{{ 'Resources:'|t }}</span>
-              {% if resources_menu %}
-                {{ resources_menu }}
-              {% endif %}
-            </div>
+            {% if rendered_resources %}
+              <div class="government-quick-links display-flex flex-align-center">
+                <span class="quick-links-label">{{ 'Resources:'|t }}</span>
+                {{ rendered_resources|raw }}
+              </div>
+            {% endif %}
 
             {# Right: Social Icons + Search #}
-            <div class="citygov-header-utilities display-flex flex-align-center">
-              <ul class="citygov-social-links display-flex flex-align-center">
+            <div class="government-header-utilities display-flex flex-align-center margin-left-auto">
+              <ul class="government-social-links display-flex flex-align-center">
                 <li>
                   <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -89,17 +90,17 @@
                 </li>
               </ul>
 
-              <div class="citygov-header-search">
-                <button type="button" class="citygov-search-toggle" aria-label="{{ 'Open Search'|t }}">
+              <div class="government-header-search">
+                <button type="button" class="government-search-toggle" aria-label="{{ 'Open Search'|t }}">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                   </svg>
                 </button>
-                <div class="citygov-search-dropdown" hidden>
-                  <form class="citygov-search-form" action="/search/node" method="get">
-                    <input type="search" name="keys" placeholder="{{ 'I am looking for...'|t }}" class="citygov-search-input" />
-                    <button class="citygov-search-submit" type="submit">{{ 'Search'|t }}</button>
+                <div class="government-search-dropdown" hidden>
+                  <form class="government-search-form" action="/search/node" method="get">
+                    <input type="search" name="keys" placeholder="{{ 'I am looking for...'|t }}" class="government-search-input" />
+                    <button class="government-search-submit" type="submit">{{ 'Search'|t }}</button>
                   </form>
                 </div>
               </div>
@@ -113,75 +114,113 @@
   </header>
 {% endblock %}
 
-{% if page.hero %}
-  {% block hero %}
-    <section class="usa-hero">
-      <div class="grid-container">
-        {{ page.hero }}
-      </div>
-    </section>
-  {% endblock %}
-{% endif %}
+{# Static Hero Banner for Interior / Node Pages #}
+{% block page_hero_banner %}
+  <section class="government-page-header" style="background-image: url('{{ hero_bg_image }}');">
+    <div class="government-page-header__overlay"></div>
+    <div class="grid-container government-page-header__container">
+      {% if page.breadcrumb %}
+        <div class="government-page-header__breadcrumb">
+          {{ page.breadcrumb }}
+        </div>
+      {% endif %}
+      <h1 class="government-page-header__title">{{ page_hero_title|default(node.label|default(page['#title'])) }}</h1>
+    </div>
+  </section>
+{% endblock %}
 
 {% block main %}
-  <main class="main-content usa-layout-docs usa-section {{ main_classes }}" role="main" id="main-content">
-
+  <main class="main-content government-interior-main usa-section padding-top-5 padding-bottom-8" role="main" id="main-content">
     <div class="grid-container">
 
-      {% if page.breadcrumb or page.highlighted or page.help %}
-        {% block breadcrumb %}
-          <div class="grid-row">
-            {{ page.breadcrumb }}
-          </div>
-        {% endblock %}
-
-        {% block highlighted %}
-          <div class="">
+      {% if page.highlighted or page.help %}
+        {% if page.highlighted %}
+          <div class="government-messages margin-bottom-3">
             {{ page.highlighted }}
           </div>
-        {% endblock %}
+        {% endif %}
 
-        {# Help #}
         {% if page.help %}
-          {% block help %}
-            <div class="grid-row ">
-              {{ page.help }}
-            </div>
-          {% endblock %}
+          <div class="government-help margin-bottom-3">
+            {{ page.help }}
+          </div>
         {% endif %}
       {% endif %}
 
-      <div class="grid-row grid-gap">
-        {% if page.sidebar_first %}
-          {% block sidebar_first %}
-            <div class="usa-layout-docs__sidenav desktop:grid-col-3 layout-sidebar-first">
-              {{ page.sidebar_first }}
-            </div>
-          {% endblock %}
-        {% endif %}
-
+      <div class="grid-row grid-gap-4">
+        
+        {# Main Content Column (8 cols on desktop) #}
         {% block content %}
-          <div
-            {% if page.sidebar_first and page.sidebar_second %}
-              {% set main_col = "6" %}
-            {% elseif page.sidebar_first or page.sidebar_second %}
-              {% set main_col = "9" %}
-            {% else %}
-              {% set main_col = "fill" %}
-            {% endif %}
-            class="usa-layout-docs__main desktop:grid-col-{{ main_col }}">
-
+          <div class="government-main-column desktop:grid-col-8">
             {{ page.content }}
-          </div>{# /.layout-content #}
+          </div>
         {% endblock %}
 
-        {% if page.sidebar_second %}
-          {% block sidebar_second %}
-            <div class="usa-layout-docs__sidenav desktop:grid-col-3 layout-sidebar-second">
+        {# Sidebar Column (4 cols on desktop) #}
+        {% block sidebar %}
+          <aside class="government-sidebar-column desktop:grid-col-4" role="complementary" aria-label="{{ 'Sidebar'|t }}">
+            {% if page.sidebar_first or page.sidebar_second %}
+              {{ page.sidebar_first }}
               {{ page.sidebar_second }}
-            </div>
-            {% endblock %}
-        {% endif %}
+            {% else %}
+              {# Default Government Sidebar Widgets #}
+              <div class="government-sidebar">
+
+                {# Promo / Issue Banner Widget #}
+                <div class="government-sidebar-widget government-sidebar-widget--promo">
+                  <div class="government-promo-card">
+                    <div class="government-promo-card__image" style="background-image: url('{{ active_theme_path }}/assets/img/slider_image_1.jpg');">
+                      <div class="government-promo-card__overlay"></div>
+                      <div class="government-promo-card__content">
+                        <span class="government-promo-card__badge">{{ 'Citizen Services'|t }}</span>
+                        <h3 class="government-promo-card__title">{{ 'Report An Issue or Suggestion'|t }}</h3>
+                        <p class="government-promo-card__text">{{ 'Help us keep our community vibrant, safe and beautiful.'|t }}</p>
+                        <a href="/report-issue" class="usa-button usa-button--outline usa-button--inverse government-promo-card__btn">{{ 'Submit Request'|t }} →</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {# Quick Navigation Menu Widget #}
+                <div class="government-sidebar-widget government-sidebar-widget--nav">
+                  <h3 class="government-sidebar-widget__title">{{ 'Departments & Topics'|t }}</h3>
+                  <ul class="government-sidebar-nav">
+                    <li><a href="/events">{{ 'Events'|t }} <span class="arrow">›</span></a></li>
+                    <li><a href="/visitors">{{ 'Visitors'|t }} <span class="arrow">›</span></a></li>
+                    <li><a href="/residents">{{ 'Residents'|t }} <span class="arrow">›</span></a></li>
+                    <li><a href="/business">{{ 'Business'|t }} <span class="arrow">›</span></a></li>
+                    <li><a href="/news" class="is-active">{{ 'Announcements & News'|t }} <span class="arrow">›</span></a></li>
+                    <li><a href="/government">{{ 'Government'|t }} <span class="arrow">›</span></a></li>
+                  </ul>
+                </div>
+
+                {# Recent News Widget #}
+                {% if government_recent_news %}
+                  <div class="government-sidebar-widget government-sidebar-widget--recent">
+                    <h3 class="government-sidebar-widget__title">{{ 'Recent Updates'|t }}</h3>
+                    <div class="government-sidebar-recent-list">
+                      {% for r_item in government_recent_news %}
+                        <div class="government-sidebar-recent-item">
+                          {% if r_item.image %}
+                            <div class="government-sidebar-recent-thumb" style="background-image: url('{{ r_item.image }}');"></div>
+                          {% endif %}
+                          <div class="government-sidebar-recent-content">
+                            <span class="government-sidebar-recent-date">{{ r_item.date }}</span>
+                            <h4 class="government-sidebar-recent-title">
+                              <a href="{{ r_item.url }}">{{ r_item.title }}</a>
+                            </h4>
+                          </div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                {% endif %}
+
+              </div>
+            {% endif %}
+          </aside>
+        {% endblock %}
+
       </div>
     </div>
   </main>

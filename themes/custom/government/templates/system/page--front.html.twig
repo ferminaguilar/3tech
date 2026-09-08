@@ -16,21 +16,21 @@
 <div class="usa-overlay"></div>
 
 {% block header %}
-  <header class="usa-header citygov-header is-boxed" id="header" role="banner">
+  <header class="usa-header government-header is-boxed" id="header" role="banner">
     <div class="grid-container">
-      <div class="citygov-header-card">
+      <div class="government-header-card">
 
         {# Top / Main Header Bar: Logo + 2-Line Nav + CTA Button #}
-        <div class="citygov-header-main">
+        <div class="government-header-main">
           <div class="display-flex flex-align-center flex-justify">
             
             {# Logo / Site Branding #}
-            <div class="citygov-header-branding">
+            <div class="government-header-branding">
               {{ page.header }}
             </div>
 
             {# Desktop Primary Navigation #}
-            <nav class="usa-nav citygov-desktop-nav" role="navigation" aria-label="{{ 'Main Menu'|t }}">
+            <nav class="usa-nav government-desktop-nav" role="navigation" aria-label="{{ 'Main Menu'|t }}">
               <button type="button" class="usa-nav__close" aria-label="{{ 'Close Menu'|t }}">
                 <img src="{{ uswds_images }}usa-icons/close.svg" alt="close"/>
               </button>
@@ -38,34 +38,35 @@
               {{ page.primary_menu }}
 
               {# Mobile-only Resources & Social in drawer #}
-              <div class="citygov-mobile-drawer-extras display-none">
-                <div class="mobile-quick-links margin-top-3">
-                  <span class="text-bold text-base-darker font-sans-xs display-block margin-bottom-1">{{ 'RESOURCES'|t }}</span>
-                  {% if resources_menu %}
-                    {{ resources_menu }}
-                  {% endif %}
+              {% set rendered_resources = resources_menu ? resources_menu|render|trim : '' %}
+              {% if rendered_resources %}
+                <div class="government-mobile-drawer-extras display-none">
+                  <div class="mobile-quick-links margin-top-3">
+                    <span class="text-bold text-base-darker font-sans-xs display-block margin-bottom-1">{{ 'RESOURCES'|t }}</span>
+                    {{ rendered_resources|raw }}
+                  </div>
                 </div>
-              </div>
+              {% endif %}
             </nav>
 
           </div>
         </div>
 
         {# Bottom Header Bar: Resources + Social Links & Search Toggle #}
-        <div class="citygov-header-bottom">
+        <div class="government-header-bottom">
           <div class="display-flex flex-align-center flex-justify">
             
             {# Left: Resources #}
-            <div class="citygov-quick-links display-flex flex-align-center">
-              <span class="quick-links-label">{{ 'Resources:'|t }}</span>
-              {% if resources_menu %}
-                {{ resources_menu }}
-              {% endif %}
-            </div>
+            {% if rendered_resources %}
+              <div class="government-quick-links display-flex flex-align-center">
+                <span class="quick-links-label">{{ 'Resources:'|t }}</span>
+                {{ rendered_resources|raw }}
+              </div>
+            {% endif %}
 
             {# Right: Social Icons + Search #}
-            <div class="citygov-header-utilities display-flex flex-align-center">
-              <ul class="citygov-social-links display-flex flex-align-center">
+            <div class="government-header-utilities display-flex flex-align-center margin-left-auto">
+              <ul class="government-social-links display-flex flex-align-center">
                 <li>
                   <a href="https://twitter.com" target="_blank" rel="noopener" aria-label="Twitter">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
@@ -89,17 +90,17 @@
                 </li>
               </ul>
 
-              <div class="citygov-header-search">
-                <button type="button" class="citygov-search-toggle" aria-label="{{ 'Open Search'|t }}">
+              <div class="government-header-search">
+                <button type="button" class="government-search-toggle" aria-label="{{ 'Open Search'|t }}">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                   </svg>
                 </button>
-                <div class="citygov-search-dropdown" hidden>
-                  <form class="citygov-search-form" action="/search/node" method="get">
-                    <input type="search" name="keys" placeholder="{{ 'I am looking for...'|t }}" class="citygov-search-input" />
-                    <button class="citygov-search-submit" type="submit">{{ 'Search'|t }}</button>
+                <div class="government-search-dropdown" hidden>
+                  <form class="government-search-form" action="/search/node" method="get">
+                    <input type="search" name="keys" placeholder="{{ 'I am looking for...'|t }}" class="government-search-input" />
+                    <button class="government-search-submit" type="submit">{{ 'Search'|t }}</button>
                   </form>
                 </div>
               </div>

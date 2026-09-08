@@ -2,6 +2,7 @@ assets:
   version: VERSION
   css:
     theme:
+      libraries/fontawesome/css/all.min.css: {}
       css/styles.css: {}
   js:
     assets/js/uswds-init.min.js: {}

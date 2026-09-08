@@ -75,7 +75,7 @@ function government_preprocess_page(&$variables) {
     $variables['footer_agency_logo'] = _government_resolve_logo_path($variables['footer_agency_logo']);
   }
 
-  // Build dynamic Resources menu for CityGov header.
+  // Build dynamic Resources menu for Government header.
   $menu_tree = \Drupal::menuTree();
   $parameters = new \Drupal\Core\Menu\MenuTreeParameters();
   $parameters->setMaxDepth(1);
@@ -85,7 +85,214 @@ function government_preprocess_page(&$variables) {
     ['callable' => 'menu.default_tree_manipulators:generateIndexAndSort'],
   ];
   $tree = $menu_tree->transform($tree, $manipulators);
-  $variables['resources_menu'] = $menu_tree->build($tree);
+  if (!empty($tree)) {
+    $variables['resources_menu'] = $menu_tree->build($tree);
+  }
+  else {
+    $variables['resources_menu'] = NULL;
+  }
+
+  // Interior page hero banner & title resolution
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if ($node instanceof \Drupal\node\NodeInterface) {
+    $variables['node'] = $node;
+    $hero_img = _government_get_node_hero_image($node);
+    if ($hero_img) {
+      $variables['hero_bg_image'] = $hero_img;
+    }
+    $variables['page_hero_title'] = $node->getTitle();
+  }
+  else {
+    $request = \Drupal::request();
+    $route_match = \Drupal::routeMatch();
+    $title = \Drupal::service('title_resolver')->getTitle($request, $route_match->getRouteObject());
+    $variables['page_hero_title'] = is_array($title) ? \Drupal::service('renderer')->renderPlain($title) : (string) $title;
+  }
+
+  // Fallback hero background image
+  if (empty($variables['hero_bg_image'])) {
+    $variables['hero_bg_image'] = $variables['active_theme_path'] . '/assets/img/hero.jpg';
+  }
+
+  // Populate recent news items for sidebar widget
+  try {
+    $recent_nids = \Drupal::entityQuery('node')
+      ->accessCheck(TRUE)
+      ->condition('type', 'news_item')
+      ->condition('status', 1)
+      ->sort('created', 'DESC')
+      ->range(0, 4)
+      ->execute();
+
+    $recent_news = [];
+    if (!empty($recent_nids)) {
+      foreach (\Drupal\node\Entity\Node::loadMultiple($recent_nids) as $r_node) {
+        $recent_news[] = [
+          'title' => $r_node->getTitle(),
+          'url' => $r_node->toUrl()->toString(),
+          'date' => \Drupal::service('date.formatter')->format($r_node->getCreatedTime(), 'custom', 'M j, Y'),
+          'image' => _government_get_node_hero_image($r_node),
+        ];
+      }
+    }
+    $variables['government_recent_news'] = $recent_news;
+  }
+  catch (\Exception $e) {
+    $variables['government_recent_news'] = [];
+  }
+}
+
+/**
+ * Helper to get hero background image URL from a node entity.
+ */
+function _government_get_node_hero_image($node) {
+  if (!$node instanceof \Drupal\node\NodeInterface) {
+    return NULL;
+  }
+  if ($node->hasField('field_image') && !$node->get('field_image')->isEmpty()) {
+    $entity = $node->get('field_image')->entity;
+    if ($entity instanceof \Drupal\media\MediaInterface) {
+      $source = $entity->getSource();
+      $fid = $source->getSourceFieldValue($entity);
+      if ($fid) {
+        $file = \Drupal\file\Entity\File::load($fid);
+        if ($file) {
+          return \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
+        }
+      }
+    }
+    elseif ($entity instanceof \Drupal\file\FileInterface) {
+      return \Drupal::service('file_url_generator')->generateAbsoluteString($entity->getFileUri());
+    }
+  }
+
+  foreach (['field_media_image', 'field_banner_image', 'field_hero_image'] as $field_name) {
+    if ($node->hasField($field_name) && !$node->get($field_name)->isEmpty()) {
+      $entity = $node->get($field_name)->entity;
+      if ($entity instanceof \Drupal\file\FileInterface) {
+        return \Drupal::service('file_url_generator')->generateAbsoluteString($entity->getFileUri());
+      }
+    }
+  }
+  return NULL;
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function government_preprocess_node(&$variables) {
+  $node = $variables['node'] ?? NULL;
+  if ($node instanceof \Drupal\node\NodeInterface) {
+    $variables['formatted_created_date'] = \Drupal::service('date.formatter')->format($node->getCreatedTime(), 'custom', 'F j, Y');
+    $variables['author_display_name'] = $node->getOwner() ? $node->getOwner()->getDisplayName() : '';
+
+    if ($node->hasField('field_category') && !$node->get('field_category')->isEmpty()) {
+      $term = $node->get('field_category')->entity;
+      if ($term) {
+        $variables['category_name'] = $term->label();
+        $variables['category_url'] = $term->toUrl()->toString();
+      }
+    }
+
+    // Dynamic Previous / Next post links for news_item
+    try {
+      $prev_nids = \Drupal::entityQuery('node')
+        ->accessCheck(TRUE)
+        ->condition('type', $node->bundle())
+        ->condition('status', 1)
+        ->condition('created', $node->getCreatedTime(), '<')
+        ->sort('created', 'DESC')
+        ->range(0, 1)
+        ->execute();
+
+      if (!empty($prev_nids)) {
+        $prev_node = \Drupal\node\Entity\Node::load(reset($prev_nids));
+        if ($prev_node) {
+          $variables['prev_node'] = [
+            'title' => $prev_node->getTitle(),
+            'url' => $prev_node->toUrl()->toString(),
+          ];
+        }
+      }
+
+      $next_nids = \Drupal::entityQuery('node')
+        ->accessCheck(TRUE)
+        ->condition('type', $node->bundle())
+        ->condition('status', 1)
+        ->condition('created', $node->getCreatedTime(), '>')
+        ->sort('created', 'ASC')
+        ->range(0, 1)
+        ->execute();
+
+      if (!empty($next_nids)) {
+        $next_node = \Drupal\node\Entity\Node::load(reset($next_nids));
+        if ($next_node) {
+          $variables['next_node'] = [
+            'title' => $next_node->getTitle(),
+            'url' => $next_node->toUrl()->toString(),
+          ];
+        }
+      }
+    }
+    catch (\Exception $e) {
+      // Gracefully handle any query exception.
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_breadcrumb().
+ */
+function government_preprocess_breadcrumb(&$variables) {
+  if (!empty($variables['breadcrumb'])) {
+    $request = \Drupal::request();
+    $route_match = \Drupal::routeMatch();
+    $node = $route_match->getParameter('node');
+
+    if ($node instanceof \Drupal\node\NodeInterface) {
+      if ($node->bundle() === 'news_item') {
+        if ($node->hasField('field_category') && !$node->get('field_category')->isEmpty()) {
+          $term = $node->get('field_category')->entity;
+          if ($term) {
+            $variables['breadcrumb'][] = [
+              'text' => $term->label(),
+              'url' => $term->toUrl()->toString(),
+            ];
+          }
+        }
+        else {
+          $variables['breadcrumb'][] = [
+            'text' => t('News'),
+            'url' => base_path() . 'news',
+          ];
+        }
+      }
+      elseif ($node->bundle() === 'event') {
+        $variables['breadcrumb'][] = [
+          'text' => t('Events'),
+          'url' => base_path() . 'events',
+        ];
+      }
+
+      $variables['breadcrumb'][] = [
+        'text' => $node->getTitle(),
+        'url' => '',
+      ];
+    }
+    else {
+      $title = \Drupal::service('title_resolver')->getTitle($request, $route_match->getRouteObject());
+      $title_str = is_array($title) ? \Drupal::service('renderer')->renderPlain($title) : (string) $title;
+      if (!empty($title_str)) {
+        $last_item = end($variables['breadcrumb']);
+        if (!$last_item || $last_item['text'] !== $title_str) {
+          $variables['breadcrumb'][] = [
+            'text' => $title_str,
+            'url' => '',
+          ];
+        }
+      }
+    }
+  }
 }
 
 /**

@@ -1,0 +1,48 @@
+/* ==========================================================================
+   GOVERNMENT THEME - DESIGN VARIABLES & TOKENS
+   ========================================================================== */
+
+@use "uswds-core" as *;
+
+// Theme Brand Tokens (https://designsystem.digital.gov/design-tokens/color/theme-tokens/)
+$gov-black: color('black') !default;
+$gov-dark: color('gray-90') !default;
+$gov-dark-surface: color('gray-80') !default;
+$gov-primary: color('black') !default;
+$gov-primary-dark: color('gray-90') !default;
+$gov-accent: color('yellow-20v') !default;
+$gov-accent-hover: color('yellow-30v') !default;
+$gov-gold: color('yellow-20v') !default;
+$gov-yellow-20v: color('yellow-20v') !default;
+$gov-blue-link: color('yellow-20v') !default;
+$gov-blue-hover: color('white') !default;
+
+// Service Card Tokens (all 4 are yellow-20v)
+$gov-card-yellow: color('yellow-20v') !default;
+$gov-card-gold: color('yellow-20v') !default;
+$gov-card-green-warm: color('yellow-20v') !default;
+$gov-card-green: color('yellow-20v') !default;
+
+// Neutrals, Grays & Background Tokens
+$gov-bg-dark: color('black') !default;
+$gov-bg-dark-alt: color('gray-90') !default;
+$gov-bg-light: color('gray-2') !default;
+$gov-bg-card: color('white') !default;
+
+$gov-gray-80: color('gray-80') !default;
+$gov-gray-70: color('gray-70') !default;
+$gov-gray-cool-60: color('gray-cool-60') !default;
+$gov-border-dark: color('gray-80') !default;
+$gov-border-light: color('gray-10') !default;
+
+$gov-text-light: color('white') !default;
+$gov-text-lightest: color('gray-5') !default;
+$gov-text-dark: color('ink') !default;
+$gov-text-muted: color('gray-50') !default;
+
+// Dimensions & Layout
+$gov-container-max: 64rem !default;
+$gov-header-height-clearance: 10.5rem !default;
+$gov-radius-sm: 4px !default;
+$gov-radius-md: 6px !default;
+$gov-radius-lg: 8px !default;

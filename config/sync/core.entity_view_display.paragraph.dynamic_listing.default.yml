@@ -6,6 +6,8 @@ dependencies:
     - field.field.paragraph.dynamic_listing.field_background_color
     - field.field.paragraph.dynamic_listing.field_background_image
     - field.field.paragraph.dynamic_listing.field_body
+    - field.field.paragraph.dynamic_listing.field_link
+    - field.field.paragraph.dynamic_listing.field_listing_body
     - field.field.paragraph.dynamic_listing.field_listing_heading
     - field.field.paragraph.dynamic_listing.field_listing_subheading
     - field.field.paragraph.dynamic_listing.field_sidebar_position
@@ -13,6 +15,7 @@ dependencies:
     - field.field.paragraph.dynamic_listing.field_view_ref
     - paragraphs.paragraphs_type.dynamic_listing
   module:
+    - link
     - options
     - text
     - viewsreference
@@ -26,7 +29,7 @@ content:
     label: hidden
     settings: {  }
     third_party_settings: {  }
-    weight: 5
+    weight: 6
     region: content
   field_background_image:
     type: entity_reference_entity_view
@@ -35,7 +38,7 @@ content:
       view_mode: default
       link: false
     third_party_settings: {  }
-    weight: 3
+    weight: 5
     region: content
   field_body:
     type: text_default
@@ -43,6 +46,25 @@ content:
     settings: {  }
     third_party_settings: {  }
     weight: 1
+    region: content
+  field_link:
+    type: link
+    label: hidden
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: '0'
+      target: '0'
+    third_party_settings: {  }
+    weight: 4
+    region: content
+  field_listing_body:
+    type: text_default
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    weight: 2
     region: content
   field_listing_heading:
     type: string
@@ -67,7 +89,7 @@ content:
     label: hidden
     settings: {  }
     third_party_settings: {  }
-    weight: 4
+    weight: 7
     region: content
   field_title:
     type: string
@@ -85,6 +107,6 @@ content:
       plugin_types:
         - block
     third_party_settings: {  }
-    weight: 2
+    weight: 3
     region: content
 hidden: {  }

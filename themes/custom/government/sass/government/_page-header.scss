@@ -1,0 +1,156 @@
+/* ==========================================================================
+   GOVERNMENT THEME - INTERIOR PAGE HERO BANNER & BREADCRUMBS
+   ========================================================================== */
+
+/* Hide default page title block inside interior main area (title is in hero header) */
+.government-page-header + main #block-government-page-title,
+.government-interior-main #block-government-page-title {
+    display: none !important;
+}
+
+/* Static Page Hero Header Banner */
+.government-page-header {
+    position: relative !important;
+    width: 100% !important;
+    min-height: 380px !important;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    padding-top: 10.5rem !important; /* Clears the floating boxed header */
+    padding-bottom: 3.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-end !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+}
+
+.government-page-header__overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: linear-gradient(180deg, rgba(15, 23, 42, 0.45) 0%, rgba(15, 23, 42, 0.78) 100%) !important;
+    z-index: 1 !important;
+}
+
+.government-page-header__container {
+    position: relative !important;
+    z-index: 2 !important;
+    max-width: 64rem !important;
+    width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    text-align: left !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: flex-start !important;
+}
+
+.government-page-header__breadcrumb {
+    margin-bottom: 0.75rem !important;
+    text-align: left !important;
+    display: flex !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+}
+
+.government-page-header__title {
+    font-size: 2.35rem !important;
+    line-height: 1.25 !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4) !important;
+    letter-spacing: -0.01em !important;
+    width: 100% !important;
+}
+
+/* Breadcrumbs (Left-Justified) */
+.government-breadcrumbs {
+    display: block !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    text-align: left !important;
+    width: 100% !important;
+}
+
+.government-breadcrumbs__list {
+    list-style: none !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0.35rem !important;
+}
+
+.government-breadcrumbs__item {
+    display: inline-flex !important;
+    align-items: center !important;
+    font-size: 0.85rem !important;
+    font-weight: 500 !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    text-align: left !important;
+}
+
+.government-breadcrumbs__link {
+    color: #fac922 !important; // yellow-20v
+    text-decoration: none !important;
+    transition: color 0.15s ease !important;
+}
+
+.government-breadcrumbs__link:hover {
+    color: #ffffff !important;
+    text-decoration: underline !important;
+}
+
+.government-breadcrumbs__current {
+    color: rgba(255, 255, 255, 0.9) !important;
+    font-weight: 600 !important;
+    max-width: 320px !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    display: inline-block !important;
+    text-align: left !important;
+}
+
+.government-breadcrumbs__separator {
+    color: rgba(255, 255, 255, 0.5) !important;
+    margin-left: 0.35rem !important;
+    font-size: 0.95rem !important;
+    user-select: none !important;
+}
+
+@media all and (max-width: 64em) {
+    .government-page-header {
+        min-height: 320px !important;
+        padding-top: 8.5rem !important;
+        padding-bottom: 2.5rem !important;
+    }
+    .government-page-header__title {
+        font-size: 1.95rem !important;
+    }
+}
+
+@media all and (max-width: 48em) {
+    .government-page-header {
+        min-height: 280px !important;
+        padding-top: 7.5rem !important;
+        padding-bottom: 2rem !important;
+    }
+    .government-page-header__title {
+        font-size: 1.65rem !important;
+    }
+}

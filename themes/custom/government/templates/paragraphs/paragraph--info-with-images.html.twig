@@ -1,15 +1,18 @@
 {#
 /**
-* @file
-* Theme override for Info with Images paragraph matching CityGov 2-column content & images section.
-*/
+ * @file
+ * Theme override for Info with Images paragraph matching Government 2-column content & images section.
+ */
 #}
 {% set sidebar_pos = paragraph.field_sidebar_position.value|default('left') %}
 {% set is_flipped = (sidebar_pos == 'right') %}
 {% set bg_color = paragraph.field_background_color.value|default('white') %}
+{% set section_id = (paragraph.field_title.value ? paragraph.field_title.value|clean_class : 'info-section-' ~ paragraph.id.value) %}
 
 <section
+  id="{{ section_id }}"
   class="government-info-images-section {{ is_flipped ? 'is-layout-flipped' : 'is-layout-default' }} section-bg-{{ bg_color }}">
+
   <div class="grid-container">
     <div class="grid-row grid-gap-6 flex-align-center">
 
@@ -37,7 +40,7 @@
 
           {% if paragraph.field_link.0.url %}
           <div class="info-section-action margin-top-4">
-            <a href="{{ paragraph.field_link.0.url }}" class="usa-button usa-button--outline">
+            <a href="{{ paragraph.field_link.0.url }}" class="usa-button">
               {{ paragraph.field_link.0.title|default('Learn More'|t) }} <span class="margin-left-1"
                 aria-hidden="true">→</span>
             </a>

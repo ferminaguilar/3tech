@@ -6,6 +6,8 @@ dependencies:
     - field.field.paragraph.dynamic_listing.field_background_color
     - field.field.paragraph.dynamic_listing.field_background_image
     - field.field.paragraph.dynamic_listing.field_body
+    - field.field.paragraph.dynamic_listing.field_link
+    - field.field.paragraph.dynamic_listing.field_listing_body
     - field.field.paragraph.dynamic_listing.field_listing_heading
     - field.field.paragraph.dynamic_listing.field_listing_subheading
     - field.field.paragraph.dynamic_listing.field_sidebar_position
@@ -13,6 +15,7 @@ dependencies:
     - field.field.paragraph.dynamic_listing.field_view_ref
     - paragraphs.paragraphs_type.dynamic_listing
   module:
+    - link
     - media_library
     - text
     - viewsreference
@@ -29,7 +32,7 @@ content:
     third_party_settings: {  }
   field_background_image:
     type: media_library_widget
-    weight: 5
+    weight: 7
     region: content
     settings:
       media_types: {  }
@@ -37,6 +40,22 @@ content:
   field_body:
     type: text_textarea
     weight: 1
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_link:
+    type: link_default
+    weight: 6
+    region: content
+    settings:
+      placeholder_url: ''
+      placeholder_title: ''
+    third_party_settings: {  }
+  field_listing_body:
+    type: text_textarea
+    weight: 4
     region: content
     settings:
       rows: 5
@@ -74,7 +93,7 @@ content:
     third_party_settings: {  }
   field_view_ref:
     type: viewsreference_select
-    weight: 4
+    weight: 5
     region: content
     settings: {  }
     third_party_settings: {  }

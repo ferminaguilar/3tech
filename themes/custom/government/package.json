@@ -9,6 +9,7 @@
     "watch": "gulp watch"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.3.1",
     "@uswds/compile": "^1.1.0",
     "@uswds/uswds": "^3.13.0",
     "gulp": "^4.0.2"

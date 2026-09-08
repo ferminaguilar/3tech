@@ -1,0 +1,28 @@
+{#
+/**
+ * @file
+ * Theme override for breadcrumbs in Government style.
+ *
+ * Available variables:
+ * - breadcrumb: Breadcrumb trail items.
+ */
+#}
+{% if breadcrumb %}
+  <nav class="government-breadcrumbs" aria-label="{{ 'Breadcrumb'|t }}">
+    <h2 class="visually-hidden">{{ 'Breadcrumb'|t }}</h2>
+    <ol class="government-breadcrumbs__list">
+      {% for item in breadcrumb %}
+        <li class="government-breadcrumbs__item">
+          {% if item.url %}
+            <a href="{{ item.url }}" class="government-breadcrumbs__link">{{ item.text }}</a>
+          {% else %}
+            <span class="government-breadcrumbs__current" aria-current="page">{{ item.text }}</span>
+          {% endif %}
+          {% if not loop.last %}
+            <span class="government-breadcrumbs__separator" aria-hidden="true">›</span>
+          {% endif %}
+        </li>
+      {% endfor %}
+    </ol>
+  </nav>
+{% endif %}

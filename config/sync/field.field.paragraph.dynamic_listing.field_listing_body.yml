@@ -1,0 +1,22 @@
+uuid: 5b8d92a3-4e9f-5b7a-c99f-827502ba3cde
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_listing_body
+    - paragraphs.paragraphs_type.dynamic_listing
+  module:
+    - text
+id: paragraph.dynamic_listing.field_listing_body
+field_name: field_listing_body
+entity_type: paragraph
+bundle: dynamic_listing
+label: 'Listing Body / Description'
+description: 'Enter text information for this section (alternative or supplement to View Reference).'
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  allowed_formats: {  }
+field_type: text_long

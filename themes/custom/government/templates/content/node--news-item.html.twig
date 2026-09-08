@@ -1,0 +1,125 @@
+{#
+/**
+ * @file
+ * Theme override for News Item node in Government style.
+ *
+ * Available variables:
+ * - node: The node entity.
+ * - content: Render array of node fields.
+ * - formatted_created_date: Formatted date string (e.g. September 16, 2018).
+ * - author_display_name: Author's display name.
+ * - category_name: Category label.
+ * - category_url: Category URL.
+ * - prev_node: Array with 'title' and 'url' of the previous news item.
+ * - next_node: Array with 'title' and 'url' of the next news item.
+ */
+#}
+{%
+  set classes = [
+    'government-node-article',
+    'government-node-news-item',
+    node.isPromoted() ? 'government-node--promoted',
+    node.isSticky() ? 'government-node--sticky',
+    not node.isPublished() ? 'government-node--unpublished',
+    view_mode ? 'government-node--view-mode-' ~ view_mode|clean_class,
+  ]
+%}
+
+<article{{ attributes.addClass(classes) }}>
+  
+  {# Post Meta Header Bar (Date | Category | Author) #}
+  <div class="government-post-meta">
+    {% if formatted_created_date %}
+      <span class="government-post-meta__item government-post-meta__date">
+        {{ formatted_created_date }}
+      </span>
+    {% endif %}
+
+    {% if category_name %}
+      <span class="government-post-meta__divider" aria-hidden="true">|</span>
+      <span class="government-post-meta__item government-post-meta__category">
+        {% if category_url %}
+          <a href="{{ category_url }}">{{ category_name }}</a>
+        {% else %}
+          {{ category_name }}
+        {% endif %}
+      </span>
+    {% endif %}
+
+    {% if author_display_name %}
+      <span class="government-post-meta__divider" aria-hidden="true">|</span>
+      <span class="government-post-meta__item government-post-meta__author">
+        {{ author_display_name }}
+      </span>
+    {% endif %}
+  </div>
+
+  {# Article Body Content #}
+  <div class="government-article-body entry-content">
+    {% if content.field_summary %}
+      {{ content.field_summary }}
+    {% endif %}
+
+    {% if content.body %}
+      {{ content.body }}
+    {% endif %}
+
+    {# Render any other fields excluding image, category, and summary already handled #}
+    {{ content|without('field_image', 'field_category', 'field_summary', 'body') }}
+  </div>
+
+  {# Post Footer: Tags & Last Modified #}
+  <div class="government-post-footer">
+    <div class="government-post-tags">
+      {% if category_name %}
+        <a href="{{ category_url|default('/news') }}" class="government-tag">{{ category_name }}</a>
+      {% endif %}
+      <a href="/news" class="government-tag">{{ 'News'|t }}</a>
+      <a href="/news" class="government-tag">{{ 'Public Notice'|t }}</a>
+    </div>
+
+    <div class="government-post-modified">
+      {{ 'Last modified:'|t }} {{ node.changed.value|date('F j, Y') }}
+    </div>
+  </div>
+
+  {# Post Navigation (Previous / Next Post) #}
+  {% if prev_node or next_node %}
+    <nav class="government-post-nav" aria-label="{{ 'Post Navigation'|t }}">
+      {% if prev_node %}
+        <div class="government-post-nav__item government-post-nav__prev">
+          <a href="{{ prev_node.url }}" class="government-post-nav__link">
+            <span class="government-post-nav__arrow" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </span>
+            <div class="government-post-nav__text">
+              <span class="government-post-nav__label">{{ 'Previous:'|t }}</span>
+              <span class="government-post-nav__title">{{ prev_node.title }}</span>
+            </div>
+          </a>
+        </div>
+      {% endif %}
+
+      {% if next_node %}
+        <div class="government-post-nav__item government-post-nav__next">
+          <a href="{{ next_node.url }}" class="government-post-nav__link">
+            <div class="government-post-nav__text">
+              <span class="government-post-nav__label">{{ 'Next:'|t }}</span>
+              <span class="government-post-nav__title">{{ next_node.title }}</span>
+            </div>
+            <span class="government-post-nav__arrow" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </span>
+          </a>
+        </div>
+      {% endif %}
+    </nav>
+  {% endif %}
+
+</article>

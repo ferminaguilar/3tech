@@ -1,0 +1,157 @@
+@use "uswds-core" as *;
+
+/* ==========================================================================
+   GOVERNMENT THEME - INFO WITH IMAGES SECTION
+   ========================================================================== */
+
+.government-info-images-section {
+    position: relative !important;
+    padding: 5rem 0 !important;
+    overflow: hidden !important;
+    background-color: color('black') !important;
+    color: color('white') !important;
+}
+
+.government-info-images-section .grid-container {
+    max-width: 64rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+}
+
+.government-info-images-section .info-text-col {
+    padding-right: 3rem !important;
+    text-align: left !important;
+}
+
+.government-info-images-section .info-image-left-col {
+    padding-right: 0 !important;
+    padding-left: 3rem !important;
+}
+
+.government-info-images-section .info-section-title {
+    color: color('white') !important;
+    font-size: clamp(1.85rem, 2.8vw, 2.5rem) !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.government-info-images-section .info-section-subtitle {
+    color: color('yellow-20v') !important;
+    font-size: 1.15rem !important;
+    font-weight: 600 !important;
+    line-height: 1.4 !important;
+    margin-bottom: 1.25rem !important;
+}
+
+.government-info-images-section .info-section-body,
+.government-info-images-section .info-section-body p {
+    color: color('gray-10') !important;
+    font-size: 1.05rem !important;
+    line-height: 1.65 !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.government-info-images-section .usa-button {
+    background-color: color('yellow-20v') !important;
+    color: color('black') !important;
+    border: none !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
+    padding: 0.75rem 1.5rem !important;
+    border-radius: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    transition: all 0.2s ease !important;
+    text-decoration: none !important;
+}
+
+.government-info-images-section .usa-button:hover {
+    background-color: color('yellow-30v') !important;
+    color: color('black') !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(250, 201, 34, 0.35) !important;
+}
+
+/* Overlapping Image Cards */
+.info-images-showcase {
+    position: relative !important;
+    width: 100% !important;
+    min-height: 380px !important;
+}
+
+.info-image-card {
+    position: absolute !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45) !important;
+    background-color: color('gray-90') !important;
+}
+
+.info-image-card img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+.info-image-card--1 {
+    top: 0 !important;
+    left: 0 !important;
+    width: 82% !important;
+    height: 320px !important;
+    z-index: 1 !important;
+}
+
+.info-image-card--2 {
+    bottom: 0 !important;
+    right: 0 !important;
+    width: 55% !important;
+    height: 200px !important;
+    z-index: 2 !important;
+    border: 8px solid color('black') !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55) !important;
+}
+
+.government-info-images-section.section-bg-light {
+    background-color: color('gray-90') !important;
+}
+
+.government-info-images-section.section-bg-primary {
+    background-color: color('black') !important;
+}
+
+.government-info-images-section.section-bg-primary-dark {
+    background-color: color('black') !important;
+}
+
+.government-info-images-section.section-bg-white {
+    background-color: color('black') !important;
+}
+
+@media all and (max-width: 48em) {
+    .government-info-images-section {
+        padding: 3.5rem 0 !important;
+    }
+    .government-info-images-section .info-text-col {
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-bottom: 2rem !important;
+    }
+    .info-images-showcase {
+        min-height: 280px !important;
+        padding-bottom: 1.5rem !important;
+    }
+    .info-image-card--1 {
+        width: 86% !important;
+        height: 240px !important;
+    }
+    .info-image-card--2 {
+        width: 52% !important;
+        height: 140px !important;
+        bottom: 0 !important;
+        border-width: 4px !important;
+    }
+}

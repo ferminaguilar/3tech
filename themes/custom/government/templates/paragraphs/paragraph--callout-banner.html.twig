@@ -19,7 +19,10 @@
   {% set btn_classes = 'usa-button--primary' %}
 {% endif %}
 
-<section class="usa-section padding-0 government-callout section-callout-{{ bg_style }} {{ section_classes }}">
+{% set section_id = (paragraph.field_callout_heading.value ? paragraph.field_callout_heading.value|clean_class : 'callout-banner-' ~ paragraph.id.value) %}
+
+<section id="{{ section_id }}" class="usa-section padding-0 government-callout section-callout-{{ bg_style }} {{ section_classes }}">
+
   <div class="grid-container">
     <div class="grid-row grid-gap flex-align-end government-callout__row">
       

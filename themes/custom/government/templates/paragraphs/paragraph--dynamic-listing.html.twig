@@ -1,19 +1,22 @@
 {#
 /**
-* @file
-* Theme override for Dynamic Listing paragraph matching CityGov Town Highlights & Events.
-*/
+ * @file
+ * Theme override for Dynamic Listing paragraph matching Government Town Highlights & Events.
+ */
 #}
 {% set sidebar_pos = paragraph.field_sidebar_position.value|default('left') %}
 {% set is_flipped = (sidebar_pos == 'right') %}
 {% set bg_color = paragraph.field_background_color.value|default(is_flipped ? 'primary' : 'white') %}
+{% set section_id = (paragraph.field_listing_heading.value ? paragraph.field_listing_heading.value|clean_class : (paragraph.field_title.value ? paragraph.field_title.value|clean_class : 'section-' ~ paragraph.id.value)) %}
 
 <section
+  id="{{ section_id }}"
   class="government-listing-section position-relative overflow-hidden {{ is_flipped ? 'is-layout-flipped' : 'is-layout-default' }} section-bg-{{ bg_color }}">
+
 
   {# Split Background Layer: Spans from screen edge to the 1/3 column boundary #}
   {% if content.field_background_image|render|trim %}
-  <div class="{{ is_flipped ? 'citygov-split-right-bg' : 'citygov-split-left-bg' }}">
+  <div class="{{ is_flipped ? 'government-split-right-bg' : 'government-split-left-bg' }}">
     <div class="split-bg-image">
       {{ content.field_background_image }}
     </div>
@@ -26,8 +29,8 @@
 
       {# 1/3 Column: Title + Body Text / Information #}
       <div
-        class="grid-col-12 desktop:grid-col-4 display-flex flex-column justify-center citygov-quote-col {{ is_flipped ? 'citygov-right-quote-col' : 'citygov-left-col' }}">
-        <div class="citygov-highlight-quote">
+        class="grid-col-12 desktop:grid-col-4 display-flex flex-column justify-center government-quote-col {{ is_flipped ? 'government-right-quote-col' : 'government-left-col' }}">
+        <div class="government-highlight-quote">
           {% if paragraph.field_title.value %}
           <h2 class="font-sans-2xl text-bold line-height-sans-2 margin-0">
             {{ paragraph.field_title.value }}
@@ -35,7 +38,7 @@
           {% endif %}
 
           {% if content.field_body|render|trim %}
-          <div class="citygov-highlight-body margin-top-2">
+          <div class="government-highlight-body margin-top-2">
             {{ content.field_body }}
           </div>
           {% endif %}
@@ -44,14 +47,14 @@
 
       {# 2/3 Column: Main Heading/Subheading + News/Events List #}
       <div
-        class="grid-col-12 desktop:grid-col-8 display-flex flex-column justify-center citygov-main-col {{ is_flipped ? 'citygov-left-main-col' : 'citygov-right-col' }}">
-        <div class="citygov-highlight-main width-full">
+        class="grid-col-12 desktop:grid-col-8 display-flex flex-column justify-center government-main-col {{ is_flipped ? 'government-left-main-col' : 'government-right-col' }}">
+        <div class="government-highlight-main width-full">
 
           {# Section Header #}
           {% if paragraph.field_listing_heading.value or paragraph.field_listing_subheading.value %}
-          <div class="citygov-highlight-header margin-bottom-4">
+          <div class="government-highlight-header margin-bottom-4">
             {% if paragraph.field_listing_heading.value %}
-            <h2 class="font-sans-xl text-bold margin-0 margin-bottom-1 text-primary-darkest">
+            <h2 class="font-sans-2xl text-bold margin-0 margin-bottom-1 text-primary-darkest">
               {{ paragraph.field_listing_heading.value }}
             </h2>
             {% endif %}
@@ -63,20 +66,35 @@
           </div>
           {% endif %}
 
-          {# Rendered News or Events View #}
-          <div class="citygov-highlight-posts">
-            {{ content.field_view_ref }}
-          </div>
+          {# Rendered Content: Text Description (field_listing_body) and/or View Ref (field_view_ref) #}
+          {% if content.field_listing_body|render|trim %}
+            <div class="government-listing-body usa-prose margin-bottom-3">
+              {{ content.field_listing_body }}
+            </div>
+          {% endif %}
+
+          {% if content.field_view_ref|render|trim %}
+            <div class="government-highlight-posts">
+              {{ content.field_view_ref }}
+            </div>
+          {% endif %}
 
           {# Bottom Button #}
-          <div class="margin-top-4">
-            {% set btn_url = is_flipped ? '/events' : '/news' %}
-            {% set btn_text = is_flipped ? 'More Events' : 'More News' %}
-            {% set is_dark_bg = (bg_color == 'primary' or bg_color == 'primary-dark') %}
-            <a href="{{ btn_url }}" class="usa-button usa-button--outline {{ is_dark_bg ? 'usa-button--inverse' : '' }}">
-              {{ btn_text|t }} <span class="margin-left-1" aria-hidden="true">→</span>
-            </a>
-          </div>
+          {% if paragraph.field_link.0.url %}
+            <div class="margin-top-4">
+              <a href="{{ paragraph.field_link.0.url }}" class="usa-button usa-button--outline usa-button--inverse">
+                {{ paragraph.field_link.0.title|default('Learn More'|t) }} <span class="margin-left-1" aria-hidden="true">→</span>
+              </a>
+            </div>
+          {% elseif content.field_view_ref|render|trim %}
+            <div class="margin-top-4">
+              {% set btn_url = is_flipped ? '/events' : '/news' %}
+              {% set btn_text = is_flipped ? 'More Events' : 'More News' %}
+              <a href="{{ btn_url }}" class="usa-button usa-button--outline usa-button--inverse">
+                {{ btn_text|t }} <span class="margin-left-1" aria-hidden="true">→</span>
+              </a>
+            </div>
+          {% endif %}
 
         </div>
       </div>

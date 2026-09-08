@@ -1,0 +1,629 @@
+@use "uswds-core" as *;
+
+/* ==========================================================================
+   GOVERNMENT THEME - DYNAMIC LISTING (SPLIT LAYOUT: NEWS & EVENTS)
+   ========================================================================== */
+
+.government-listing-section {
+    position: relative !important;
+    background-color: color('black') !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+/* Left Full-Bleed Background Panel */
+.government-split-left-bg {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: calc(50vw - min(64rem, 100vw) / 2 + (min(64rem, 100vw) * (4 / 12))) !important;
+    z-index: 1 !important;
+    overflow: hidden !important;
+    background: color('black');
+}
+
+/* Right Full-Bleed Background Panel (Flipped) */
+.government-split-right-bg {
+    position: absolute !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: auto !important;
+    bottom: 0 !important;
+    width: calc(50vw - min(64rem, 100vw) / 2 + (min(64rem, 100vw) * (4 / 12))) !important;
+    z-index: 1 !important;
+    overflow: hidden !important;
+    background: color('black');
+}
+
+.government-split-left-bg .split-bg-image,
+.government-split-left-bg .split-bg-image .field,
+.government-split-left-bg .split-bg-image .field__item,
+.government-split-left-bg .split-bg-image picture,
+.government-split-left-bg .split-bg-image img,
+.government-split-right-bg .split-bg-image,
+.government-split-right-bg .split-bg-image .field,
+.government-split-right-bg .split-bg-image .field__item,
+.government-split-right-bg .split-bg-image picture,
+.government-split-right-bg .split-bg-image img {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+}
+
+.government-split-left-bg .split-bg-overlay,
+.government-split-right-bg .split-bg-overlay {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.88) 100%) !important;
+    z-index: 2 !important;
+    pointer-events: none !important;
+}
+
+/* 1/3 Column: Quote Statement Content */
+.government-quote-col {
+    position: relative !important;
+    z-index: 10 !important;
+    padding-top: 5rem !important;
+    padding-bottom: 5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.government-left-col {
+    padding-right: 2.5rem !important;
+    padding-left: 0 !important;
+}
+
+.government-right-quote-col {
+    padding-left: 2.5rem !important;
+    padding-right: 0 !important;
+}
+
+.government-highlight-quote {
+    position: relative !important;
+    z-index: 10 !important;
+}
+
+.government-highlight-quote h2 {
+    color: color('white') !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8) !important;
+    font-size: clamp(2rem, 2.7vw, 2.6rem) !important;
+    font-weight: 700 !important;
+    line-height: 1.22 !important;
+    letter-spacing: -0.02em !important;
+}
+
+.government-highlight-body,
+.government-highlight-body p {
+    color: color('gray-5') !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7) !important;
+    font-size: 1.05rem !important;
+    line-height: 1.6 !important;
+    margin: 0 !important;
+}
+
+.government-highlight-body p+p {
+    margin-top: 0.75rem !important;
+}
+
+/* When no background image is present on section */
+.government-listing-section:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-left-col {
+    padding-left: 0 !important;
+}
+
+.government-listing-section:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-highlight-quote {
+    border-left: 4px solid color('yellow-20v');
+    padding-left: 1.5rem;
+}
+
+.government-listing-section:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-highlight-quote h2 {
+    color: color('white') !important;
+    text-shadow: none !important;
+}
+
+.government-listing-section:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-highlight-body,
+.government-listing-section:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-highlight-body p {
+    color: color('gray-20') !important;
+    text-shadow: none !important;
+}
+
+/* 2/3 Column: Main Content (News/Events List) */
+.government-main-col {
+    position: relative !important;
+    z-index: 10 !important;
+    padding-top: 5rem !important;
+    padding-bottom: 5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+
+.government-right-col {
+    padding-left: 2rem !important;
+    padding-right: 0 !important;
+}
+
+.government-left-main-col {
+    padding-right: 2rem !important;
+    padding-left: 0 !important;
+}
+
+/* Header */
+.government-highlight-header h2 {
+    color: color('white') !important;
+    font-size: 2.125rem !important; /* 34px */
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.01em !important;
+    margin-bottom: 0.35rem !important;
+}
+
+.government-highlight-header .dekoline {
+    color: color('gray-40') !important;
+    font-size: 1.05rem !important;
+    font-weight: 400 !important;
+    margin-top: 0 !important;
+    margin-bottom: 2rem !important;
+}
+
+/* Service / Text Content Body */
+.government-listing-body,
+.government-listing-body p {
+    color: color('gray-10') !important;
+    font-size: 1.08rem !important;
+    line-height: 1.7 !important;
+    max-width: 65ch !important;
+}
+
+.government-listing-body p + p {
+    margin-top: 1rem !important;
+}
+
+.government-listing-body ul,
+.government-listing-body ol {
+    color: color('gray-10') !important;
+    font-size: 1.05rem !important;
+    line-height: 1.6 !important;
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+    padding-left: 1.5rem !important;
+}
+
+.government-listing-body li + li {
+    margin-top: 0.5rem !important;
+}
+
+.government-listing-body a {
+    color: color('yellow-20v') !important;
+    text-decoration: underline !important;
+}
+
+.government-listing-body a:hover {
+    color: color('white') !important;
+}
+
+
+/* Layout Orientation Flipping */
+@media all and (min-width: 64em) {
+    .government-listing-section.is-layout-flipped .grid-row {
+        flex-direction: row-reverse !important;
+    }
+}
+
+.government-listing-section.is-layout-flipped:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-right-quote-col {
+    padding-left: 2rem !important;
+    padding-right: 0 !important;
+}
+
+.government-listing-section.is-layout-flipped:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-highlight-quote {
+    border-left: 0 !important;
+    border-right: 4px solid color('yellow-20v') !important;
+    padding-left: 0 !important;
+    padding-right: 1.5rem !important;
+}
+
+@media all and (max-width: 64em) {
+    .government-split-left-bg,
+    .government-split-right-bg {
+        width: 100% !important;
+        height: 340px !important;
+        bottom: auto !important;
+    }
+
+    .government-quote-col {
+        padding-top: 3.5rem !important;
+        padding-bottom: 2.5rem !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+
+    .government-main-col {
+        padding-top: 2.5rem !important;
+        padding-bottom: 4.5rem !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+}
+
+/* Hide redundant view header */
+.government-listing-content header h3,
+.government-news-view header {
+    display: none !important;
+}
+
+/* 150x120 News List */
+.front_blogger {
+    display: flex;
+    flex-direction: column;
+}
+
+.front_blogger .item.front_post {
+    padding-bottom: 1.75rem !important;
+    margin-bottom: 1.75rem !important;
+    border-bottom: 1px solid color('gray-80') !important;
+}
+
+.front_blogger .item.front_post:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.government-post-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+}
+
+.government-post-item .imgwrap {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    background: color('gray-90') !important;
+    margin-right: 1.5rem !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+}
+
+.government-post-item .imgwrap *,
+.government-post-item .imgwrap div,
+.government-post-item .imgwrap .field,
+.government-post-item .imgwrap .field__item,
+.government-post-item .imgwrap .media,
+.government-post-item .imgwrap article,
+.government-post-item .imgwrap picture,
+.government-post-item .imgwrap a {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    border: none !important;
+    box-sizing: border-box !important;
+}
+
+.government-post-item .imgwrap img {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+    transition: transform 0.4s ease !important;
+}
+
+.government-post-item:hover .imgwrap img {
+    transform: scale(1.06) !important;
+}
+
+.government-post-item .post-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+}
+
+.government-post-item .post-title {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.35rem !important;
+}
+
+.government-post-item .post-title a {
+    color: color('white') !important;
+    text-decoration: none !important;
+    transition: color 0.2s ease !important;
+}
+
+.government-post-item .post-title a:hover {
+    color: color('yellow-20v') !important;
+    text-decoration: underline !important;
+}
+
+.government-post-item .meta {
+    font-size: 0.82rem !important;
+    color: color('gray-40') !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.45rem !important;
+    display: flex !important;
+    align-items: center !important;
+}
+
+.government-post-item .meta .post-date {
+    color: color('yellow-20v') !important;
+}
+
+.government-post-item .meta .divider {
+    margin: 0 0.45rem !important;
+    color: color('gray-50') !important;
+}
+
+.government-post-item .meta .categs a {
+    color: color('yellow-20v') !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+}
+
+.government-post-item .meta .categs a:hover {
+    text-decoration: underline !important;
+}
+
+.government-post-item .teaser {
+    font-size: 0.92rem !important;
+    color: color('gray-20') !important;
+    line-height: 1.55 !important;
+    margin: 0 !important;
+}
+
+.government-post-item .read_more {
+    color: color('yellow-20v') !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    margin-left: 0.35rem !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.25rem !important;
+    transition: gap 0.2s ease !important;
+}
+
+.government-post-item:hover .read_more {
+    gap: 0.45rem !important;
+}
+
+@media all and (max-width: 36em) {
+    .government-post-item {
+        flex-direction: column !important;
+    }
+
+    .government-post-item .imgwrap {
+        width: 100% !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        height: 180px !important;
+        min-height: 180px !important;
+        max-height: 180px !important;
+        margin-right: 0 !important;
+        margin-bottom: 1rem !important;
+    }
+}
+
+/* 150x120 Events List */
+.front_events_list {
+    display: flex;
+    flex-direction: column;
+}
+
+.front_events_list .item.front_event {
+    padding-bottom: 1.75rem !important;
+    margin-bottom: 1.75rem !important;
+    border-bottom: 1px solid color('gray-80') !important;
+}
+
+.front_events_list .item.front_event:last-child {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.government-event-item {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: flex-start !important;
+}
+
+.government-event-item .imgwrap {
+    width: 150px !important;
+    min-width: 150px !important;
+    max-width: 150px !important;
+    height: 120px !important;
+    min-height: 120px !important;
+    max-height: 120px !important;
+    border-radius: 4px !important;
+    overflow: hidden !important;
+    background: color('gray-90') !important;
+    margin-right: 1.5rem !important;
+    position: relative !important;
+    flex-shrink: 0 !important;
+    display: block !important;
+}
+
+.government-event-item .imgwrap *,
+.government-event-item .imgwrap div,
+.government-event-item .imgwrap .field,
+.government-event-item .imgwrap .field__item,
+.government-event-item .imgwrap .media,
+.government-event-item .imgwrap article,
+.government-event-item .imgwrap picture,
+.government-event-item .imgwrap a {
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: block !important;
+    border: none !important;
+    box-sizing: border-box !important;
+}
+
+.government-event-item .imgwrap img {
+    width: 100% !important;
+    height: 100% !important;
+    min-width: 100% !important;
+    min-height: 100% !important;
+    max-width: none !important;
+    max-height: none !important;
+    object-fit: cover !important;
+    object-position: center !important;
+    display: block !important;
+    transition: transform 0.4s ease !important;
+}
+
+.government-event-item:hover .imgwrap img {
+    transform: scale(1.06) !important;
+}
+
+.government-event-item .event-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 1 auto !important;
+}
+
+.government-event-item .event-title {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    line-height: 1.35 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0.45rem !important;
+}
+
+.government-event-item .event-title a {
+    color: color('white') !important;
+    text-decoration: none !important;
+    transition: color 0.2s ease !important;
+}
+
+.government-event-item .event-title a:hover {
+    color: color('yellow-20v') !important;
+    text-decoration: underline !important;
+}
+
+.government-event-item .event-meta {
+    font-size: 0.88rem !important;
+    color: color('gray-40') !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+}
+
+.government-event-item .event-date {
+    color: color('yellow-20v') !important;
+    font-weight: 600 !important;
+}
+
+.government-event-item .event-location {
+    color: color('gray-20') !important;
+}
+
+@media all and (max-width: 36em) {
+    .government-event-item {
+        flex-direction: column !important;
+    }
+
+    .government-event-item .imgwrap {
+        width: 100% !important;
+        min-width: 100% !important;
+        height: 180px !important;
+        margin-right: 0 !important;
+        margin-bottom: 1rem !important;
+    }
+}
+
+/* Background Color Schemes */
+.government-listing-section.section-bg-white {
+    background-color: color('black') !important;
+}
+
+.government-listing-section.section-bg-light {
+    background-color: color('gray-90') !important;
+}
+
+.government-listing-section.section-bg-primary {
+    background-color: color('black') !important;
+}
+
+.government-listing-section.section-bg-primary-dark {
+    background-color: color('black') !important;
+}
+
+.government-listing-section.section-bg-primary .government-highlight-header h2,
+.government-listing-section.section-bg-primary-dark .government-highlight-header h2,
+.government-listing-section.section-bg-white .government-highlight-header h2,
+.government-listing-section.section-bg-light .government-highlight-header h2 {
+    color: color('white') !important;
+}
+
+.government-listing-section.section-bg-primary .government-highlight-header .dekoline,
+.government-listing-section.section-bg-primary-dark .government-highlight-header .dekoline,
+.government-listing-section.section-bg-white .government-highlight-header .dekoline,
+.government-listing-section.section-bg-light .government-highlight-header .dekoline {
+    color: color('gray-40') !important;
+}
+
+.government-listing-section .front_blogger .post-title a,
+.government-listing-section .government-event-item .event-title a {
+    color: color('white') !important;
+}
+
+.government-listing-section .front_blogger .post-title a:hover,
+.government-listing-section .government-event-item .event-title a:hover {
+    color: color('yellow-20v') !important;
+}
+
+.government-listing-section .front_blogger .meta .post-date,
+.government-listing-section .government-event-item .event-date {
+    color: color('yellow-20v') !important;
+}
+
+.government-listing-section .front_blogger .meta .divider {
+    color: color('gray-50') !important;
+}
+
+.government-listing-section .front_blogger .teaser,
+.government-listing-section .government-event-item .event-meta,
+.government-listing-section .government-event-item .event-location {
+    color: color('gray-20') !important;
+}
+
+.government-listing-section .front_blogger .item.front_post,
+.government-listing-section .front_events_list .item.front_event {
+    border-bottom: 1px solid color('gray-80') !important;
+}
+
+.government-listing-section .usa-button:hover,
+.government-listing-section .usa-button--outline:hover {
+    background-color: color('yellow-20v') !important;
+    color: color('black') !important;
+    box-shadow: inset 0 0 0 2px color('yellow-20v'), 0 6px 18px rgba(250, 201, 34, 0.35) !important;
+    border: none !important;
+    transform: translateY(-2px) !important;
+}
+

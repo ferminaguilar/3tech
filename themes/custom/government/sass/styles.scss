@@ -1,3 +1,4 @@
-@forward "uswds-theme";
-@forward "uswds";
-@forward "uswds-theme-custom-styles";
+@use "uswds-theme";
+@use "uswds";
+@use "uswds-theme-custom-styles";
+@use "government/government";

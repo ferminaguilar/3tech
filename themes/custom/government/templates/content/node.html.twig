@@ -1,0 +1,58 @@
+{#
+/**
+ * @file
+ * Theme override for standard nodes in Government style.
+ *
+ * Available variables:
+ * - node: The node entity.
+ * - content: Render array of node fields.
+ * - formatted_created_date: Formatted date string.
+ * - author_display_name: Author's display name.
+ */
+#}
+{%
+  set classes = [
+    'government-node-article',
+    'government-node-' ~ node.bundle()|clean_class,
+    node.isPromoted() ? 'government-node--promoted',
+    node.isSticky() ? 'government-node--sticky',
+    not node.isPublished() ? 'government-node--unpublished',
+    view_mode ? 'government-node--view-mode-' ~ view_mode|clean_class,
+  ]
+%}
+
+<article{{ attributes.addClass(classes) }}>
+  
+  {% if (formatted_created_date or author_display_name) and node.bundle() != 'homepage' and not is_front %}
+    <div class="government-post-meta">
+      {% if formatted_created_date %}
+        <span class="government-post-meta__item government-post-meta__date">
+          {{ formatted_created_date }}
+        </span>
+      {% endif %}
+
+      {% if category_name %}
+        <span class="government-post-meta__divider" aria-hidden="true">|</span>
+        <span class="government-post-meta__item government-post-meta__category">
+          {% if category_url %}
+            <a href="{{ category_url }}">{{ category_name }}</a>
+          {% else %}
+            {{ category_name }}
+          {% endif %}
+        </span>
+      {% endif %}
+
+      {% if author_display_name %}
+        <span class="government-post-meta__divider" aria-hidden="true">|</span>
+        <span class="government-post-meta__item government-post-meta__author">
+          {{ author_display_name }}
+        </span>
+      {% endif %}
+    </div>
+  {% endif %}
+
+  <div class="government-article-body entry-content">
+    {{ content|without('field_image') }}
+  </div>
+
+</article>
