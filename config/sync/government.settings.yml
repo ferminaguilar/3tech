@@ -43,7 +43,7 @@ uswds_menu_bypass:
   sidebar_first: '0'
   sidebar_second: '0'
   footer_menu: '0'
-uswds_identifier_enabled: true
+uswds_identifier_enabled: false
 uswds_identifier_variant: default
 uswds_identifier_show_logos: true
 uswds_identifier_domain: 3tech.io
@@ -54,6 +54,6 @@ uswds_identifier_agency_logo: logo.svg
 uswds_identifier_parent2_name: 'Parent Department'
 uswds_identifier_parent2_url: '#'
 uswds_identifier_parent2_logo: logo.png
-uswds_identifier_usagov_enabled: true
+uswds_identifier_usagov_enabled: false
 uswds_identifier_usagov_text: 'Looking for U.S. government information and services?'
 uswds_identifier_usagov_url: 'https://www.usa.gov/'
