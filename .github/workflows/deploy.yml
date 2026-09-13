@@ -16,76 +16,73 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          coverage: none
-
-      - name: Deploy to Namecheap
+      - name: Deploy Only Changed Files to Namecheap
         run: |
           if ! command -v lftp >/dev/null 2>&1; then
             sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends lftp >/dev/null 2>&1
           fi
-
-          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
-
-          # 1. Get changed files
+          
           before="${{ github.event.before }}"
           if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
             before="HEAD~1"
           fi
           
           git diff --name-only --diff-filter=ACMR "$before" "$GITHUB_SHA" > raw_changed_files.txt || true
-          grep -v -E '^\.github/|^\.git/|\.DS_Store|node_modules/|usa-icons/|uswds-icons/' raw_changed_files.txt > changed_files.txt || true
-
-          # 2. Build & mirror Composer dependencies if composer changed
-          if grep -qE '^composer\.(json|lock)' changed_files.txt || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "Composer dependencies changed. Running composer install..."
-            composer install --no-dev --optimize-autoloader
-            
-            echo "Syncing core and vendor to production..."
-            lftp -c "
-              set ssl:verify-certificate no
-              set ftp:passive-mode true
-              set net:timeout 10
-              set net:max-retries 2
-              set net:connection-limit 2
-              open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
-              mirror -R --only-newer --parallel=2 core 3tech.io/core
-              mirror -R --only-newer --parallel=2 vendor 3tech.io/vendor
-              bye
-            "
+          grep -v -E '^\.github/|^\.git/|\.DS_Store' raw_changed_files.txt > changed_files.txt || true
+          
+          if [ ! -s changed_files.txt ]; then
+            echo "No website files changed in this commit."
+            exit 0
           fi
+          
+          echo "Website files changed in this commit:"
+          cat changed_files.txt
+          
+          STAGE_DIR="$(mktemp -d)"
+          while IFS= read -r file; do
+            if [ -f "$file" ]; then
+              mkdir -p "$STAGE_DIR/$(dirname "$file")"
+              cp -a "$file" "$STAGE_DIR/$file"
+            fi
+          done < changed_files.txt
+          
+          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
+          LFTP_SCRIPT="$(mktemp)"
+          echo "set ssl:verify-certificate no" > "$LFTP_SCRIPT"
+          echo "set ftp:passive-mode true" >> "$LFTP_SCRIPT"
+          echo "set net:timeout 15" >> "$LFTP_SCRIPT"
+          echo "set cmd:fail-exit false" >> "$LFTP_SCRIPT"
+          echo "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21" >> "$LFTP_SCRIPT"
+          echo "lcd \"$STAGE_DIR\"" >> "$LFTP_SCRIPT"
 
-          # 3. Upload changed Git files directly
-          if [ -s changed_files.txt ]; then
-            echo "Uploading changed Git files..."
-            STAGE_DIR="$(mktemp -d)"
-            while IFS= read -r file; do
-              if [ -f "$file" ]; then
-                mkdir -p "$STAGE_DIR/$(dirname "$file")"
-                cp -a "$file" "$STAGE_DIR/$file"
+          (
+            cd "$STAGE_DIR"
+            find . -type f | while read -r f; do
+              rel="${f#./}"
+              dir="$(dirname "$rel")"
+              
+              # Upload to repository folder
+              echo "cd" >> "$LFTP_SCRIPT"
+              echo "cd repositories/3tech" >> "$LFTP_SCRIPT"
+              if [ "$dir" != "." ]; then
+                echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
               fi
-            done < changed_files.txt
+              echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
 
-            lftp -c "
-              set ssl:verify-certificate no
-              set ftp:passive-mode true
-              set net:timeout 10
-              set net:max-retries 2
-              set net:connection-limit 2
-              open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21
-              mirror -R --only-newer --parallel=2 \"$STAGE_DIR\" 3tech.io
-              bye
-            "
-          fi
-
+              # Upload to live web directory (3tech.io)
+              echo "cd" >> "$LFTP_SCRIPT"
+              echo "cd 3tech.io" >> "$LFTP_SCRIPT"
+              if [ "$dir" != "." ]; then
+                echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
+              fi
+              echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
+            done
+          )
+          echo "bye" >> "$LFTP_SCRIPT"
+          echo "Executing direct upload of changed files to $FTP_HOST..."
+          lftp -f "$LFTP_SCRIPT"
           echo "Deployment finished successfully."
         env:
           FTP_SERVER: ${{ secrets.FTP_SERVER }}
           FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
           FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
-
-
-
