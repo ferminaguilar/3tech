@@ -1,0 +1,23 @@
+uuid: c8573ea5-fd18-4eab-bd28-47d898ad27b7
+langcode: en
+status: false
+dependencies:
+  content:
+    - 'block_content:basic:e1d8cf3f-5357-4781-968a-6a2a147e5cdf'
+  module:
+    - block_content
+  theme:
+    - government
+id: government_in_page_navigation
+theme: government
+region: sidebar_second
+weight: 0
+provider: null
+plugin: 'block_content:e1d8cf3f-5357-4781-968a-6a2a147e5cdf'
+settings:
+  id: 'block_content:e1d8cf3f-5357-4781-968a-6a2a147e5cdf'
+  label: 'In-Page Navigation'
+  label_display: '0'
+  provider: block_content
+  view_mode: full
+visibility: {  }

@@ -1,0 +1,25 @@
+{#
+/**
+* @file
+* Theme override for Basic Title and Body paragraph.
+*/
+#}
+{% set section_id = (paragraph.field_title.value ? paragraph.field_title.value|clean_class : 'section-' ~ paragraph.id.value) %}
+
+<section id="{{ section_id }}" class="government-basic-content-section">
+  <div class="government-basic-content-inner">
+
+        {% if paragraph.field_title.value %}
+        <h2 class="font-sans-2xl text-bold text-primary-darkest margin-top-0 margin-bottom-2">
+          {{ paragraph.field_title.value }}
+        </h2>
+        {% endif %}
+
+        {% if content.field_body|render|trim %}
+        <div class="government-basic-body usa-prose line-height-sans-4 text-base-darker">
+          {{ content.field_body }}
+        </div>
+        {% endif %}
+
+  </div>
+</section>

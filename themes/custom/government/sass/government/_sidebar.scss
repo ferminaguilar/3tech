@@ -217,3 +217,131 @@
 .government-sidebar-recent-title a:hover {
     color: #d97706 !important;
 }
+
+/* Drupal Menu & Generic Blocks in Sidebar */
+.government-sidebar-column {
+    .block {
+        margin-bottom: 2.25rem !important;
+        text-align: left !important;
+
+        h2, .block__title {
+            font-size: 1.15rem !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
+            margin-top: 0 !important;
+            margin-bottom: 1.25rem !important;
+            padding-bottom: 0.65rem !important;
+            border-bottom: 3px solid #fac922 !important; // yellow-20v
+            letter-spacing: -0.01em !important;
+            text-align: left !important;
+        }
+
+        ul.menu, ul.usa-sidenav, ul.usa-nav__submenu {
+            list-style: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 6px !important;
+            overflow: hidden !important;
+
+            li, .menu-item {
+                border-bottom: 1px solid #f1f5f9 !important;
+                margin: 0 !important;
+                padding: 0 !important;
+
+                &:last-child {
+                    border-bottom: none !important;
+                }
+
+                a, .usa-nav__link {
+                    display: flex !important;
+                    align-items: center !important;
+                    justify-content: space-between !important;
+                    padding: 0.85rem 1.15rem !important;
+                    font-size: 0.95rem !important;
+                    font-weight: 500 !important;
+                    color: #334155 !important;
+                    text-decoration: none !important;
+                    background-color: #ffffff !important;
+                    transition: all 0.15s ease !important;
+
+                    &:hover,
+                    &.is-active,
+                    &.usa-current {
+                        background-color: #111827 !important;
+                        color: #fac922 !important;
+                        padding-left: 1.4rem !important;
+                        font-weight: 600 !important;
+                    }
+                }
+            }
+        }
+    }
+}
+
+/* In-Page Navigation / Table of Contents in Right Sidebar */
+.usa-in-page-nav {
+    position: sticky !important;
+    top: 7.5rem !important;
+    margin-top: 0 !important;
+    margin-left: 0 !important;
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    padding: 1.25rem !important;
+    margin-bottom: 2rem !important;
+    text-align: left !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+
+    .usa-in-page-nav__heading {
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+        color: #000000 !important;
+        margin-top: 0 !important;
+        margin-bottom: 0.85rem !important;
+        padding-bottom: 0.45rem !important;
+        border-bottom: 2px solid #fac922 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+        text-align: left !important;
+    }
+
+    .usa-in-page-nav__list {
+        list-style: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        text-align: left !important;
+    }
+
+    .usa-in-page-nav__item {
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .usa-in-page-nav__link {
+        display: block !important;
+        padding: 0.4rem 0.5rem 0.4rem 0.65rem !important;
+        font-size: 0.88rem !important;
+        line-height: 1.4 !important;
+        color: #475569 !important;
+        text-decoration: none !important;
+        border-left: 3px solid transparent !important;
+        transition: all 0.15s ease !important;
+        text-align: left !important;
+
+        &:hover,
+        &.usa-current {
+            color: #000000 !important;
+            font-weight: 600 !important;
+            border-left-color: #fac922 !important;
+            background-color: #f8fafc !important;
+            padding-left: 0.9rem !important;
+        }
+    }
+
+    /* Hide any duplicate nav appended by multiple USWDS init passes */
+    .usa-in-page-nav__nav ~ .usa-in-page-nav__nav,
+    .usa-in-page-nav__nav:not(:first-child) {
+        display: none !important;
+    }
+}

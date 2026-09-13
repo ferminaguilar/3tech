@@ -8,6 +8,9 @@ assets:
     assets/js/uswds-init.min.js: {}
     assets/js/uswds.min.js: {}
     js/header.js: {}
+  dependencies:
+    - core/drupal
+    - core/once
 
 hero-slider:
   version: 1.0

@@ -1,0 +1,34 @@
+uuid: 55dc6acb-1244-43b4-813a-c1e3f48d51e3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.basic_title_and_body.field_body
+    - field.field.paragraph.basic_title_and_body.field_title
+    - paragraphs.paragraphs_type.basic_title_and_body
+  module:
+    - text
+id: paragraph.basic_title_and_body.default
+targetEntityType: paragraph
+bundle: basic_title_and_body
+mode: default
+content:
+  field_body:
+    type: text_textarea
+    weight: 1
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true

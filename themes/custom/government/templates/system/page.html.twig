@@ -147,23 +147,51 @@
         {% endif %}
       {% endif %}
 
-      <div class="grid-row grid-gap-4">
+      {% set has_left_sidebar = page.sidebar_first|render|trim ? true : false %}
+      {% set has_right_sidebar = page.sidebar_second|render|trim ? true : false %}
+      
+      {% if has_left_sidebar and has_right_sidebar %}
+        {% set content_cols = 'desktop:grid-col-6' %}
+        {% set left_cols = 'desktop:grid-col-3' %}
+        {% set right_cols = 'desktop:grid-col-3' %}
+      {% elseif has_left_sidebar %}
+        {% set content_cols = 'desktop:grid-col-8' %}
+        {% set left_cols = 'desktop:grid-col-4' %}
+      {% elseif has_right_sidebar %}
+        {% set content_cols = 'desktop:grid-col-8' %}
+        {% set right_cols = 'desktop:grid-col-4' %}
+      {% else %}
+        {% set content_cols = 'desktop:grid-col-8' %}
+        {% set right_cols = 'desktop:grid-col-4' %}
+      {% endif %}
+
+      <div class="grid-row grid-gap">
         
-        {# Main Content Column (8 cols on desktop) #}
+        {# Left Sidebar Column #}
+        {% if has_left_sidebar %}
+          {% block sidebar_first %}
+            <aside class="government-sidebar-column government-sidebar-left {{ left_cols }}" role="complementary" aria-label="{{ 'Primary Sidebar'|t }}">
+              {{ page.sidebar_first }}
+            </aside>
+          {% endblock %}
+        {% endif %}
+
+        {# Main Content Column #}
         {% block content %}
-          <div class="government-main-column desktop:grid-col-8">
+          <div class="government-main-column {{ content_cols }}">
             {{ page.content }}
           </div>
         {% endblock %}
 
-        {# Sidebar Column (4 cols on desktop) #}
+        {# Right Sidebar Column #}
         {% block sidebar %}
-          <aside class="government-sidebar-column desktop:grid-col-4" role="complementary" aria-label="{{ 'Sidebar'|t }}">
-            {% if page.sidebar_first or page.sidebar_second %}
-              {{ page.sidebar_first }}
+          {% if has_right_sidebar %}
+            <aside class="government-sidebar-column government-sidebar-right {{ right_cols }}" role="complementary" aria-label="{{ 'Secondary Sidebar'|t }}">
               {{ page.sidebar_second }}
-            {% else %}
-              {# Default Government Sidebar Widgets #}
+            </aside>
+          {% elseif not has_left_sidebar %}
+            {# Default Government Sidebar Widgets for News / Events #}
+            <aside class="government-sidebar-column desktop:grid-col-4" role="complementary" aria-label="{{ 'Sidebar'|t }}">
               <div class="government-sidebar">
 
                 {# Promo / Issue Banner Widget #}
@@ -217,8 +245,8 @@
                 {% endif %}
 
               </div>
-            {% endif %}
-          </aside>
+            </aside>
+          {% endif %}
         {% endblock %}
 
       </div>

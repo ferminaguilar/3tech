@@ -1,0 +1,30 @@
+uuid: b268915c-4cf1-4c4a-8190-7d6c700a263a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.page.field_image
+    - field.field.node.page.field_sections
+    - field.field.node.page.field_show_in_page_nav
+    - node.type.page
+  module:
+    - entity_reference_revisions
+    - user
+id: node.page.default
+targetEntityType: node
+bundle: page
+mode: default
+content:
+  field_sections:
+    type: entity_reference_revisions_entity_view
+    label: hidden
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings: {  }
+    weight: 0
+    region: content
+hidden:
+  field_image: true
+  field_show_in_page_nav: true
+  links: true

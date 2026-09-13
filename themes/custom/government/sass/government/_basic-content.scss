@@ -1,0 +1,87 @@
+/* ==========================================================================
+   BASIC CONTENT & PARAGRAPH TYPOGRAPHY
+   ========================================================================== */
+
+.government-basic-content-section {
+  background-color: transparent;
+  padding-top: 2rem !important;
+  padding-bottom: 2rem !important;
+
+  @media (min-width: 64em) {
+    padding-top: 2.25rem !important;
+    padding-bottom: 2.25rem !important;
+  }
+
+  // When basic content sections are stacked consecutively, eliminate redundant space
+  & + .government-basic-content-section {
+    padding-top: 0 !important;
+  }
+
+  // First section below the header banner
+  &:first-child,
+  &:first-of-type {
+    padding-top: 2.5rem !important;
+  }
+
+  // Last section on page before footer
+  &:last-child,
+  &:last-of-type {
+    padding-bottom: 3.5rem !important;
+  }
+}
+
+.government-basic-body,
+.usa-prose,
+.entry-content {
+  p {
+    font-weight: 400 !important;
+    font-style: normal !important;
+    font-size: 1.125rem !important; /* 18px */
+    line-height: 1.75 !important;
+    margin-top: 0 !important;
+    margin-bottom: 1.25rem !important;
+  }
+
+  li {
+    font-weight: 400 !important;
+    font-style: normal !important;
+    font-size: 1.125rem !important; /* 18px */
+    line-height: 1.7 !important;
+  }
+}
+
+p.usa-paragraph,
+.usa-prose > p {
+  font-weight: 400 !important;
+  font-style: normal !important;
+  font-size: 1.125rem !important; /* 18px */
+  line-height: 1.75 !important;
+}
+
+/* Interior Column Layout: Align Middle Column Flush with Left & Right Sidebars */
+.government-interior-main .government-main-column {
+  margin-top: 0 !important;
+  padding-top: 0 !important;
+
+  .government-basic-content-section {
+    padding-top: 0 !important;
+    padding-bottom: 1.5rem !important;
+    margin-top: 0 !important;
+
+    .government-basic-content-inner {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    h2:first-child,
+    h1:first-child {
+      margin-top: 0 !important;
+      padding-top: 0 !important;
+    }
+  }
+
+  .government-basic-content-section:first-child {
+    padding-top: 0 !important;
+  }
+}
+

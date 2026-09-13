@@ -51,6 +51,21 @@
         window.addEventListener('scroll', onScroll, { passive: true });
         onScroll();
       }
+
+      // In-page navigation deduplication guard
+      once('government-in-page-nav', '.usa-in-page-nav', context).forEach(function (navContainer) {
+        var cleanDuplicates = function () {
+          var navs = navContainer.querySelectorAll('.usa-in-page-nav__nav');
+          if (navs.length > 1) {
+            for (var i = 1; i < navs.length; i++) {
+              navs[i].remove();
+            }
+          }
+        };
+        cleanDuplicates();
+        var observer = new MutationObserver(cleanDuplicates);
+        observer.observe(navContainer, { childList: true });
+      });
     }
   };
 })(Drupal, once);

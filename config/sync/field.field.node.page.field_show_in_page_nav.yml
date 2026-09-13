@@ -1,0 +1,23 @@
+uuid: 88fdb2e9-633f-4ddb-83e0-e342796ea1fa
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_show_in_page_nav
+    - node.type.page
+id: node.page.field_show_in_page_nav
+field_name: field_show_in_page_nav
+entity_type: node
+bundle: page
+label: 'Show In-Page Navigation'
+description: 'Enable to display the "On this page" in-page navigation in the right sidebar.'
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'Show in-page navigation in right sidebar'
+  off_label: 'Hide in-page navigation'
+field_type: boolean

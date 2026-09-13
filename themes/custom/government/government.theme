@@ -266,18 +266,64 @@ function government_preprocess_breadcrumb(&$variables) {
             'url' => base_path() . 'news',
           ];
         }
+        $variables['breadcrumb'][] = [
+          'text' => $node->getTitle(),
+          'url' => '',
+        ];
       }
       elseif ($node->bundle() === 'event') {
         $variables['breadcrumb'][] = [
           'text' => t('Events'),
           'url' => base_path() . 'events',
         ];
+        $variables['breadcrumb'][] = [
+          'text' => $node->getTitle(),
+          'url' => '',
+        ];
       }
+      else {
+        // Build breadcrumbs dynamically from URL alias path hierarchy.
+        $internal_path = '/node/' . $node->id();
+        $alias = \Drupal::service('path_alias.manager')->getAliasByPath($internal_path);
+        $segments = array_values(array_filter(explode('/', trim($alias, '/'))));
 
-      $variables['breadcrumb'][] = [
-        'text' => $node->getTitle(),
-        'url' => '',
-      ];
+        if (count($segments) > 1) {
+          $accumulated = '';
+          for ($i = 0; $i < count($segments) - 1; $i++) {
+            $accumulated .= '/' . $segments[$i];
+            $segment_title = '';
+
+            // Try resolving title from parent entity alias if it exists
+            try {
+              $parent_internal = \Drupal::service('path_alias.manager')->getPathByAlias($accumulated);
+              if (preg_match('#^/node/(\d+)$#', $parent_internal, $matches)) {
+                $p_node = \Drupal\node\Entity\Node::load($matches[1]);
+                if ($p_node) {
+                  $segment_title = $p_node->getTitle();
+                }
+              }
+            }
+            catch (\Exception $e) {
+              // Ignore and use string fallback.
+            }
+
+            // Fallback: Format slug into clean readable title (e.g. "services" -> "Services", "about-us" -> "About Us")
+            if (empty($segment_title)) {
+              $segment_title = ucwords(str_replace(['-', '_'], ' ', $segments[$i]));
+            }
+
+            $variables['breadcrumb'][] = [
+              'text' => $segment_title,
+              'url' => base_path() . ltrim($accumulated, '/'),
+            ];
+          }
+        }
+
+        $variables['breadcrumb'][] = [
+          'text' => $node->getTitle(),
+          'url' => '',
+        ];
+      }
     }
     else {
       $title = \Drupal::service('title_resolver')->getTitle($request, $route_match->getRouteObject());
@@ -294,6 +340,7 @@ function government_preprocess_breadcrumb(&$variables) {
     }
   }
 }
+
 
 /**
  * Helper function to resolve logo path (supporting .svg, .png, .jpg, etc.).
@@ -350,8 +397,12 @@ function government_preprocess_block__system_branding_block(&$variables) {
   $variables['header_logo_height'] = theme_get_setting('uswds_header_logo_height') ?? '40px';
 }
 
-
-
-
-
-
+/**
+ * Implements hook_theme_suggestions_page_alter().
+ */
+function government_theme_suggestions_page_alter(array &$suggestions, array $variables) {
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if ($node instanceof \Drupal\node\NodeInterface) {
+    $suggestions[] = 'page__node__' . $node->bundle();
+  }
+}
