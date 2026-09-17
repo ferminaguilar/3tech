@@ -9,7 +9,7 @@ package: Mercury Editor
 dependencies:
   - layout_paragraphs:layout_paragraphs
 
-# Information added by Drupal.org packaging script on 2026-08-24
-version: '3.0.0-beta2'
+# Information added by Drupal.org packaging script on 2026-09-15
+version: '3.0.0-beta3'
 project: 'mercury_editor'
-datestamp: 1787609247
+datestamp: 1789496741

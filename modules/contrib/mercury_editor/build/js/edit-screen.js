@@ -12,6 +12,10 @@
       }
     });
 
+    // Tracks in-flight undo/redo requests so rapid clicks are applied in order.
+    let undoRedoQueue = Promise.resolve();
+    let undoRedoSequence = 0;
+
     /**
      * Set the size of the preview iframe.
      * @param {String} w The width of the preview iframe.
@@ -101,6 +105,14 @@
 
     /**
      * Perform an undo or redo action.
+     *
+     * Rapid clicks are queued and sent to the server one at a time, in click
+     * order, instead of firing overlapping requests. Overlapping requests can
+     * race for the same tempstore lock and their responses can arrive out of
+     * order, leaving the UI showing a state other than the one actually
+     * clicked to last. Only the response for the most recently queued click
+     * reloads the visible editor; earlier clicks in the same burst still
+     * update server-side state but are not rendered.
      * @param {String} which Either 'undo' or 'redo'.
      */
     function undoRedo(which) {
@@ -108,11 +120,22 @@
         /^\/mercury-editor\/([0-9a-fA-F-]+)/,
       );
       const id = match ? match[1] : null;
-      Drupal.ajax({
-        url: `/mercury-editor/${id}/${which}`,
-        submit: {},
-        success: () => Drupal.ajax({ url: `/mercury-editor/${id}` }).execute(),
-      }).execute();
+      const sequence = (undoRedoSequence += 1);
+
+      undoRedoQueue = undoRedoQueue
+        .then(() =>
+          Drupal.ajax({
+            url: `/mercury-editor/${id}/${which}`,
+            submit: {},
+          }).execute(),
+        )
+        .then(() => {
+          if (sequence !== undoRedoSequence) {
+            return null;
+          }
+          return Drupal.ajax({ url: `/mercury-editor/${id}` }).execute();
+        })
+        .catch(() => {});
     }
 
     /**
