@@ -280,6 +280,35 @@ header.government-header .grid-container {
     text-decoration: underline !important;
 }
 
+.government-header-contact {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1.5rem !important;
+
+    a {
+        color: #ffffff !important;
+        text-decoration: none !important;
+        font-weight: 500 !important;
+        font-size: 0.84rem !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.4rem !important;
+        transition: color 0.2s ease, transform 0.2s ease !important;
+
+        svg {
+            color: #fac922 !important;
+            flex-shrink: 0;
+            width: 14px;
+            height: 14px;
+        }
+
+        &:hover {
+            color: #fac922 !important;
+            text-decoration: underline !important;
+        }
+    }
+}
+
 .government-header-utilities {
     display: flex !important;
     align-items: center !important;
