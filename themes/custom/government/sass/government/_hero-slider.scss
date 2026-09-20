@@ -249,6 +249,7 @@ body:has(.government-hero-slider-section) main#main-content {
     transform: translate(-30%, -50%) rotate(-45deg) !important;
     display: block !important;
     box-sizing: border-box !important;
+    transition: border-color 0.25s ease !important;
 }
 
 .government-hero-slider .slick-next::before,
@@ -264,6 +265,7 @@ body:has(.government-hero-slider-section) main#main-content {
     transform: translate(-70%, -50%) rotate(45deg) !important;
     display: block !important;
     box-sizing: border-box !important;
+    transition: border-color 0.25s ease !important;
 }
 
 .government-hero-slider .slick-prev:hover,
@@ -283,6 +285,21 @@ body:has(.government-hero-slider-section) main#main-content {
     text-decoration: none !important;
     outline: none !important;
     transform: translateY(-50%) scale(1.06) !important;
+}
+
+.government-hero-slider .slick-prev:hover::before,
+.government-hero-slider .slick-prev:focus::before,
+.government-hero-slider .slick-prev:active::before,
+.government-hero-slider .slick-next:hover::before,
+.government-hero-slider .slick-next:focus::before,
+.government-hero-slider .slick-next:active::before,
+.government-hero-slider-section .slick-prev:hover::before,
+.government-hero-slider-section .slick-prev:focus::before,
+.government-hero-slider-section .slick-prev:active::before,
+.government-hero-slider-section .slick-next:hover::before,
+.government-hero-slider-section .slick-next:focus::before,
+.government-hero-slider-section .slick-next:active::before {
+    border-color: color('black') !important;
 }
 
 .government-hero-slider .slick-prev,
