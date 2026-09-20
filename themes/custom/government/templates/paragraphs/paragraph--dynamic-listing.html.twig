@@ -17,23 +17,23 @@
   id="{{ section_id }}"
   class="government-listing-section position-relative overflow-hidden {{ is_flipped ? 'is-layout-flipped' : 'is-layout-default' }} {{ layout_cols_class }} section-bg-{{ bg_color }}">
 
-
-  {# Split Background Layer: Spans from screen edge to the quote column boundary #}
-  {% if content.field_background_image|render|trim %}
-  <div class="{{ is_flipped ? 'government-split-right-bg' : 'government-split-left-bg' }}">
-    <div class="split-bg-image">
-      {{ content.field_background_image }}
-    </div>
-    <div class="split-bg-overlay"></div>
-  </div>
-  {% endif %}
-
   <div class="grid-container position-relative z-10 height-full">
     <div class="grid-row grid-gap-6 flex-align-stretch height-full {{ is_flipped ? 'desktop:flex-row-reverse' : '' }}">
 
       {# Quote Column: Title + Body Text / Information (col-4 with view, col-5 without view) #}
       <div
         class="grid-col-12 {{ quote_cols }} display-flex flex-column justify-center government-quote-col {{ is_flipped ? 'government-right-quote-col' : 'government-left-col' }}">
+        
+        {# Full-Bleed Background Layer on Desktop & Complete Column Wrap on Mobile #}
+        {% if content.field_background_image|render|trim %}
+        <div class="government-split-bg-layer {{ is_flipped ? 'government-split-right-bg' : 'government-split-left-bg' }}">
+          <div class="split-bg-image">
+            {{ content.field_background_image }}
+          </div>
+          <div class="split-bg-overlay"></div>
+        </div>
+        {% endif %}
+
         <div class="government-highlight-quote">
           {% if paragraph.field_title.value %}
           <h2 class="font-sans-2xl text-bold line-height-sans-2 margin-0">

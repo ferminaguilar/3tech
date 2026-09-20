@@ -29,24 +29,117 @@
               {{ page.header }}
             </div>
 
-            {# Desktop Primary Navigation #}
-            <nav class="usa-nav government-desktop-nav" role="navigation" aria-label="{{ 'Main Menu'|t }}">
-              <button type="button" class="usa-nav__close" aria-label="{{ 'Close Menu'|t }}">
-                <img src="{{ uswds_images }}usa-icons/close.svg" alt="close"/>
-              </button>
-              
-              {{ page.primary_menu }}
-
-              {# Mobile-only Resources & Social in drawer #}
-              {% set rendered_resources = resources_menu ? resources_menu|render|trim : '' %}
-              {% if rendered_resources %}
-                <div class="government-mobile-drawer-extras display-none">
-                  <div class="mobile-quick-links margin-top-3">
-                    <span class="text-bold text-base-darker font-sans-xs display-block margin-bottom-1">{{ 'RESOURCES'|t }}</span>
-                    {{ rendered_resources|raw }}
-                  </div>
+            {# Primary Navigation (Desktop Bar + Mobile Drawer) #}
+            <nav class="usa-nav government-primary-nav" role="navigation" aria-label="{{ 'Main Menu'|t }}">
+              <div class="government-nav-inner">
+                <div class="government-mobile-nav-header">
+                  <span class="mobile-nav-title">{{ 'Menu'|t }}</span>
+                  <button type="button" class="usa-nav__close" aria-label="{{ 'Close Menu'|t }}">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  </button>
                 </div>
-              {% endif %}
+                
+                {{ page.primary_menu }}
+
+                {# Mobile-only Extras inside Drawer: Search, Contact, Resources, Social, Auth #}
+                {% set rendered_resources = resources_menu ? resources_menu|render|trim : '' %}
+                <div class="government-mobile-drawer-extras">
+
+                  {# Search Form in Mobile Drawer #}
+                  <div class="mobile-drawer-search">
+                    <form class="government-search-form" action="/search/node" method="get">
+                      <input type="search" name="keys" placeholder="{{ 'Search site...'|t }}" class="government-search-input" />
+                      <button class="government-search-submit" type="submit" aria-label="{{ 'Search'|t }}">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                      </button>
+                    </form>
+                  </div>
+
+                  {# Contact Details #}
+                  {% if phone or email %}
+                    <div class="mobile-drawer-contact">
+                      {% if phone %}
+                        <a href="tel:{{ phone }}" class="mobile-contact-item">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                          </svg>
+                          <span>{{ phone }}</span>
+                        </a>
+                      {% endif %}
+                      {% if email %}
+                        <a href="mailto:{{ email }}" class="mobile-contact-item">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                          </svg>
+                          <span>{{ email }}</span>
+                        </a>
+                      {% endif %}
+                    </div>
+                  {% endif %}
+
+                  {# Resources Menu #}
+                  {% if rendered_resources %}
+                    <div class="mobile-quick-links">
+                      <span class="quick-links-label">{{ 'RESOURCES'|t }}</span>
+                      {{ rendered_resources|raw }}
+                    </div>
+                  {% endif %}
+
+                  {# Social Links in Mobile Drawer #}
+                  {% if facebook or instagram or linkedin or twitter or youtube or rss %}
+                    <div class="mobile-drawer-social">
+                      <ul class="government-social-links display-flex flex-align-center">
+                        {% if facebook %}
+                          <li><a href="{{ facebook }}" target="_blank" rel="noopener" aria-label="{{ 'Facebook'|t }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a></li>
+                        {% endif %}
+                        {% if instagram %}
+                          <li><a href="{{ instagram }}" target="_blank" rel="noopener" aria-label="{{ 'Instagram'|t }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></li>
+                        {% endif %}
+                        {% if instagram %}
+                          <li><a href="{{ instagram }}" target="_blank" rel="noopener" aria-label="{{ 'Instagram'|t }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></li>
+                        {% endif %}
+                        {% if instagram %}
+                          <li><a href="{{ instagram }}" target="_blank" rel="noopener" aria-label="{{ 'Instagram'|t }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg></a></li>
+                        {% endif %}
+                        {% if linkedin %}
+                          <li><a href="{{ linkedin }}" target="_blank" rel="noopener" aria-label="{{ 'LinkedIn'|t }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/></svg></a></li>
+                        {% endif %}
+                        {% if twitter %}
+                          <li><a href="{{ twitter }}" target="_blank" rel="noopener" aria-label="{{ 'Twitter'|t }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 24.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a></li>
+                        {% endif %}
+                        {% if youtube %}
+                          <li><a href="{{ youtube }}" target="_blank" rel="noopener" aria-label="{{ 'YouTube'|t }}"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a></li>
+                        {% endif %}
+                      </ul>
+                    </div>
+                  {% endif %}
+
+                  {# Mobile User Login / Account #}
+                  <div class="mobile-drawer-auth">
+                    {% if logged_in %}
+                      <a href="/user" class="mobile-auth-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        <span>{{ 'My Account'|t }}</span>
+                      </a>
+                      <a href="/user/logout" class="mobile-auth-link">
+                        <span>{{ 'Log Out'|t }}</span>
+                      </a>
+                    {% else %}
+                      <a href="/user/login" class="mobile-auth-link">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                        <span>{{ 'Log In'|t }}</span>
+                      </a>
+                    {% endif %}
+                  </div>
+
+                </div>
+              </div>
             </nav>
 
           </div>

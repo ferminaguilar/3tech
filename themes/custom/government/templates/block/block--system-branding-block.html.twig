@@ -26,4 +26,11 @@
   {% endif %}
 
 </div>
-<button class="usa-menu-btn" type="button">{{ 'Menu'|t }}</button>
+<button class="usa-menu-btn" type="button" aria-label="{{ 'Menu'|t }}" aria-expanded="false">
+  <span class="usa-menu-btn__hamburger" aria-hidden="true">
+    <span></span>
+    <span></span>
+    <span></span>
+  </span>
+  <span class="usa-menu-btn__text">{{ 'Menu'|t }}</span>
+</button>

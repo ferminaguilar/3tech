@@ -418,39 +418,396 @@ header.government-header .grid-container {
     background: #e5b219 !important;
 }
 
+/* Mobile Overlay */
+.usa-overlay {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(0, 0, 0, 0.75) !important;
+    backdrop-filter: blur(4px) !important;
+    z-index: 9999 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s !important;
+}
+
+.usa-overlay.is-visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+}
+
+/* Mobile Nav Header & Extras hidden on Desktop */
+@media all and (min-width: 64.01em) {
+    .government-primary-nav {
+        display: flex !important;
+        align-items: center !important;
+    }
+    .government-mobile-nav-header,
+    .government-mobile-drawer-extras,
+    .usa-nav__close,
+    .usa-menu-btn {
+        display: none !important;
+    }
+}
+
+/* Mobile & Tablet Styles */
 @media all and (max-width: 64em) {
     header.government-header {
         top: 0.75rem !important;
     }
+
+    header.government-header .grid-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
     .government-header-main {
         padding: 0.65rem 1rem !important;
+        border-radius: 8px !important;
     }
+
     .government-header-bottom {
         display: none !important;
     }
-    .government-desktop-nav {
-        display: none !important;
-    }
+
     .government-header-branding {
         width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
         justify-content: space-between !important;
     }
-    .government-header-main .usa-menu-btn {
-        display: block !important;
+
+    /* Hamburger Menu Button */
+    .usa-menu-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.45rem !important;
         background: #000000 !important;
         color: #fac922 !important;
         border: none !important;
-        border-radius: 4px !important;
+        border-radius: 6px !important;
+        padding: 0.5rem 0.9rem !important;
         font-weight: 700 !important;
-        padding: 0.45rem 0.9rem !important;
+        font-size: 0.88rem !important;
+        letter-spacing: 0.03em !important;
+        text-transform: uppercase !important;
+        cursor: pointer !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+        transition: all 0.2s ease !important;
+
+        .usa-menu-btn__hamburger {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            width: 16px !important;
+            height: 12px !important;
+
+            span {
+                display: block !important;
+                height: 2px !important;
+                width: 100% !important;
+                background-color: #fac922 !important;
+                border-radius: 1px !important;
+                transition: transform 0.2s ease, opacity 0.2s ease !important;
+            }
+        }
+
+        &:hover {
+            background: #1e293b !important;
+            color: #ffffff !important;
+            transform: translateY(-1px) !important;
+
+            .usa-menu-btn__hamburger span {
+                background-color: #ffffff !important;
+            }
+        }
     }
-    .government-header-main .usa-menu-btn:hover {
+
+    /* Slide-Over Navigation Drawer */
+    nav.usa-nav.government-primary-nav,
+    nav.usa-nav.government-desktop-nav,
+    nav.usa-nav {
+        position: fixed !important;
+        top: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 320px !important;
+        max-width: 88vw !important;
+        height: 100vh !important;
+        height: 100dvh !important;
+        background-color: #111827 !important;
+        border-left: 1px solid #1f2937 !important;
+        box-shadow: -10px 0 36px rgba(0, 0, 0, 0.65) !important;
+        z-index: 10000 !important;
+        transform: translateX(100%) !important;
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        display: block !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding: 0 !important;
+        pointer-events: auto !important;
+    }
+
+    nav.usa-nav.government-primary-nav.is-visible,
+    nav.usa-nav.government-desktop-nav.is-visible,
+    nav.usa-nav.is-visible {
+        transform: translateX(0) !important;
+    }
+
+    .government-nav-inner {
+        display: flex !important;
+        flex-direction: column !important;
+        min-height: 100% !important;
+        padding: 1.25rem 1.15rem 2.5rem 1.15rem !important;
+    }
+
+    /* Drawer Top Bar */
+    .government-mobile-nav-header {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding-bottom: 1rem !important;
+        margin-bottom: 1.25rem !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .mobile-nav-title {
+        color: #fac922 !important;
+        font-size: 1.1rem !important;
+        font-weight: 800 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.05em !important;
+    }
+
+    .usa-nav__close {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 34px !important;
+        height: 34px !important;
         background: #1e293b !important;
+        border-radius: 50% !important;
         color: #ffffff !important;
+        border: none !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+        padding: 0 !important;
+
+        svg {
+            stroke: #ffffff !important;
+        }
+
+        &:hover {
+            background: #fac922 !important;
+            color: #000000 !important;
+
+            svg {
+                stroke: #000000 !important;
+            }
+        }
     }
+
+    /* Primary Links in Mobile Drawer */
+    .government-nav-primary {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 0.4rem !important;
+        list-style: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    .government-nav-primary .usa-nav__primary-item {
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    .government-nav-primary .usa-nav__link,
+    .government-nav-primary .usa-accordion__button {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        padding: 0.75rem 1rem !important;
+        background: #1e293b !important;
+        border-radius: 6px !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        transition: all 0.2s ease !important;
+        text-align: left !important;
+    }
+
+    .government-nav-primary .usa-nav__link .nav-title,
+    .government-nav-primary .usa-accordion__button .nav-title {
+        color: #ffffff !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
+    }
+
+    .government-nav-primary .usa-nav__link .menu-item-description,
+    .government-nav-primary .usa-accordion__button .menu-item-description {
+        color: #94a3b8 !important;
+        font-size: 0.72rem !important;
+    }
+
+    .government-nav-primary .usa-nav__link:hover,
+    .government-nav-primary .usa-accordion__button:hover {
+        background: #334155 !important;
+    }
+
+    .government-nav-primary .government-cta-link {
+        background-color: #fac922 !important;
+        color: #000000 !important;
+        box-shadow: 0 4px 14px rgba(250, 201, 34, 0.25) !important;
+    }
+
+    .government-nav-primary .government-cta-link .nav-title {
+        color: #000000 !important;
+    }
+
+    .government-nav-primary .government-cta-link .menu-item-description {
+        color: #374151 !important;
+    }
+
+    .government-nav-primary .government-cta-link:hover {
+        background-color: #ffffff !important;
+    }
+
+    /* Submenus on Mobile */
+    .government-nav-primary .usa-nav__submenu {
+        position: static !important;
+        background: #0f172a !important;
+        border-radius: 0 0 6px 6px !important;
+        border: 1px solid #1e293b !important;
+        border-top: none !important;
+        margin-top: -3px !important;
+        margin-bottom: 0.4rem !important;
+        padding: 0.35rem 0 !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        box-shadow: none !important;
+    }
+
+    .government-nav-primary .usa-nav__submenu:not([hidden]),
+    .government-nav-primary .usa-nav__submenu.is-open {
+        display: block !important;
+    }
+
+    .government-nav-primary .usa-nav__submenu-link {
+        padding: 0.6rem 1.25rem !important;
+        font-size: 0.88rem !important;
+        color: #e2e8f0 !important;
+    }
+
+    .government-nav-primary .usa-nav__submenu-link:hover {
+        background: #1e293b !important;
+        color: #fac922 !important;
+    }
+
+    /* Mobile Drawer Extras */
     .government-mobile-drawer-extras {
         display: block !important;
-        padding: 1.5rem !important;
-        border-top: 1px solid rgba(0, 0, 0, 0.1) !important;
+        margin-top: 1.25rem !important;
+        padding-top: 1.25rem !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .mobile-drawer-search .government-search-form {
+        display: flex !important;
+        gap: 0.35rem !important;
+    }
+
+    .mobile-drawer-search .government-search-input {
+        background: #1e293b !important;
+        border: 1px solid #334155 !important;
+        color: #ffffff !important;
+        padding: 0.55rem 0.75rem !important;
+        border-radius: 6px !important;
+        font-size: 0.88rem !important;
+    }
+
+    .mobile-drawer-search .government-search-submit {
+        background: #fac922 !important;
+        color: #000000 !important;
+        border-radius: 6px !important;
+        padding: 0.55rem 0.85rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .mobile-drawer-contact {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.6rem !important;
+        margin-top: 1.25rem !important;
+    }
+
+    .mobile-contact-item {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
+        color: #ffffff !important;
+        font-size: 0.88rem !important;
+        text-decoration: none !important;
+        padding: 0.55rem 0.75rem !important;
+        background: #1e293b !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease !important;
+
+        svg {
+            color: #fac922 !important;
+            flex-shrink: 0;
+        }
+
+        &:hover {
+            color: #fac922 !important;
+            background: #334155 !important;
+        }
+    }
+
+    .mobile-drawer-social {
+        margin-top: 1.25rem !important;
+
+        .government-social-links {
+            justify-content: flex-start !important;
+            gap: 0.5rem !important;
+        }
+    }
+
+    .mobile-drawer-auth {
+        margin-top: 1.25rem !important;
+        padding-top: 1.25rem !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+    }
+
+    .mobile-auth-link {
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.45rem !important;
+        color: #fac922 !important;
+        font-weight: 700 !important;
+        font-size: 0.88rem !important;
+        text-decoration: none !important;
+        padding: 0.45rem 0.75rem !important;
+        background: rgba(250, 201, 34, 0.1) !important;
+        border: 1px solid rgba(250, 201, 34, 0.25) !important;
+        border-radius: 6px !important;
+        transition: all 0.2s ease !important;
+
+        &:hover {
+            background: #fac922 !important;
+            color: #000000 !important;
+        }
     }
 }
+

@@ -11,37 +11,26 @@
     overflow: hidden !important;
 }
 
-/* Left Full-Bleed Background Panel */
+/* Full-Bleed Background Panel (Lives inside .government-quote-col for exact height matching) */
+.government-split-bg-layer {
+    position: absolute !important;
+    top: 0 !important;
+    bottom: 0 !important;
+    z-index: 1 !important;
+    overflow: hidden !important;
+    background: color('black');
+}
+
 .government-split-left-bg {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    bottom: 0 !important;
-    width: calc(50vw - min(64rem, 100vw) / 2 + (min(64rem, 100vw) * (4 / 12))) !important;
-    z-index: 1 !important;
-    overflow: hidden !important;
-    background: color('black');
-}
-
-.government-listing-section.cols-5-7 .government-split-left-bg {
-    width: calc(50vw - min(64rem, 100vw) / 2 + (min(64rem, 100vw) * (5 / 12))) !important;
-}
-
-/* Right Full-Bleed Background Panel (Flipped) */
-.government-split-right-bg {
-    position: absolute !important;
-    top: 0 !important;
+    left: calc(-1 * (50vw - min(64rem, 100vw) / 2)) !important;
     right: 0 !important;
-    left: auto !important;
-    bottom: 0 !important;
-    width: calc(50vw - min(64rem, 100vw) / 2 + (min(64rem, 100vw) * (4 / 12))) !important;
-    z-index: 1 !important;
-    overflow: hidden !important;
-    background: color('black');
+    width: auto !important;
 }
 
-.government-listing-section.cols-5-7 .government-split-right-bg {
-    width: calc(50vw - min(64rem, 100vw) / 2 + (min(64rem, 100vw) * (5 / 12))) !important;
+.government-split-right-bg {
+    right: calc(-1 * (50vw - min(64rem, 100vw) / 2)) !important;
+    left: 0 !important;
+    width: auto !important;
 }
 
 .government-split-left-bg .split-bg-image,
@@ -241,25 +230,71 @@
 }
 
 @media all and (max-width: 64em) {
+    .government-split-bg-layer,
     .government-split-left-bg,
     .government-split-right-bg {
-        width: 100% !important;
-        height: 340px !important;
-        bottom: auto !important;
+        left: calc(-50vw + 50%) !important;
+        right: calc(-50vw + 50%) !important;
+        width: 100vw !important;
+        top: 0 !important;
+        bottom: 0 !important;
+        height: 100% !important;
     }
 
-    .government-quote-col {
+    .government-quote-col,
+    .government-left-col,
+    .government-right-quote-col {
         padding-top: 3.5rem !important;
-        padding-bottom: 2.5rem !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
+        padding-bottom: 3.5rem !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        width: 100% !important;
     }
 
-    .government-main-col {
+    .government-main-col,
+    .government-right-col,
+    .government-left-main-col {
+        padding-top: 3rem !important;
+        padding-bottom: 4rem !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        width: 100% !important;
+    }
+}
+
+@media all and (max-width: 36em) {
+    .government-quote-col,
+    .government-left-col,
+    .government-right-quote-col {
+        padding-top: 2.75rem !important;
+        padding-bottom: 2.75rem !important;
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+
+    .government-main-col,
+    .government-right-col,
+    .government-left-main-col {
         padding-top: 2.5rem !important;
-        padding-bottom: 4.5rem !important;
-        padding-left: 0 !important;
-        padding-right: 0 !important;
+        padding-bottom: 3.5rem !important;
+        padding-left: 1.25rem !important;
+        padding-right: 1.25rem !important;
+    }
+
+    .government-post-item {
+        flex-direction: column !important;
+        align-items: stretch !important;
+
+        .imgwrap {
+            width: 100% !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
+            height: 190px !important;
+            min-height: 190px !important;
+            max-height: 190px !important;
+            margin-right: 0 !important;
+            margin-bottom: 1.15rem !important;
+        }
     }
 }
 
