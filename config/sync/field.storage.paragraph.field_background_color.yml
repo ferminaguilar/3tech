@@ -23,6 +23,9 @@ settings:
     -
       value: primary-dark
       label: 'Primary Dark'
+    -
+      value: yellow
+      label: Yellow
   allowed_values_function: ''
 module: options
 locked: false

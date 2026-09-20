@@ -115,20 +115,97 @@
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55) !important;
 }
 
-.government-info-images-section.section-bg-light {
-    background-color: color('gray-90') !important;
-}
-
-.government-info-images-section.section-bg-primary {
-    background-color: color('black') !important;
-}
-
+.government-info-images-section.section-bg-primary,
 .government-info-images-section.section-bg-primary-dark {
     background-color: color('black') !important;
 }
 
+.government-info-images-section.section-bg-light {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+
+    .info-section-title {
+        color: #111827 !important;
+    }
+
+    .info-section-subtitle {
+        color: #b45309 !important;
+    }
+
+    .info-section-body,
+    .info-section-body p {
+        color: #374151 !important;
+    }
+
+    .usa-button {
+        background-color: #111827 !important;
+        color: #fac922 !important;
+
+        &:hover {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+    }
+}
+
 .government-info-images-section.section-bg-white {
-    background-color: color('black') !important;
+    background-color: #ffffff !important;
+    color: #111827 !important;
+
+    .info-section-title {
+        color: #111827 !important;
+    }
+
+    .info-section-subtitle {
+        color: #b45309 !important;
+    }
+
+    .info-section-body,
+    .info-section-body p {
+        color: #374151 !important;
+    }
+
+    .usa-button {
+        background-color: #111827 !important;
+        color: #fac922 !important;
+
+        &:hover {
+            background-color: #000000 !important;
+            color: #ffffff !important;
+        }
+    }
+}
+
+.government-info-images-section.section-bg-yellow {
+    background-color: #fac922 !important;
+    color: #000000 !important;
+
+    .info-section-title {
+        color: #000000 !important;
+    }
+
+    .info-section-subtitle {
+        color: #1f2937 !important;
+    }
+
+    .info-section-body,
+    .info-section-body p {
+        color: #111827 !important;
+    }
+
+    .usa-button {
+        background-color: #000000 !important;
+        color: #ffffff !important;
+
+        &:hover {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+        }
+    }
+
+    .info-image-card--2 {
+        border-color: #fac922 !important;
+    }
 }
 
 @media all and (max-width: 48em) {
