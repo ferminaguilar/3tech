@@ -11,78 +11,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Deploy via SSH to Namecheap
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          fetch-depth: 0
-
-      - name: Deploy Only Changed Files to Namecheap
-        run: |
-          if ! command -v lftp >/dev/null 2>&1; then
-            sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends lftp >/dev/null 2>&1
-          fi
-          
-          before="${{ github.event.before }}"
-          if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
-            before="HEAD~1"
-          fi
-          
-          git diff --name-only --diff-filter=ACMR "$before" "$GITHUB_SHA" > raw_changed_files.txt || true
-          grep -v -E '^\.github/|^\.git/|\.DS_Store' raw_changed_files.txt > changed_files.txt || true
-          
-          if [ ! -s changed_files.txt ]; then
-            echo "No website files changed in this commit."
-            exit 0
-          fi
-          
-          echo "Website files changed in this commit:"
-          cat changed_files.txt
-          
-          STAGE_DIR="$(mktemp -d)"
-          while IFS= read -r file; do
-            if [ -f "$file" ]; then
-              mkdir -p "$STAGE_DIR/$(dirname "$file")"
-              cp -a "$file" "$STAGE_DIR/$file"
-            fi
-          done < changed_files.txt
-          
-          FTP_HOST="${FTP_SERVER:-ftp.fermin.host}"
-          LFTP_SCRIPT="$(mktemp)"
-          echo "set ssl:verify-certificate no" > "$LFTP_SCRIPT"
-          echo "set ftp:passive-mode true" >> "$LFTP_SCRIPT"
-          echo "set net:timeout 15" >> "$LFTP_SCRIPT"
-          echo "set cmd:fail-exit false" >> "$LFTP_SCRIPT"
-          echo "open -u $FTP_USERNAME,$FTP_PASSWORD $FTP_HOST 21" >> "$LFTP_SCRIPT"
-          echo "lcd \"$STAGE_DIR\"" >> "$LFTP_SCRIPT"
-
-          (
-            cd "$STAGE_DIR"
-            find . -type f | while read -r f; do
-              rel="${f#./}"
-              dir="$(dirname "$rel")"
-              
-              # Upload to repository folder
-              echo "cd" >> "$LFTP_SCRIPT"
-              echo "cd repositories/3tech" >> "$LFTP_SCRIPT"
-              if [ "$dir" != "." ]; then
-                echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
-              fi
-              echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
-
-              # Upload to live web directory (3tech.io)
-              echo "cd" >> "$LFTP_SCRIPT"
-              echo "cd 3tech.io" >> "$LFTP_SCRIPT"
-              if [ "$dir" != "." ]; then
-                echo "mkdir -f -p \"$dir\"" >> "$LFTP_SCRIPT"
-              fi
-              echo "put \"$rel\" -o \"$rel\"" >> "$LFTP_SCRIPT"
-            done
-          )
-          echo "bye" >> "$LFTP_SCRIPT"
-          echo "Executing direct upload of changed files to $FTP_HOST..."
-          lftp -f "$LFTP_SCRIPT"
-          echo "Deployment finished successfully."
-        env:
-          FTP_SERVER: ${{ secrets.FTP_SERVER }}
-          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
-          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          password: ${{ secrets.SSH_PASSWORD }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 21098 }}
+          script: |
+            echo "=== 1. Updating Server Repository ==="
+            cd /home/fermpgjg/repositories/3tech
+            git fetch origin main
+            git reset --hard origin/main
+            git clean -fd
+            
+            echo "=== 2. Syncing Files to Live Website ==="
+            export DEPLOYPATH=/home/fermpgjg/3tech.io
+            export PATH=/opt/cpanel/ea-php83/root/usr/bin:$HOME/bin:/usr/local/bin:$PATH
+            export COMPOSER_MEMORY_LIMIT=-1
+            /bin/rsync -a --exclude='.git' --exclude='sites/default/files' --exclude='sites/default/settings.local.php' ./ $DEPLOYPATH/
+            
+            echo "=== 3. Running Drupal Updates & Config Import ==="
+            cd $DEPLOYPATH
+            composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --ignore-platform-reqs
+            ./vendor/bin/drush updb -y
+            ./vendor/bin/drush cim -y
+            ./vendor/bin/drush cr
+            
+            echo "=== Deployment Completed Successfully! ==="
