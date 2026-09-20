@@ -31,7 +31,18 @@
                         adaptiveHeight: false,
                         speed: 600,
                         prevArrow: '<button type="button" class="slick-prev" aria-label="Previous Slide">Previous</button>',
-                        nextArrow: '<button type="button" class="slick-next" aria-label="Next Slide">Next</button>'
+                        nextArrow: '<button type="button" class="slick-next" aria-label="Next Slide">Next</button>',
+                        responsive: [
+                            {
+                                breakpoint: 1024,
+                                settings: {
+                                    arrows: false,
+                                    dots: true,
+                                    swipe: true,
+                                    touchMove: true
+                                }
+                            }
+                        ]
                     });
                 }
             });
