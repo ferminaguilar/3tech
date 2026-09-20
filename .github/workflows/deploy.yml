@@ -30,7 +30,15 @@ jobs:
             export DEPLOYPATH=/home/fermpgjg/3tech.io
             export PATH=/opt/cpanel/ea-php83/root/usr/bin:$HOME/bin:/usr/local/bin:$PATH
             export COMPOSER_MEMORY_LIMIT=-1
-            /bin/rsync -a --exclude='.git' --exclude='sites/default/files' --exclude='sites/default/settings.local.php' ./ $DEPLOYPATH/
+            chmod 755 $DEPLOYPATH 2>/dev/null || true
+            chmod 755 $DEPLOYPATH/sites/default 2>/dev/null || true
+            /bin/rsync -a --chmod=D755,F644 --exclude='.git' --exclude='sites/default/files' --exclude='sites/default/settings.local.php' ./ $DEPLOYPATH/
+            
+            # Ensure permissions adhere to cPanel/LiteSpeed requirements (Dirs 755, Files 644, Executables 755)
+            chmod 755 $DEPLOYPATH
+            find $DEPLOYPATH -maxdepth 3 -type d -exec chmod 755 {} +
+            find $DEPLOYPATH -maxdepth 3 -type f -exec chmod 644 {} +
+            chmod -R 755 $DEPLOYPATH/vendor/bin 2>/dev/null || true
             
             echo "=== 3. Running Drupal Updates & Config Import ==="
             cd $DEPLOYPATH
