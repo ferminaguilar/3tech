@@ -429,7 +429,7 @@ header.government-header .grid-container {
     height: 100vh !important;
     background: rgba(0, 0, 0, 0.75) !important;
     backdrop-filter: blur(4px) !important;
-    z-index: 9999 !important;
+    z-index: 10000 !important;
     opacity: 0 !important;
     visibility: hidden !important;
     pointer-events: none !important;
@@ -459,17 +459,32 @@ header.government-header .grid-container {
 /* Mobile & Tablet Styles */
 @media all and (max-width: 64em) {
     header.government-header {
+        position: absolute !important;
         top: 0.75rem !important;
+        z-index: 10005 !important;
+        pointer-events: none !important;
+    }
+
+    body.mobile-nav-active header.government-header {
+        pointer-events: auto !important;
     }
 
     header.government-header .grid-container {
         padding-left: 1rem !important;
         padding-right: 1rem !important;
+        pointer-events: auto !important;
     }
 
     .government-header-main {
         padding: 0.65rem 1rem !important;
         border-radius: 8px !important;
+    }
+
+    .government-header-main > div {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
     }
 
     .government-header-bottom {
@@ -478,17 +493,36 @@ header.government-header .grid-container {
 
     .government-header-branding {
         width: 100% !important;
+        flex: 1 1 100% !important;
         display: flex !important;
         align-items: center !important;
         justify-content: space-between !important;
     }
 
-    /* Hamburger Menu Button */
+    .government-header-branding .block,
+    .government-header-branding .block-system-branding-block {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    .government-header-branding .usa-logo {
+        margin: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Hamburger Menu Button - Fixed to Right Edge */
     .usa-menu-btn {
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
         gap: 0.45rem !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
         background: #000000 !important;
         color: #fac922 !important;
         border: none !important;
@@ -501,6 +535,7 @@ header.government-header .grid-container {
         cursor: pointer !important;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
         transition: all 0.2s ease !important;
+        z-index: 100 !important;
 
         .usa-menu-btn__hamburger {
             display: flex !important;
@@ -545,7 +580,7 @@ header.government-header .grid-container {
         background-color: #111827 !important;
         border-left: 1px solid #1f2937 !important;
         box-shadow: -10px 0 36px rgba(0, 0, 0, 0.65) !important;
-        z-index: 10000 !important;
+        z-index: 10006 !important;
         transform: translateX(100%) !important;
         transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
         display: block !important;
