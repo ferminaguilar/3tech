@@ -2,9 +2,9 @@
 deployment:
   tasks:
     - export DEPLOYPATH=/home/fermpgjg/3tech.io
-    - export PATH=$HOME/bin:/usr/local/bin:$PATH
+    - export PATH=/opt/cpanel/ea-php83/root/usr/bin:$HOME/bin:/usr/local/bin:$PATH
     - export COMPOSER_MEMORY_LIMIT=-1
-    - /bin/rsync -a --exclude='.git' ./ $DEPLOYPATH/
+    - /bin/rsync -a --exclude='.git' --exclude='sites/default/files' --exclude='sites/default/settings.local.php' ./ $DEPLOYPATH/
     - test -f $DEPLOYPATH/sites/default/settings.php || cp $DEPLOYPATH/sites/default/default.settings.php $DEPLOYPATH/sites/default/settings.php
     - chmod -R 755 $DEPLOYPATH/sites/default || true
     - cd $DEPLOYPATH && composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --ignore-platform-reqs
