@@ -1,0 +1,22 @@
+uuid: cd24a5c3-8d5f-4e2e-95ab-70d9e6d18f06
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - default_admin
+_core:
+  default_config_hash: A0bSgTfhz7M_3ljjCoyrdKWwh-8s_9VsLVJzb4fzE3c
+id: default_admin_content
+theme: default_admin
+region: content
+weight: 0
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 'Main page content'
+  label_display: '0'
+  provider: system
+visibility: {  }

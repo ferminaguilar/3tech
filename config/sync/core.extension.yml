@@ -61,4 +61,5 @@ theme:
   claro: 0
   uswds_base: 0
   government: 0
+  default_admin: 0
 profile: standard
