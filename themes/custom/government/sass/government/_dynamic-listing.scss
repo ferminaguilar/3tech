@@ -23,6 +23,10 @@
     background: color('black');
 }
 
+.government-listing-section.cols-5-7 .government-split-left-bg {
+    width: calc(50vw - min(64rem, 100vw) / 2 + (min(64rem, 100vw) * (5 / 12))) !important;
+}
+
 /* Right Full-Bleed Background Panel (Flipped) */
 .government-split-right-bg {
     position: absolute !important;
@@ -34,6 +38,10 @@
     z-index: 1 !important;
     overflow: hidden !important;
     background: color('black');
+}
+
+.government-listing-section.cols-5-7 .government-split-right-bg {
+    width: calc(50vw - min(64rem, 100vw) / 2 + (min(64rem, 100vw) * (5 / 12))) !important;
 }
 
 .government-split-left-bg .split-bg-image,
