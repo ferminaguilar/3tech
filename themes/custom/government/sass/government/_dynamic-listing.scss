@@ -102,7 +102,7 @@
 
 .government-highlight-body,
 .government-highlight-body p {
-    color: color('gray-5') !important;
+    color: #f3f4f6 !important;
     text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7) !important;
     font-size: 1.05rem !important;
     line-height: 1.6 !important;
@@ -130,7 +130,7 @@
 
 .government-listing-section:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-highlight-body,
 .government-listing-section:not(:has(.government-split-left-bg)):not(:has(.government-split-right-bg)) .government-highlight-body p {
-    color: color('gray-20') !important;
+    color: #f3f4f6 !important;
     text-shadow: none !important;
 }
 
@@ -166,7 +166,7 @@
 }
 
 .government-highlight-header .dekoline {
-    color: color('gray-40') !important;
+    color: rgba(255, 255, 255, 0.85) !important;
     font-size: 1.05rem !important;
     font-weight: 400 !important;
     margin-top: 0 !important;
@@ -176,7 +176,7 @@
 /* Service / Text Content Body */
 .government-listing-body,
 .government-listing-body p {
-    color: color('gray-10') !important;
+    color: #f3f4f6 !important;
     font-size: 1.08rem !important;
     line-height: 1.7 !important;
     max-width: 65ch !important;
@@ -188,7 +188,7 @@
 
 .government-listing-body ul,
 .government-listing-body ol {
-    color: color('gray-10') !important;
+    color: #f3f4f6 !important;
     font-size: 1.05rem !important;
     line-height: 1.6 !important;
     margin-top: 1rem !important;
@@ -405,7 +405,7 @@
 
 .government-post-item .meta {
     font-size: 0.82rem !important;
-    color: color('gray-40') !important;
+    color: rgba(255, 255, 255, 0.75) !important;
     margin-top: 0 !important;
     margin-bottom: 0.45rem !important;
     display: flex !important;
@@ -418,7 +418,7 @@
 
 .government-post-item .meta .divider {
     margin: 0 0.45rem !important;
-    color: color('gray-50') !important;
+    color: rgba(255, 255, 255, 0.5) !important;
 }
 
 .government-post-item .meta .categs a {
@@ -433,7 +433,7 @@
 
 .government-post-item .teaser {
     font-size: 0.92rem !important;
-    color: color('gray-20') !important;
+    color: #f3f4f6 !important;
     line-height: 1.55 !important;
     margin: 0 !important;
 }
@@ -571,7 +571,7 @@
 
 .government-event-item .event-meta {
     font-size: 0.88rem !important;
-    color: color('gray-40') !important;
+    color: rgba(255, 255, 255, 0.85) !important;
     display: flex !important;
     flex-wrap: wrap !important;
     gap: 1rem !important;
@@ -583,7 +583,7 @@
 }
 
 .government-event-item .event-location {
-    color: color('gray-20') !important;
+    color: #f3f4f6 !important;
 }
 
 @media all and (max-width: 36em) {
@@ -617,7 +617,14 @@
 
 .government-listing-section.section-bg-primary .government-highlight-header .dekoline,
 .government-listing-section.section-bg-primary-dark .government-highlight-header .dekoline {
-    color: color('gray-40') !important;
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.government-listing-section.section-bg-primary .government-listing-body,
+.government-listing-section.section-bg-primary .government-listing-body p,
+.government-listing-section.section-bg-primary-dark .government-listing-body,
+.government-listing-section.section-bg-primary-dark .government-listing-body p {
+    color: #f3f4f6 !important;
 }
 
 /* White Background Theme */
