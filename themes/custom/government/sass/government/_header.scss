@@ -779,18 +779,40 @@ header.government-header .grid-container {
         color: #ffffff !important;
     }
 
+    /* Submenu Parent Menu Item (e.g. Services) in Expanded Open State */
+    nav.usa-nav .usa-accordion__button[aria-expanded="true"],
+    nav.usa-nav button.usa-accordion__button[aria-expanded="true"],
+    nav.usa-nav .usa-nav__link[aria-expanded="true"],
     .government-nav-primary .usa-accordion__button[aria-expanded="true"],
     .government-nav-primary button.usa-accordion__button[aria-expanded="true"],
-    .government-primary-nav .usa-accordion__button[aria-expanded="true"] {
+    .government-primary-nav .usa-accordion__button[aria-expanded="true"],
+    .government-primary-nav button.usa-accordion__button[aria-expanded="true"] {
         background: #0f172a !important;
         background-color: #0f172a !important;
         border-bottom-left-radius: 0 !important;
         border-bottom-right-radius: 0 !important;
-        border-color: #fac922 !important;
-        color: #ffffff !important;
+        border: 1px solid #fac922 !important;
+        border-bottom: 1px solid #1e293b !important;
+        color: #fac922 !important;
 
-        .nav-title {
+        &,
+        &:hover,
+        &:focus,
+        &:active {
+            background: #0f172a !important;
+            background-color: #0f172a !important;
             color: #fac922 !important;
+        }
+
+        span,
+        .nav-title,
+        .menu-item-description {
+            color: #fac922 !important;
+        }
+
+        &::after {
+            border-right-color: #fac922 !important;
+            border-bottom-color: #fac922 !important;
         }
     }
 
