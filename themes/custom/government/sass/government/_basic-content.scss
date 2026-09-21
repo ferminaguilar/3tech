@@ -38,7 +38,7 @@
 }
 
 /* Field items and nested paragraph wrappers */
-.field--name-field-sections > .field__item,
+.field--name-field-sections>.field__item,
 .field--name-field-body,
 .field--name-field-body .field__item {
   margin: 0 !important;
@@ -46,9 +46,9 @@
 }
 
 /* Page node field items spacing */
-.field--name-field-sections > .field__item:first-child .government-basic-content-section,
-.government-page-node > .field--name-field-sections > .field__item:first-child .government-basic-content-section,
-.main-content > .field--name-field-sections > .field__item:first-child .government-basic-content-section {
+.field--name-field-sections>.field__item:first-child .government-basic-content-section,
+.government-page-node>.field--name-field-sections>.field__item:first-child .government-basic-content-section,
+.main-content>.field--name-field-sections>.field__item:first-child .government-basic-content-section {
   padding-top: 2.5rem !important;
 
   @media (max-width: 64em) {
@@ -56,9 +56,9 @@
   }
 }
 
-.field--name-field-sections > .field__item:last-child .government-basic-content-section,
-.government-page-node > .field--name-field-sections > .field__item:last-child .government-basic-content-section,
-.main-content > .field--name-field-sections > .field__item:last-child .government-basic-content-section {
+.field--name-field-sections>.field__item:last-child .government-basic-content-section,
+.government-page-node>.field--name-field-sections>.field__item:last-child .government-basic-content-section,
+.main-content>.field--name-field-sections>.field__item:last-child .government-basic-content-section {
   padding-bottom: 3.5rem !important;
 
   @media (max-width: 64em) {
@@ -74,7 +74,8 @@
   p {
     font-weight: 400 !important;
     font-style: normal !important;
-    font-size: 1.125rem !important; /* 18px */
+    font-size: 1.125rem !important;
+    /* 18px */
     line-height: 1.7 !important;
     color: #374151 !important;
     margin-top: 0 !important;
@@ -99,7 +100,8 @@
   li {
     font-weight: 400 !important;
     font-style: normal !important;
-    font-size: 1.125rem !important; /* 18px */
+    font-size: 1.125rem !important;
+    /* 18px */
     line-height: 1.65 !important;
     color: #374151 !important;
     margin-bottom: 0.4rem !important;
@@ -138,10 +140,11 @@
 }
 
 p.usa-paragraph,
-.usa-prose > p {
+.usa-prose>p {
   font-weight: 400 !important;
   font-style: normal !important;
-  font-size: 1.125rem !important; /* 18px */
+  font-size: 1.125rem !important;
+  /* 18px */
   line-height: 1.75 !important;
 }
 
@@ -179,4 +182,3 @@ p.usa-paragraph,
     padding-top: 0 !important;
   }
 }
-
