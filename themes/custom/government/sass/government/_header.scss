@@ -483,8 +483,10 @@ header.government-header .grid-container {
     .government-header-main-inner {
         width: 100% !important;
         display: flex !important;
+        flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
+        position: relative !important;
     }
 
     .government-header-bottom {
@@ -495,13 +497,27 @@ header.government-header .grid-container {
         display: flex !important;
         align-items: center !important;
         flex: 0 1 auto !important;
-    }
+        max-width: calc(100% - 90px) !important;
 
-    .government-header-branding .usa-logo {
-        margin: 0 !important;
-        display: flex !important;
-        align-items: center !important;
-        flex-shrink: 0 !important;
+        .region,
+        .region-header,
+        .block,
+        .usa-logo {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            border: none !important;
+            background: transparent !important;
+            float: none !important;
+            width: auto !important;
+        }
+
+        .usa-logo__text {
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 !important;
+        }
     }
 
     /* Hamburger Menu Button - Fixed to Far Right Edge */
@@ -526,6 +542,7 @@ header.government-header .grid-container {
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
         transition: all 0.2s ease !important;
         z-index: 100 !important;
+        pointer-events: auto !important;
 
         .usa-menu-btn__hamburger {
             display: flex !important;

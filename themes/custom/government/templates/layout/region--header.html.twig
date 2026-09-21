@@ -1,0 +1,12 @@
+{#
+/**
+ * @file
+ * Theme override for header region in Government theme.
+ * Clean wrapper without uswds_base usa-navbar conflicts.
+ */
+#}
+{% if content %}
+  <div class="region region-header">
+    {{ content }}
+  </div>
+{% endif %}
