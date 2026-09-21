@@ -76,18 +76,46 @@ body:not(.path-frontpage):not(.page--front) .main-content .government-callout {
 }
 
 .government-callout h2 {
-    color: color('white') !important;
+    color: #ffffff !important;
     font-size: clamp(1.8rem, 3vw, 2.5rem) !important;
     font-weight: 800 !important;
     line-height: 1.18 !important;
     letter-spacing: -0.02em !important;
 }
 
-.government-callout .usa-prose,
-.government-callout p {
-    color: color('gray-10') !important;
-    font-size: 1.05rem !important;
-    line-height: 1.65 !important;
+.government-callout {
+    .usa-prose,
+    .usa-prose p,
+    p,
+    .field--name-field-callout-body,
+    .field--name-field-callout-body p {
+        color: #f3f4f6 !important;
+        font-size: 1.05rem !important;
+        line-height: 1.65 !important;
+    }
+
+    .font-sans-lg,
+    .text-base-lightest,
+    .text-accent-cool-lighter {
+        color: rgba(255, 255, 255, 0.9) !important;
+    }
+}
+
+.government-callout.section-callout-light {
+    background-color: #f3f4f6 !important;
+    color: #111827 !important;
+
+    h2 {
+        color: #111827 !important;
+    }
+
+    .usa-prose,
+    .usa-prose p,
+    p,
+    .field--name-field-callout-body,
+    .field--name-field-callout-body p {
+        color: #374151 !important;
+    }
 }
 
 .government-callout .usa-button {
