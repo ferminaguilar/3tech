@@ -20,14 +20,24 @@
     <div class="grid-container">
       <div class="government-header-card">
 
-        {# Top / Main Header Bar: Logo + 2-Line Nav + CTA Button #}
+        {# Top / Main Header Bar: Logo + Nav + Mobile Toggle #}
         <div class="government-header-main">
-          <div class="display-flex flex-align-center flex-justify">
+          <div class="government-header-main-inner display-flex flex-align-center flex-justify width-full">
             
             {# Logo / Site Branding #}
             <div class="government-header-branding">
               {{ page.header }}
             </div>
+
+            {# Mobile Hamburger Menu Button (Right Aligned) #}
+            <button class="usa-menu-btn" type="button" aria-label="{{ 'Menu'|t }}" aria-expanded="false">
+              <span class="usa-menu-btn__hamburger" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+              <span class="usa-menu-btn__text">{{ 'Menu'|t }}</span>
+            </button>
 
             {# Primary Navigation (Desktop Bar + Mobile Drawer) #}
             <nav class="usa-nav government-primary-nav" role="navigation" aria-label="{{ 'Main Menu'|t }}">

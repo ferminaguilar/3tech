@@ -11,7 +11,6 @@
     <a class="logo-img display-inline-flex flex-align-center margin-right-1" href="{{ path('<front>') }}" accesskey="1" title="{{ 'Home'|t }}" aria-label="Home">
       <img src="{{ site_logo }}" alt="{{ 'Home'|t }}" width="62" height="52" style="height: {{ header_logo_height|default('40px') }}; max-height: {{ header_logo_height|default('40px') }}; width: auto; display: block;" />
     </a>
-
   {% endif %}
 
   {% if site_name %}
@@ -26,11 +25,3 @@
   {% endif %}
 
 </div>
-<button class="usa-menu-btn" type="button" aria-label="{{ 'Menu'|t }}" aria-expanded="false">
-  <span class="usa-menu-btn__hamburger" aria-hidden="true">
-    <span></span>
-    <span></span>
-    <span></span>
-  </span>
-  <span class="usa-menu-btn__text">{{ 'Menu'|t }}</span>
-</button>
