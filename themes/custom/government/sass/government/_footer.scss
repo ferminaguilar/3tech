@@ -1,0 +1,95 @@
+/* ==========================================================================
+   GOVERNMENT THEME - FOOTER STYLING
+   ========================================================================== */
+
+/* Return to top link */
+.usa-footer__return-to-top {
+    padding-top: 1.25rem !important;
+    padding-bottom: 1.25rem !important;
+
+    a {
+        color: #334155 !important;
+        font-weight: 600 !important;
+        text-decoration: none !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.35rem !important;
+        transition: color 0.15s ease !important;
+
+        &:hover {
+            color: #fac922 !important;
+            text-decoration: underline !important;
+        }
+    }
+}
+
+/* Secondary Footer Section (Brand Yellow Theme) */
+.usa-footer__secondary-section {
+    background-color: #fac922 !important; // yellow-20v
+    color: #000000 !important;
+    border-top: none !important;
+    padding-top: 2.25rem !important;
+    padding-bottom: 2.25rem !important;
+
+    .usa-footer__logo-heading {
+        color: #000000 !important;
+        font-weight: 800 !important;
+        font-size: 1.25rem !important;
+        line-height: 1.25 !important;
+    }
+
+    .usa-footer__contact-heading {
+        color: #000000 !important;
+        font-weight: 700 !important;
+        font-size: 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+
+    .usa-footer__contact-info,
+    .usa-footer__address {
+        color: #111827 !important;
+
+        a {
+            color: #000000 !important;
+            font-weight: 700 !important;
+            text-decoration: none !important;
+            transition: opacity 0.15s ease !important;
+
+            &:hover {
+                text-decoration: underline !important;
+                opacity: 0.8 !important;
+            }
+        }
+    }
+
+    /* Social Links in Yellow Footer */
+    .usa-social-links {
+        margin-bottom: 0.75rem !important;
+    }
+
+    .usa-social-link {
+        background-color: #000000 !important;
+        border-radius: 50% !important;
+        width: 2.25rem !important;
+        height: 2.25rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: transform 0.2s ease, background-color 0.2s ease !important;
+
+        .usa-social-link__icon {
+            filter: brightness(0) invert(1) !important;
+            width: 1.15rem !important;
+            height: 1.15rem !important;
+        }
+
+        &:hover {
+            background-color: #1f2937 !important;
+            transform: translateY(-2px) !important;
+        }
+    }
+
+    a {
+        color: #000000 !important;
+    }
+}
