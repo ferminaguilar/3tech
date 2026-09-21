@@ -46,23 +46,13 @@
 }
 
 /* Page node field items spacing */
-.field--name-field-sections>.field__item:first-child .government-basic-content-section,
-.government-page-node>.field--name-field-sections>.field__item:first-child .government-basic-content-section,
-.main-content>.field--name-field-sections>.field__item:first-child .government-basic-content-section {
-  padding-top: 2.5rem !important;
-
-  @media (max-width: 64em) {
-    padding-top: 1.75rem !important;
-  }
-}
-
 .field--name-field-sections>.field__item:last-child .government-basic-content-section,
 .government-page-node>.field--name-field-sections>.field__item:last-child .government-basic-content-section,
 .main-content>.field--name-field-sections>.field__item:last-child .government-basic-content-section {
-  padding-bottom: 3.5rem !important;
+  padding-bottom: 2rem !important;
 
   @media (max-width: 64em) {
-    padding-bottom: 2.5rem !important;
+    padding-bottom: 1.5rem !important;
   }
 }
 
