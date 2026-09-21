@@ -10,49 +10,53 @@
     overflow: hidden !important;
     background-color: color('black') !important;
     color: color('white') !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 }
 
-/* On Homepage: extra top padding for overlapping quick services cards */
+/* On Homepage: extra top padding for overlapping quick services cards, zero margins */
 body.path-frontpage .government-callout,
-.page--front .government-callout {
+body.path-frontpage .main-content .government-callout,
+.page--front .government-callout,
+.page--front .main-content .government-callout {
     padding-top: 8.5rem !important;
     padding-bottom: 0 !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 
     @media all and (max-width: 64em) {
         padding-top: 6rem !important;
         padding-bottom: 0 !important;
+        margin: 0 !important;
     }
 
     @media all and (max-width: 30em) {
         padding-top: 2.5rem !important;
         padding-bottom: 0 !important;
+        margin: 0 !important;
     }
 }
 
-/* On Basic / Interior Pages: balanced section padding and margins */
-body:not(.path-frontpage) .government-callout,
-.government-page-node .government-callout,
-.main-content .government-callout {
+/* On Basic / Interior Pages: standard section padding with 0 margin */
+body:not(.path-frontpage):not(.page--front) .government-callout,
+body:not(.path-frontpage):not(.page--front) .government-page-node .government-callout,
+body:not(.path-frontpage):not(.page--front) .main-content .government-callout {
     padding-top: 3.5rem !important;
-    padding-bottom: 0 !important;
-    margin-top: 2.5rem !important;
-    margin-bottom: 2.5rem !important;
-
-    &:last-child,
-    &:last-of-type {
-        margin-bottom: 0 !important;
-    }
+    padding-bottom: 3.5rem !important;
+    margin: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
 
     @media all and (max-width: 64em) {
         padding-top: 2.5rem !important;
-        margin-top: 2rem !important;
-        margin-bottom: 2rem !important;
+        padding-bottom: 2.5rem !important;
     }
 
     @media all and (max-width: 30em) {
         padding-top: 2rem !important;
-        margin-top: 1.5rem !important;
-        margin-bottom: 1.5rem !important;
+        padding-bottom: 2rem !important;
     }
 }
 
