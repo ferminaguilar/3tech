@@ -13,50 +13,53 @@
     margin: 0 !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
-}
-
-/* On Homepage: extra top padding for overlapping quick services cards, zero margins */
-body.path-frontpage .government-callout,
-body.path-frontpage .main-content .government-callout,
-.page--front .government-callout,
-.page--front .main-content .government-callout {
-    padding-top: 8.5rem !important;
-    padding-bottom: 0 !important;
-    margin: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    padding-top: 10rem !important; /* Clears the overlapping floating quick services cards */
+    padding-bottom: 0 !important;  /* Flush with bottom for image */
 
     @media all and (max-width: 64em) {
-        padding-top: 6rem !important;
+        padding-top: 7rem !important;
         padding-bottom: 0 !important;
-        margin: 0 !important;
     }
 
     @media all and (max-width: 30em) {
-        padding-top: 2.5rem !important;
+        padding-top: 3rem !important;
         padding-bottom: 0 !important;
-        margin: 0 !important;
+    }
+}
+
+/* On Homepage: extra top clearance for quick services cards, zero bottom padding for flush image */
+body.path-frontpage .government-callout,
+body.page--front .government-callout,
+.page--front .government-callout {
+    padding-top: 10rem !important;
+    padding-bottom: 0 !important;
+    margin: 0 !important;
+
+    @media all and (max-width: 64em) {
+        padding-top: 7rem !important;
+        padding-bottom: 0 !important;
+    }
+
+    @media all and (max-width: 30em) {
+        padding-top: 3rem !important;
+        padding-bottom: 0 !important;
     }
 }
 
 /* On Basic / Interior Pages: standard section padding with 0 margin */
-body:not(.path-frontpage):not(.page--front) .government-callout,
-body:not(.path-frontpage):not(.page--front) .government-page-node .government-callout,
-body:not(.path-frontpage):not(.page--front) .main-content .government-callout {
+body.page--interior .government-callout,
+.government-page-node .government-callout,
+.government-interior-main .government-callout {
     padding-top: 3.5rem !important;
-    padding-bottom: 3.5rem !important;
+    padding-bottom: 0 !important;
     margin: 0 !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
 
     @media all and (max-width: 64em) {
         padding-top: 2.5rem !important;
-        padding-bottom: 2.5rem !important;
     }
 
     @media all and (max-width: 30em) {
         padding-top: 2rem !important;
-        padding-bottom: 2rem !important;
     }
 }
 
