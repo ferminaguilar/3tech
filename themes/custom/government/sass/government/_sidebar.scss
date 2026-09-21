@@ -244,7 +244,7 @@
             border-radius: 6px !important;
             overflow: hidden !important;
 
-            li, .menu-item {
+            li, .menu-item, .usa-sidenav__item {
                 border-bottom: 1px solid #f1f5f9 !important;
                 margin: 0 !important;
                 padding: 0 !important;
@@ -271,12 +271,113 @@
                         background-color: #111827 !important;
                         color: #fac922 !important;
                         padding-left: 1.4rem !important;
-                        font-weight: 600 !important;
+                        font-weight: 700 !important;
+
+                        &::after {
+                            background-color: #fac922 !important;
+                            border-color: #fac922 !important;
+                        }
                     }
                 }
             }
         }
     }
+}
+
+/* USWDS Sidenav / Left Navigation Styling */
+.usa-sidenav {
+    list-style: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 6px !important;
+    overflow: hidden !important;
+    background-color: #ffffff !important;
+
+    .usa-sidenav__item,
+    li {
+        border-bottom: 1px solid #f1f5f9 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+
+        &:last-child {
+            border-bottom: none !important;
+        }
+
+        a,
+        .usa-nav__link {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 0.85rem 1.15rem !important;
+            font-size: 0.95rem !important;
+            font-weight: 500 !important;
+            color: #334155 !important;
+            text-decoration: none !important;
+            background-color: #ffffff !important;
+            transition: all 0.15s ease !important;
+
+            &:hover {
+                background-color: #111827 !important;
+                color: #fac922 !important;
+                padding-left: 1.4rem !important;
+                font-weight: 600 !important;
+            }
+
+            &.usa-current,
+            &.is-active {
+                position: relative !important;
+                background-color: #111827 !important;
+                color: #fac922 !important;
+                padding-left: 1.4rem !important;
+                font-weight: 700 !important;
+
+                &::after {
+                    background-color: #fac922 !important;
+                    border-color: #fac922 !important;
+                }
+            }
+        }
+    }
+
+    .usa-sidenav__sublist {
+        margin: 0 !important;
+        padding: 0 !important;
+        list-style: none !important;
+
+        .usa-sidenav__item,
+        li {
+            a {
+                padding-left: 1.75rem !important;
+
+                &:hover,
+                &.usa-current,
+                &.is-active {
+                    padding-left: 2rem !important;
+                }
+            }
+        }
+    }
+}
+
+/* Explicit global overrides for USWDS sidenav active states */
+.usa-sidenav .usa-current,
+.usa-sidenav a.usa-current,
+.usa-sidenav__item a.usa-current,
+.usa-sidenav__item .usa-current,
+.usa-sidenav .usa-sidenav__item a.usa-current {
+    position: relative !important;
+    color: #fac922 !important;
+    background-color: #111827 !important;
+    font-weight: 700 !important;
+}
+
+.usa-sidenav .usa-current::after,
+.usa-sidenav a.usa-current::after,
+.usa-sidenav__item a.usa-current::after,
+.usa-sidenav__item .usa-current::after {
+    background-color: #fac922 !important;
+    border-color: #fac922 !important;
 }
 
 /* In-Page Navigation / Table of Contents in Right Sidebar */
