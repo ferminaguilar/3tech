@@ -11,6 +11,7 @@ deployment:
     - find $DEPLOYPATH -type f -exec chmod 644 {} +
     - chmod -R 755 $DEPLOYPATH/vendor/bin 2>/dev/null || true
     - cd $DEPLOYPATH && composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --ignore-platform-reqs
+    - rm -rf $DEPLOYPATH/sites/default/files/php/twig/* 2>/dev/null || true
     - cd $DEPLOYPATH && ./vendor/bin/drush updb -y
     - cd $DEPLOYPATH && ./vendor/bin/drush cim -y
     - cd $DEPLOYPATH && ./vendor/bin/drush cr

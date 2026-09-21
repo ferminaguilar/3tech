@@ -43,6 +43,7 @@ jobs:
             echo "=== 3. Running Drupal Updates & Config Import ==="
             cd $DEPLOYPATH
             composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --ignore-platform-reqs
+            rm -rf $DEPLOYPATH/sites/default/files/php/twig/* 2>/dev/null || true
             ./vendor/bin/drush updb -y
             ./vendor/bin/drush cim -y
             ./vendor/bin/drush cr

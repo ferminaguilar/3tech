@@ -496,12 +496,26 @@ header.government-header .grid-container {
     .government-header-branding {
         display: flex !important;
         align-items: center !important;
-        flex: 0 1 auto !important;
-        max-width: calc(100% - 90px) !important;
+        justify-content: space-between !important;
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
 
         .region,
         .region-header,
-        .block,
+        .block {
+            margin: 0 !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            border: none !important;
+            background: transparent !important;
+            float: none !important;
+            width: 100% !important;
+            flex: 1 1 100% !important;
+        }
+
         .usa-logo {
             margin: 0 !important;
             padding: 0 !important;
@@ -510,7 +524,7 @@ header.government-header .grid-container {
             border: none !important;
             background: transparent !important;
             float: none !important;
-            width: auto !important;
+            flex-shrink: 0 !important;
         }
 
         .usa-logo__text {
