@@ -7,24 +7,52 @@
 .government-callout {
     position: relative !important;
     z-index: 10 !important;
-    padding-top: 8.5rem !important; /* Breathing room for overlapping floating cards */
-    padding-bottom: 0 !important;   /* Flush with bottom for touching image */
     overflow: hidden !important;
     background-color: color('black') !important;
     color: color('white') !important;
 }
 
-@media all and (max-width: 64em) {
-    .government-callout {
+/* On Homepage: extra top padding for overlapping quick services cards */
+body.path-frontpage .government-callout,
+.page--front .government-callout {
+    padding-top: 8.5rem !important;
+    padding-bottom: 0 !important;
+
+    @media all and (max-width: 64em) {
         padding-top: 6rem !important;
+        padding-bottom: 0 !important;
+    }
+
+    @media all and (max-width: 30em) {
+        padding-top: 2.5rem !important;
         padding-bottom: 0 !important;
     }
 }
 
-@media all and (max-width: 30em) {
-    .government-callout {
+/* On Basic / Interior Pages: balanced section padding and margins */
+body:not(.path-frontpage) .government-callout,
+.government-page-node .government-callout,
+.main-content .government-callout {
+    padding-top: 3.5rem !important;
+    padding-bottom: 0 !important;
+    margin-top: 2.5rem !important;
+    margin-bottom: 2.5rem !important;
+
+    &:last-child,
+    &:last-of-type {
+        margin-bottom: 0 !important;
+    }
+
+    @media all and (max-width: 64em) {
         padding-top: 2.5rem !important;
-        padding-bottom: 0 !important;
+        margin-top: 2rem !important;
+        margin-bottom: 2rem !important;
+    }
+
+    @media all and (max-width: 30em) {
+        padding-top: 2rem !important;
+        margin-top: 1.5rem !important;
+        margin-bottom: 1.5rem !important;
     }
 }
 

@@ -4,42 +4,81 @@
 
 .government-basic-content-section {
   background-color: transparent;
-  padding-top: 2rem !important;
+  padding-top: 0 !important;
   padding-bottom: 2rem !important;
 
-  @media (min-width: 64em) {
-    padding-top: 2.25rem !important;
-    padding-bottom: 2.25rem !important;
+  .grid-container {
+    max-width: 64rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+
+    @media (max-width: 64em) {
+      padding-left: 1.25rem !important;
+      padding-right: 1.25rem !important;
+    }
   }
 
-  // When basic content sections are stacked consecutively, eliminate redundant space
-  & + .government-basic-content-section {
-    padding-top: 0 !important;
+  h2,
+  h1 {
+    font-size: clamp(1.65rem, 2.5vw, 2.25rem) !important;
+    font-weight: 800 !important;
+    color: #111827 !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.015em !important;
+    margin-top: 0 !important;
+    margin-bottom: 1rem !important;
   }
+}
 
-  // First section below the header banner
-  &:first-child,
-  &:first-of-type {
+/* Page node field items spacing */
+.field--name-field-sections > .field__item:first-child .government-basic-content-section,
+.government-page-node > .field--name-field-sections > .field__item:first-child .government-basic-content-section,
+.main-content > .field--name-field-sections > .field__item:first-child .government-basic-content-section {
+  padding-top: 3.5rem !important;
+
+  @media (max-width: 64em) {
     padding-top: 2.5rem !important;
   }
+}
 
-  // Last section on page before footer
-  &:last-child,
-  &:last-of-type {
-    padding-bottom: 3.5rem !important;
+.field--name-field-sections > .field__item:last-child .government-basic-content-section,
+.government-page-node > .field--name-field-sections > .field__item:last-child .government-basic-content-section,
+.main-content > .field--name-field-sections > .field__item:last-child .government-basic-content-section {
+  padding-bottom: 4.5rem !important;
+
+  @media (max-width: 64em) {
+    padding-bottom: 3rem !important;
   }
 }
 
 .government-basic-body,
 .usa-prose,
 .entry-content {
+  color: #374151 !important;
+
   p {
     font-weight: 400 !important;
     font-style: normal !important;
     font-size: 1.125rem !important; /* 18px */
     line-height: 1.75 !important;
+    color: #374151 !important;
     margin-top: 0 !important;
     margin-bottom: 1.25rem !important;
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  ul,
+  ol {
+    margin-top: 0.5rem !important;
+    margin-bottom: 1.5rem !important;
+    padding-left: 1.75rem !important;
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
   }
 
   li {
@@ -47,6 +86,29 @@
     font-style: normal !important;
     font-size: 1.125rem !important; /* 18px */
     line-height: 1.7 !important;
+    color: #374151 !important;
+    margin-bottom: 0.5rem !important;
+
+    &:last-child {
+      margin-bottom: 0 !important;
+    }
+  }
+
+  strong,
+  b {
+    font-weight: 700 !important;
+    color: #111827 !important;
+  }
+
+  a {
+    color: #005ea2 !important;
+    text-decoration: underline !important;
+    font-weight: 500 !important;
+    transition: color 0.15s ease !important;
+
+    &:hover {
+      color: #1a4480 !important;
+    }
   }
 }
 
@@ -65,8 +127,16 @@ p.usa-paragraph,
 
   .government-basic-content-section {
     padding-top: 0 !important;
-    padding-bottom: 1.5rem !important;
+    padding-bottom: 1.75rem !important;
     margin-top: 0 !important;
+
+    .grid-container {
+      padding-left: 0 !important;
+      padding-right: 0 !important;
+      max-width: 100% !important;
+      width: 100% !important;
+      margin: 0 !important;
+    }
 
     .government-basic-content-inner {
       padding: 0 !important;
