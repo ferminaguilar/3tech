@@ -2,8 +2,8 @@ _core:
   default_config_hash: ZsKMVk7NtJmc1hz4nl9k1DnxfytfS9qAoVBWT9fU_pY
 quality: 75
 binaries: imagemagick
-imagemagick_version: v7
-path_to_binaries: /opt/homebrew/bin/
+imagemagick_version: v6
+path_to_binaries: /usr/bin/
 prepend: ''
 log_warnings: true
 debug: false
@@ -27,8 +27,6 @@ image_formats:
     enabled: false
   WEBP:
     mime_type: image/webp
-  AVIF:
-    mime_type: image/avif
   TIFF:
     mime_type: image/tiff
     enabled: false

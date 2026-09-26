@@ -1,7 +1,9 @@
 _core:
   default_config_hash: k1kQGOYIdyMfbNsOhsh9CCfi-KIUNbhIDJ1HkH4Lw1w
 favicon:
-  use_default: true
+  mimetype: image/vnd.microsoft.icon
+  path: themes/custom/government/assets/img/favicons/favicon.ico
+  use_default: false
 features:
   comment_user_picture: true
   comment_user_verification: true
