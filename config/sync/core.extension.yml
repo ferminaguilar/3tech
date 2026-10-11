@@ -41,6 +41,7 @@ module:
   page_cache: 0
   path: 0
   path_alias: 0
+  remove_reset_password: 0
   search: 0
   sophron: 0
   style_options: 0

@@ -1,0 +1,22 @@
+{
+    "name": "drupal/remove_reset_password",
+    "description": "Allows user to remove 'Reset your password' button.",
+    "type": "drupal-module",
+    "homepage": "https://www.drupal.org/project/remove_reset_password",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+      {
+        "name": "Ashish Dwivedi",
+        "homepage": "https://www.drupal.org/u/adwivedi008",
+        "role": "Maintainer"
+      }
+    ],
+    "require": {
+      "drupal/core": "^10 || ^11"
+    },
+    "extra": {
+      "drupal": {
+        "package": "Configuration"
+      }
+    }
+}

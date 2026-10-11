@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "5d3a221f3abde19ceeee181bd431b46d",
+    "content-hash": "b87ddb72e3884f9426b86618233957d5",
     "packages": [
         {
             "name": "asm89/stack-cors",
@@ -2150,6 +2150,52 @@
                 "source": "https://cgit.drupalcode.org/pathauto",
                 "issues": "https://www.drupal.org/project/issues/pathauto",
                 "documentation": "https://www.drupal.org/docs/8/modules/pathauto"
+            }
+        },
+        {
+            "name": "drupal/remove_reset_password",
+            "version": "1.0.5",
+            "source": {
+                "type": "git",
+                "url": "https://git.drupalcode.org/project/remove_reset_password.git",
+                "reference": "1.0.5"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/remove_reset_password-1.0.5.zip",
+                "reference": "1.0.5",
+                "shasum": "be61a549619b08e93d2adba2cfd67e3e95c912af"
+            },
+            "require": {
+                "drupal/core": "^10 || ^11"
+            },
+            "type": "drupal-module",
+            "extra": {
+                "drupal": {
+                    "version": "1.0.5",
+                    "datestamp": "1752644805",
+                    "security-coverage": {
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
+                    },
+                    "package": "Configuration"
+                }
+            },
+            "notification-url": "https://packages.drupal.org/8/downloads",
+            "license": [
+                "GPL-2.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Ashish Dwivedi",
+                    "homepage": "https://www.drupal.org/u/adwivedi008",
+                    "role": "Maintainer"
+                }
+            ],
+            "description": "Allows user to remove 'Reset your password' button.",
+            "homepage": "https://www.drupal.org/project/remove_reset_password",
+            "support": {
+                "source": "https://git.drupalcode.org/project/remove_reset_password"
             }
         },
         {
