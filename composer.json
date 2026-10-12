@@ -57,6 +57,9 @@
         "drupal-scaffold": {
             "locations": {
                 "web-root": "./"
+            },
+            "file-mapping": {
+                "[web-root]/.htaccess": false
             }
         },
         "installer-paths": {

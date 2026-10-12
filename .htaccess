@@ -116,6 +116,13 @@ AddType image/webp .webp
   # uncomment the following line:
   # RewriteBase /
 
+  # Block common scanner probes (WordPress, webshells, arbitrary PHP files)
+  RewriteCond %{REQUEST_URI} !^/index\.php$
+  RewriteCond %{REQUEST_URI} !^/core/
+  RewriteCond %{REQUEST_URI} \.php$ [OR]
+  RewriteCond %{REQUEST_URI} ^/(wp-admin|wp-content|wp-includes|xmlrpc\.php)
+  RewriteRule ^ - [F,L]
+
   # Redirect common PHP files to their new locations.
   RewriteCond %{REQUEST_URI} ^(.*)?/(install\.php) [OR]
   RewriteCond %{REQUEST_URI} ^(.*)?/(rebuild\.php)
@@ -127,12 +134,6 @@ AddType image/webp .webp
 
   # Pass all requests not referring directly to files in the filesystem to
   # index.php.
-  # Block common scanner probes (WordPress, webshells, arbitrary PHP files)
-  RewriteCond %{REQUEST_URI} !^/index\.php$
-  RewriteCond %{REQUEST_URI} !^/core/
-  RewriteCond %{REQUEST_URI} \.php$ [OR]
-  RewriteCond %{REQUEST_URI} ^/(wp-admin|wp-content|wp-includes|xmlrpc\.php)
-  RewriteRule ^ - [F,L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
   RewriteCond %{REQUEST_URI} !=/favicon.ico
