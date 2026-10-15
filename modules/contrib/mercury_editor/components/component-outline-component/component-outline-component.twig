@@ -16,7 +16,7 @@
 
   {# Component actions menu. #}
   <div class="me-component-outline__component-menu">
-    <button class="me-component-outline__component-menu-toggle" aria-haspopup="true" aria-expanded="false" aria-label="{{'Actions for @label'|t({'@label': component.label|render|striptags})}}">
+    <button class="me-component-outline__component-menu-toggle" aria-haspopup="true" aria-expanded="false" aria-label="{{'Actions for @label'|t({'@label': item.label|render|striptags})}}">
       <span class="visually-hidden">{{'Actions'|t}}</span>
     </button>
     <dialog class="me-component-outline__component-menu-dialog" role="menu" aria-hidden="true">

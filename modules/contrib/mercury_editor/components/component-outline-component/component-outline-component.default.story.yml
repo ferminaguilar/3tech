@@ -1,0 +1,8 @@
+name: Default
+description: Component item preview.
+props:
+  item:
+    id: preview-component
+    label: Preview component
+    type: component
+    is_layout: false

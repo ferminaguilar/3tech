@@ -7,6 +7,67 @@
   $(document).on('ajaxStart.meAjaxGuard', () => setAjaxing(true));
   $(document).on('ajaxStop.meAjaxGuard', () => setAjaxing(false));
 
+  // Tracks the "busy" indicator separately from `ajaxing` so its removal can
+  // be debounced, preventing flicker between back-to-back ajax requests.
+  let busyCount = 0;
+  let busyHideTimer = null;
+  let previewInteractionTimer = null;
+  const BUSY_HIDE_DELAY = 100;
+  const PREVIEW_INTERACTION_DELAY = 700;
+
+  const announceBusyState = () => {
+    const statusElement = document.getElementById('me-ajax-status');
+    if (statusElement) {
+      statusElement.textContent = Drupal.t('Updating…');
+    }
+  };
+
+  const clearBusyAnnouncement = () => {
+    const statusElement = document.getElementById('me-ajax-status');
+    if (statusElement) {
+      statusElement.textContent = '';
+    }
+  };
+
+  const setBusy = () => {
+    clearTimeout(busyHideTimer);
+    clearTimeout(previewInteractionTimer);
+
+    if (busyCount === 0) {
+      document.body.classList.add('me-ajax-busy');
+      document.body.classList.add('me-preview-busy');
+      announceBusyState();
+    }
+
+    busyCount += 1;
+  };
+
+  const clearBusy = () => {
+    busyCount = Math.max(0, busyCount - 1);
+
+    if (busyCount !== 0) {
+      return;
+    }
+
+    clearTimeout(busyHideTimer);
+    busyHideTimer = setTimeout(() => {
+      if (busyCount === 0) {
+        document.body.classList.remove('me-ajax-busy');
+        clearBusyAnnouncement();
+        previewInteractionTimer = setTimeout(() => {
+          if (busyCount === 0) {
+            document.body.classList.remove('me-preview-busy');
+          }
+        }, PREVIEW_INTERACTION_DELAY);
+      }
+    }, BUSY_HIDE_DELAY);
+  };
+
+  $(document)
+    .off('.meAjaxBusy')
+    .on('ajaxSend.meAjaxBusy', setBusy)
+    .on('ajaxComplete.meAjaxBusy', clearBusy);
+
   let interacting = false;
   Drupal.mercuryEditorBus.on('component-event:drag', () => {
     interacting = true;

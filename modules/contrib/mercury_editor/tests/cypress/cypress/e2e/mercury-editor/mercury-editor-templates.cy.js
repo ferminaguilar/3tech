@@ -100,6 +100,8 @@ describe('Mercury Editor Templates e2e tests.', () => {
             .eq(1)
             .should('have.attr', 'data-layout', 'layout_twocol');
         });
+      // Parent window body should not have "me-preview-busy" class.
+      cy.get('body').should('not.have.class', 'me-preview-busy');
       cy.get('#me-preview')
         .its('0.contentDocument')
         .then((document) => {

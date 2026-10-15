@@ -92,7 +92,7 @@ class MercuryEditorContextService {
    */
   public function isPreviewRequest(): bool {
     $request = $this->requestStack->getCurrentRequest();
-    return $request->query->has('me_id');
+    return (bool) $request?->query->has('me_id');
   }
 
   /**

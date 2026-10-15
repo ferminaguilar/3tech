@@ -103,6 +103,7 @@ describe('Mercury Editor validation and messages tests.', () => {
     cy.get('form.node-form .me-form-error-messages__button').click();
     cy.get('form.node-form .me-form-error-messages__wrapper .messages--error')
       .should('be.visible')
+      .and('have.length', 1)
       .and('contain', ' field is required.')
       // Validate stylized background color for error messages.
       .should('have.css', 'background-color', 'rgb(247, 217, 217)');

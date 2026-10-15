@@ -54,3 +54,13 @@ function mercury_editor_update_9004() {
     $mercury_settings->set('state_history_limit', 20)->save();
   }
 }
+
+/**
+ * Replace the invalid empty menu groups default with YAML text.
+ */
+function mercury_editor_update_9005() {
+  $menu_settings = \Drupal::configFactory()->getEditable('mercury_editor.menu.settings');
+  if ($menu_settings->get('groups') === []) {
+    $menu_settings->set('groups', '')->save();
+  }
+}

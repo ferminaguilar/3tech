@@ -79,6 +79,7 @@ describe('Mercury Editor component icon e2e tests.', () => {
         cy.visit('/node/add/me_test_ct');
         // Wait for the Mercury Editor interface to fully load
         cy.get('#me-preview').its('0.contentDocument');
+        cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
 
         // Set the title of the page
         cy.get('input[name="title[0][value]"]').clear();

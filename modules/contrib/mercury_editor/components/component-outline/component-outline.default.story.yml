@@ -1,0 +1,7 @@
+name: Default
+description: Empty component outline preview.
+props:
+  field_label: Components
+  mercury_editor_id: preview
+  layout_id: preview
+  tree: []

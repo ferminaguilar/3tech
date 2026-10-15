@@ -192,7 +192,11 @@ describe('Mercury Editor component outline e2e tests.', () => {
       });
 
       // Move the selected component (Text B) down
-      cy.iframe('#me-preview').find('[data-active="true"] .lpb-down').click();
+      cy.iframe('#me-preview')
+        .scrollTo('right', { ensureScrollable: false })
+        .find('[data-active="true"] .lpb-down')
+        .scrollIntoView({ offset: { top: -100, left: -100 } })
+        .click({ scrollBehavior: false });
 
       // After reordering, ensure the outline is updated.
       cy.get('.me-component-outline')
@@ -922,6 +926,22 @@ describe('Mercury Editor component outline e2e tests.', () => {
       cy.get(
         '[data-drupal-selector="edit-fields-field-me-test-content-settings-edit-form-settings-require-layouts"]',
       ).uncheck();
+      cy.get(
+        'input[name="field_me_test_content_plugin_settings_update"]',
+      ).click();
+      cy.contains('You have unsaved changes.');
+      cy.get('input[value="Save"]').click();
+    });
+
+    after(() => {
+      // Restore the default nesting depth for later specs.
+      cy.visit('admin/structure/types/manage/me_test_ct/form-display');
+      cy.get(
+        '[data-drupal-selector="edit-fields-field-me-test-content-settings-edit"]',
+      ).click();
+      cy.get(
+        '[data-drupal-selector="edit-fields-field-me-test-content-settings-edit-form-settings-nesting-depth"]',
+      ).select('0');
       cy.get(
         'input[name="field_me_test_content_plugin_settings_update"]',
       ).click();

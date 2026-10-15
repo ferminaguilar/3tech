@@ -38,11 +38,10 @@ describe('Mercury Editor access denied tests', () => {
       cy.drush('cr');
       cy.wait(3000);
 
-      // Visit the saved URL as the test user.
-      cy.visit(savedUrl, { failOnStatusCode: false });
-
-      // Confirm access denied (403 page).
-      cy.contains('Access denied').should('exist');
+      // Confirm the saved URL returns a forbidden response for the test user.
+      cy.request({ url: savedUrl, failOnStatusCode: false })
+        .its('status')
+        .should('eq', 403);
     });
   });
 

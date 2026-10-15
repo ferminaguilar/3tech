@@ -61,6 +61,12 @@ mercury_editor.settings:
     dialog_tray_width:
       type: integer
       label: 'Default width of the Mercury Editor tray'
+    rollover_padding_block:
+      type: integer
+      label: 'Block padding for component rollover controls'
+    rollover_padding_inline:
+      type: integer
+      label: 'Inline padding for component rollover controls'
     bundles:
       type: sequence
       label: 'Bundles'
@@ -85,12 +91,11 @@ mercury_editor.settings:
               type: boolean
               label: 'Disable auto-update for this paragraph bundle'
     outline_component_icons:
-      type: mapping
+      type: sequence
       label: 'Component outline icons'
-      mapping:
-        '[a-zA-Z_]+':
-          type: string
-          label: 'Icon for paragraph bundle'
+      sequence:
+        type: string
+        label: 'Icon for paragraph bundle'
 
 mercury_editor.menu.settings:
   type: config_object

@@ -37,6 +37,7 @@
   min-height: 0;
   overflow-y: hidden;
   overflow-x: auto;
+  position: relative;
 }
 
 #me-iframe-wrapper.is-device-preview #me-iframe-canvas {
@@ -57,6 +58,9 @@ html:has(#mercury-editor-component-outline[open]) #me-iframe-canvas {
   margin: 0 auto;
   box-shadow: 0 0 40px 0 rgba(0, 0, 0, 0.2);
   align-content: center;
+  opacity: 1;
+  /* Restore opacity 500ms after the final request resolves. */
+  transition: opacity 200ms ease 400ms;
 }
 
 @container me-iframe-wrapper (min-width: 0) {
@@ -65,6 +69,28 @@ html:has(#mercury-editor-component-outline[open]) #me-iframe-canvas {
     width: 100cqw;
 }
   }
+
+.me-preview-busy #me-preview {
+  pointer-events: none;
+}
+
+.me-preview-busy #me-iframe-canvas::after {
+  background: transparent;
+  content: '';
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  z-index: 1;
+}
+
+.me-ajax-busy #me-preview {
+  opacity: 0.25;
+  /* Only dim requests that remain active for more than 500ms. */
+  transition-delay: 500ms;
+}
 
 .lpb-dialog form {
     padding: 0 var(--me-space-inset-x, 1rem) 0 var(--me-space-inset-x, 1rem);
@@ -152,6 +178,91 @@ html:has(#mercury-editor-component-outline[open]) #me-iframe-canvas {
 .me-toolbar__group.screen-actions {
     justify-content: center;
   }
+
+.me-ajax-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  color: #0b57d0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  margin-right: 20px;
+
+  /* Hidden by default; busy state fades in immediately. */
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+
+  /* Delay completion slightly to avoid flicker between adjacent requests. */
+  transition:
+    opacity 150ms ease 200ms,
+    visibility 0s linear 350ms;
+}
+
+.me-ajax-busy .me-ajax-indicator {
+  opacity: 1;
+  visibility: visible;
+
+  transition:
+    opacity 150ms ease 0s,
+    visibility 0s linear 0s;
+}
+
+/* Spinner */
+.me-ajax-indicator__spinner {
+  display: block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  animation: me-spinner-rotate 0.8s linear infinite;
+}
+
+/* Text */
+.me-ajax-indicator__label {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  line-height: 16px;
+}
+
+/* SVG */
+.me-spinner__track,
+.me-spinner__indicator {
+  fill: none;
+  stroke-width: 2.5;
+}
+
+.me-spinner__track {
+  stroke: currentColor;
+  opacity: 0.2;
+}
+
+.me-spinner__indicator {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-dasharray: 40 56.5;
+}
+
+@keyframes me-spinner-rotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .me-ajax-indicator,
+  #me-preview {
+    transition: none;
+  }
+
+  .me-ajax-indicator__spinner {
+    animation: none;
+  }
+}
+
 .me-toolbar__edit-controls {
   margin-left: auto;
   padding-right: 1rem;

@@ -144,11 +144,19 @@ class InsertTemplateController extends ControllerBase {
    *   The cloned array with new parent uuids correctly mapped.
    */
   protected function cloneList(array $list) {
+    $uuid_map = [];
+    $cloned = [];
     foreach ($list as $delta => $item) {
       $uuid_map[$item->uuid()] = $delta;
       $cloned[$delta] = $item->createDuplicate();
+    }
+    foreach ($list as $delta => $item) {
       $settings = $cloned[$delta]->getAllBehaviorSettings()['layout_paragraphs'];
-      if ($old_parent_uuid = $settings['parent_uuid']) {
+      if ($old_parent_uuid = ($settings['parent_uuid'] ?? NULL)) {
+        if (!isset($uuid_map[$old_parent_uuid])) {
+          // Keep an unknown parent uuid to avoid silently reparenting the component.
+          continue;
+        }
         $settings['parent_uuid'] = $cloned[$uuid_map[$old_parent_uuid]]->uuid();
         $cloned[$delta]->setBehaviorSettings('layout_paragraphs', $settings);
       }

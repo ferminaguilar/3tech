@@ -22,6 +22,7 @@ describe('Mercury Editor card component tests.', () => {
     cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
     cy.get('input[name="title[0][value]"]').clear();
     cy.get('input[name="title[0][value]"]').type('Card Test Page');
+    cy.iframe('#me-preview').find('.page-title').contains('Card Test Page');
 
     cy.meAddComponent('me_test_section');
     cy.meChooseLayout('layout_twocol');

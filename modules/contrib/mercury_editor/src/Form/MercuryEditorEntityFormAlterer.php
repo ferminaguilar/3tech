@@ -92,9 +92,6 @@ class MercuryEditorEntityFormAlterer {
           'me-form-status-messages',
         ],
       ],
-      'messages' => [
-        '#type' => 'status_messages',
-      ],
       '#weight' => -100,
     ];
     $form['#attributes']['class'][] = 'me-entity-form';

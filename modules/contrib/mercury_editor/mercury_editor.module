@@ -244,7 +244,7 @@ function mercury_editor_theme_suggestions_layout_paragraphs_builder_component_me
  */
 function mercury_editor_theme_suggestions_node_edit_form_alter(array &$suggestions, array $variables) {
   if (strpos($variables['form']['#form_id'], '_mercury_editor_form') !== FALSE) {
-    $suggestions[] = 'mercury_editor_entity_form';
+    $suggestions[] = 'node_edit_form__mercury_editor_entity_form';
   }
 }
 
@@ -325,6 +325,9 @@ function mercury_editor_theme() {
   return [
     'page__mercury_editor' => [
       'base hook' => 'page',
+    ],
+    'node_edit_form__mercury_editor_entity_form' => [
+      'base hook' => 'node_edit_form',
     ],
     'mercury_editor_entity_form' => [
       'render element' => 'form',

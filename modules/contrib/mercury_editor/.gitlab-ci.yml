@@ -28,10 +28,10 @@ phpstan:
     # Show the installed version for debugging
     - composer show drupal/core | grep versions
 
-# Override the PHPUnit job to do nothing
+# Run PHP unit and kernel tests; Cypress covers browser-based workflows.
 phpunit:
-  script:
-    - echo "Skipping PHPUnit tests"
+  variables:
+    _RUNTESTS_EXTRA: '--types PHPUnit-Unit,PHPUnit-Kernel'
 
 # Add a custom Cypress job
 cypress:

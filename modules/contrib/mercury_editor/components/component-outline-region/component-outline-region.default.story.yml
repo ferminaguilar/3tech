@@ -1,0 +1,5 @@
+name: Default
+description: Layout region preview.
+props:
+  item:
+    label: Main content

@@ -60,11 +60,16 @@
     {{ mobile_presets }}
   </div>
   <div class="me-toolbar__edit-controls main-actions me-toolbar__group">
-    <div class="me-toolbar__messages"></div>
-
+    <div class="me-ajax-indicator" aria-hidden="true">
+      <svg class="me-ajax-indicator__spinner" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle class="me-spinner__track" cx="12" cy="12" r="9" />
+        <circle class="me-spinner__indicator" cx="12" cy="12" r="9" />
+      </svg>
+      <span class="me-ajax-indicator__label">{{ 'Updating…'|t }}</span>
+    </div>
+    <div class="visually-hidden" id="me-ajax-status" role="status" aria-live="polite" aria-atomic="true"></div>
     <button class="me-button--icon me-button--undo me-button--simple disabled" id="me-undo"><span>{{'Undo'|t}}</span></button>
     <button class="me-button--icon me-button--redo me-button--simple disabled" id="me-redo"><span>{{'Redo'|t}}</span></button>
-
     <button id="me-save-btn" class="me-button--primary" title="{{'Save and continue editing.'|t}}">{{'Save Changes'|t}}</button>
     <a id="me-done-btn" class="me-button--secondary" href="{{exit_url}}" title="{{'Exit without saving.'|t}}">{{'Exit'|t}}</a>
     <a id="me-sidebar-toggle-btn" class="me-button--icon me-button--simple me-button--sidebar-collapse" href="#toggle-sidebar" role="button" title="{{'Hide sidebar'|t}}">
@@ -79,7 +84,5 @@
   </div>
 </div>
 <mercury-dialog id="me-edit-screen" hide-close-button title="{{ dialog_title }}" resizable dock="right">
-  {# { page.highlighted } #}
-  {{ page.messages }}
   {{ page.content|without(local_actions_block) }}
 </mercury-dialog>
