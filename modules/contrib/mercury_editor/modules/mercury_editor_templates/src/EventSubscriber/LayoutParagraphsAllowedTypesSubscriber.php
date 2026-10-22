@@ -68,7 +68,7 @@ class LayoutParagraphsAllowedTypesSubscriber implements EventSubscriberInterface
 
     $depth = 0;
     $max_depth_exceeded = FALSE;
-    while ($parent = $layout->getComponentByUuid($parent_uuid)) {
+    while ($parent_uuid && ($parent = $layout->getComponentByUuid($parent_uuid))) {
       $depth++;
       $parent_uuid = $parent->getParentUuid();
     }

@@ -7,7 +7,7 @@ dependencies:
   - drupal:content_moderation
   - mercury_editor:mercury_editor_setup_test
 
-# Information added by Drupal.org packaging script on 2026-10-14
-version: '3.0.0'
+# Information added by Drupal.org packaging script on 2026-10-15
+version: '3.0.1'
 project: 'mercury_editor'
-datestamp: 1792012720
+datestamp: 1792080414

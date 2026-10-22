@@ -68,8 +68,11 @@ describe('Mercury Editor component icon e2e tests.', () => {
         //   .should('have.css', '--me-component-icon-image', 'url(/sites/default/files/paragraphs_type_icon/icon-image.svg)');
       });
 
-      // Save the configuration
-      cy.get('input[value="Save configuration"]').click();
+      // Save the configuration.
+      cy.get('input[value="Save configuration"]')
+        .filter(':visible')
+        .first()
+        .click();
 
       // Verify success message
       cy.get('.messages--status').should('contain', 'Mercury Editor dialog settings have been saved');

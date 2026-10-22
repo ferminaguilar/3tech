@@ -891,7 +891,10 @@ describe('Mercury Editor component outline e2e tests.', () => {
         'input[name="field_me_test_content_plugin_settings_update"]',
       ).click();
       cy.contains('You have unsaved changes.');
-      cy.get('input[value="Save"]').click();
+      cy.get('input[value="Save"]')
+        .filter(':visible')
+        .first()
+        .click();
 
       // Find the page we created.
       cy.visit('/admin/content');
@@ -930,7 +933,10 @@ describe('Mercury Editor component outline e2e tests.', () => {
         'input[name="field_me_test_content_plugin_settings_update"]',
       ).click();
       cy.contains('You have unsaved changes.');
-      cy.get('input[value="Save"]').click();
+      cy.get('input[value="Save"]')
+        .filter(':visible')
+        .first()
+        .click();
     });
 
     after(() => {
