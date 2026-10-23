@@ -1,0 +1,10 @@
+wa.settings_tab:
+  title: 'Passkeys'
+  route_name: wa.settings
+  base_route: entity.user.canonical
+
+wa.passkeys_admin_tab:
+  title: 'Passkeys'
+  route_name: view.wa_passkeys.page_1
+  base_route: entity.user.collection
+  weight: 20

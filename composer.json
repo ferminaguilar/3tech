@@ -31,6 +31,7 @@
         "drupal/remove_reset_password": "^1.0",
         "drupal/uswds_base": "^3.12",
         "drupal/viewsreference": "^2.0@beta",
+        "drupal/wa": "^2.1@beta",
         "drush/drush": "^13.7"
     },
     "conflict": {
@@ -50,6 +51,9 @@
             "php-http/discovery": true,
             "php-tuf/composer-integration": true,
             "symfony/runtime": true
+        },
+        "platform": {
+            "php": "8.3.30"
         },
         "sort-packages": true
     },

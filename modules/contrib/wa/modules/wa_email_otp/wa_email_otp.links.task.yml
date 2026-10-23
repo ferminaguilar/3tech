@@ -1,0 +1,11 @@
+wa.admin_settings.general:
+  title: 'Passkeys'
+  route_name: wa.admin_settings
+  base_route: wa.admin_settings
+  weight: 0
+
+wa_email_otp.settings_tab:
+  title: 'Email OTP Settings'
+  route_name: wa_email_otp.settings
+  base_route: wa.admin_settings
+  weight: 10

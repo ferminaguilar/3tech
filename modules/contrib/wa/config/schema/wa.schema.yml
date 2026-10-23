@@ -1,0 +1,46 @@
+wa.settings:
+  type: config_object
+  label: 'WebAuthn settings'
+  mapping:
+    allowed_aaguids:
+      type: sequence
+      label: 'Allowed AAGUIDs for passkey login'
+      sequence:
+        type: string
+    custom_aaguid_labels:
+      type: mapping
+      label: 'Custom AAGUID labels'
+      mapping:
+        '*':
+          type: label
+          label: 'Label'
+    enable_passkey_login:
+      type: boolean
+      label: 'Enable Passkey Login'
+    allowed_roles:
+      type: sequence
+      label: 'Allowed Roles'
+      sequence:
+        type: string
+        label: 'Role ID'
+    user_verification:
+      type: string
+      label: 'User Verification Requirement'
+    enforce_user_handle:
+      type: boolean
+      label: 'Enforce User Handle Validation'
+    resident_key:
+      type: string
+      label: 'Resident Key Requirement'
+    passkey_add_notification_subject:
+      type: label
+      label: 'Passkey Added Notification Subject'
+    passkey_add_notification_body:
+      type: text
+      label: 'Passkey Added Notification Body'
+    login_fieldset_title:
+      type: label
+      label: 'Login Fieldset Title'
+    login_fieldset_description:
+      type: text
+      label: 'Login Fieldset Description'

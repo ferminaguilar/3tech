@@ -1,0 +1,6 @@
+wa.admin_settings:
+  title: 'Passkey settings'
+  description: 'Configure allowed authenticators for passkey login.'
+  parent: user.admin_index
+  route_name: wa.admin_settings
+  weight: 100

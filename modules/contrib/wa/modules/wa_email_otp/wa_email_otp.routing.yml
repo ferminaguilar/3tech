@@ -1,0 +1,21 @@
+wa_email_otp.login:
+  path: '/wa_otp/{uid}/{hash}'
+  defaults:
+    _form: '\Drupal\wa_email_otp\Form\OtpEntryForm'
+  requirements:
+    _access: 'TRUE'
+    # A Drupal user ID is a 32-bit int (max 10 digits).
+    uid: \d{1,10}
+  options:
+    no_cache: TRUE
+
+wa_email_otp.settings:
+  path: '/admin/config/people/wa/email-otp'
+  defaults:
+    _form: '\Drupal\wa_email_otp\Form\WaEmailOtpSettingsForm'
+    _title: 'Email OTP Settings'
+  requirements:
+    _permission: 'administer all user passkey'
+  options:
+    _admin_route: TRUE
+    no_cache: TRUE

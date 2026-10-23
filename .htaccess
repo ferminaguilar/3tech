@@ -117,10 +117,10 @@ AddType image/webp .webp
   # RewriteBase /
 
   # Block common scanner probes (WordPress, webshells, arbitrary PHP files)
-  RewriteCond %{REQUEST_URI} !^/index\.php$
-  RewriteCond %{REQUEST_URI} !^/core/
+  RewriteCond %{REQUEST_URI} !index\.php$
+  RewriteCond %{REQUEST_URI} !/core/
   RewriteCond %{REQUEST_URI} \.php$ [OR]
-  RewriteCond %{REQUEST_URI} ^/(wp-admin|wp-content|wp-includes|xmlrpc\.php)
+  RewriteCond %{REQUEST_URI} (wp-admin|wp-content|wp-includes|xmlrpc\.php)
   RewriteRule ^ - [F,L]
 
   # Redirect common PHP files to their new locations.

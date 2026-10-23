@@ -1,0 +1,259 @@
+<?php
+
+/**
+ * @file
+ * Contains wa.module.
+ */
+
+use Drupal\Core\Database\Query\AlterableInterface;
+use Drupal\Core\Database\Query\SelectInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\views\ViewExecutable;
+use Drupal\wa\WaPermissions;
+
+/**
+ * Implements hook_form_alter().
+ */
+function wa_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  if ($form_id === 'user_login_form') {
+    $config = \Drupal::config('wa.settings');
+
+    // Add cache tag so form is invalidated when config changes.
+    $form['#cache']['tags'][] = 'config:wa.settings';
+
+    if ($config->get('enable_passkey_login') === FALSE) {
+      return;
+    }
+
+    $form['#attached']['library'][] = 'wa/passkey';
+
+    $loginFieldsetTitle = $config->get('login_fieldset_title') ?? t('Sign in with Passkey');
+    $loginFieldsetDescription = $config->get('login_fieldset_description') ?? '';
+
+    $form['wa_login_method'] = [
+      '#type' => 'fieldset',
+      '#title' => $loginFieldsetTitle,
+      '#description' => $loginFieldsetDescription,
+      '#weight' => 100,
+    ];
+
+    $form['wa_login_method']['passkey_login'] = [
+      '#type' => 'button',
+      '#value' => t('Sign in with Passkey'),
+      '#attributes' => [
+        'id' => 'wa-login-btn',
+        'class' => ['button', 'button--primary', 'wa--login'],
+      ],
+    ];
+
+    $login_options_url = Url::fromRoute('wa.login_options')->toString();
+    $login_verify_url = Url::fromRoute('wa.login_verify')->toString();
+
+    $form['#attached']['drupalSettings']['wa'] = [
+      'routes' => [
+        'loginOptions' => $login_options_url,
+        'loginVerify' => $login_verify_url,
+      ],
+    ];
+  }
+}
+
+/**
+ * Implements hook_views_data().
+ */
+function wa_views_data(): array {
+  $data['wa']['table'] = [
+    'group' => t('WebAuthn'),
+    'provider' => 'wa',
+    'base' => [
+      'field' => 'id',
+      'title' => t('Passkeys'),
+      'help' => t('Stored WebAuthn credentials.'),
+      'access query tag' => 'wa_access',
+    ],
+  ];
+
+  $data['wa']['id'] = [
+    'title' => t('ID'),
+    'help' => t('Unique credential ID.'),
+    'field' => [
+      'id' => 'numeric',
+      'click sortable' => TRUE,
+    ],
+    'filter' => ['id' => 'numeric'],
+    'sort' => ['id' => 'standard'],
+  ];
+
+  $data['wa']['uid'] = [
+    'title' => t('User ID'),
+    'help' => t('The {users}.uid that owns the credential.'),
+    'field' => [
+      'id' => 'numeric',
+      'click sortable' => TRUE,
+    ],
+    'filter' => ['id' => 'numeric'],
+    'sort' => ['id' => 'standard'],
+    'relationship' => [
+      'title' => t('User'),
+      'help' => t('Relate passkeys to their owners.'),
+      'id' => 'standard',
+      'base' => 'users_field_data',
+      'base field' => 'uid',
+      'label' => t('User'),
+    ],
+  ];
+
+  $data['wa']['aaguid'] = [
+    'title' => t('AAGUID'),
+    'help' => t('Authenticator Attestation GUID.'),
+    'field' => ['id' => 'standard'],
+    'filter' => ['id' => 'string'],
+    'sort' => ['id' => 'standard'],
+  ];
+
+  $data['wa']['provider_label'] = [
+    'title' => t('Provider'),
+    'help' => t('Human-friendly authenticator/provider label.'),
+    'field' => ['id' => 'wa_passkey_provider'],
+    'filter' => ['id' => 'wa_passkey_provider'],
+  ];
+
+  $data['wa']['created'] = [
+    'title' => t('Created'),
+    'help' => t('Timestamp when the credential was created.'),
+    'field' => ['id' => 'date'],
+    'filter' => ['id' => 'date'],
+    'sort' => ['id' => 'date'],
+  ];
+
+  $data['wa']['last_used'] = [
+    'title' => t('Last used'),
+    'help' => t('Timestamp when the credential was last used.'),
+    'field' => ['id' => 'date'],
+    'filter' => ['id' => 'date'],
+    'sort' => ['id' => 'date'],
+  ];
+
+  $data['wa']['sign_counter'] = [
+    'title' => t('Signature counter'),
+    'help' => t('The signature counter.'),
+    'field' => [
+      'id' => 'numeric',
+      'click sortable' => TRUE,
+    ],
+    'filter' => ['id' => 'numeric'],
+    'sort' => ['id' => 'standard'],
+  ];
+
+  return $data;
+}
+
+/**
+ * Implements hook_query_TAG_alter() for the wa_access tag.
+ *
+ * Every Views query on the {wa} base table carries this tag (see the
+ * 'access query tag' key in wa_views_data()). Access is enforced here at
+ * the query level so that a misconfigured view — access set to "None", a
+ * weaker permission, or a custom view built on the table — can never
+ * expose credential data: without the administrative permission the
+ * query returns no rows.
+ */
+function wa_query_wa_access_alter(AlterableInterface $query): void {
+  $account = $query->getMetaData('account');
+  if (!$account instanceof AccountInterface) {
+    $account = \Drupal::currentUser();
+  }
+  if ($query instanceof SelectInterface && !$account->hasPermission(WaPermissions::ADMINISTER_ALL_USER_PASSKEY)) {
+    $query->alwaysFalse();
+  }
+}
+
+/**
+ * Implements hook_views_pre_view().
+ *
+ * Page displays are already blocked at the routing layer (see
+ * \Drupal\wa\Routing\RouteSubscriber), but a misconfigured block or embed
+ * display would still render its exposed filter widgets — including the
+ * user autocomplete, which would let unprivileged visitors enumerate user
+ * names. Strip every exposed filter from views on the {wa} base table for
+ * users without the administrative permission.
+ */
+function wa_views_pre_view(ViewExecutable $view, string $display_id, array &$args): void {
+  if ($view->storage->get('base_table') !== 'wa') {
+    return;
+  }
+  if (\Drupal::currentUser()->hasPermission(WaPermissions::ADMINISTER_ALL_USER_PASSKEY)) {
+    return;
+  }
+  foreach ($view->getHandlers('filter', $display_id) as $id => $filter) {
+    if (!empty($filter['exposed'])) {
+      $view->removeHandler($display_id, 'filter', $id);
+    }
+  }
+}
+
+/**
+ * Implements hook_mail().
+ */
+function wa_mail(string $key, array &$message, array $params): void {
+  if ($key === 'passkey_add_notification') {
+    $config = \Drupal::config('wa.settings');
+    $token_service = \Drupal::token();
+    $context = $params['context'] ?? [];
+
+    $subject = $config->get('passkey_add_notification_subject') ?? 'Security Alert: A new passkey was added to your account';
+    $body = $config->get('passkey_add_notification_body') ?? "Dear [user:name],\n\nA new passkey has been added to your account. The authenticator used was [wa:key:authenticator].\n\nIf you did not perform this action, please contact the site administrator immediately.";
+
+    $message['subject'] = $token_service->replace($subject, $context, ['clear' => TRUE]);
+    $message['body'][] = $token_service->replace($body, $context, ['clear' => TRUE]);
+  }
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function wa_token_info(): array {
+  $type = [
+    'name' => t('WebAuthn'),
+    'description' => t('Tokens related to WebAuthn passkeys.'),
+  ];
+
+  $tokens['key:authenticator'] = [
+    'name' => t('Passkey Authenticator'),
+    'description' => t('The authenticator name of the passkey.'),
+  ];
+
+  return [
+    'types' => ['wa' => $type],
+    'tokens' => ['wa' => $tokens],
+  ];
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function wa_tokens(string $type, array $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata): array {
+  $replacements = [];
+
+  if ($type === 'wa' && !empty($data['wa_passkey'])) {
+    $passkey = $data['wa_passkey'];
+
+    foreach ($tokens as $name => $original) {
+      switch ($name) {
+        case 'key:authenticator':
+          $aaguid = $passkey['aaguid'] ?? '';
+          if ($aaguid) {
+            /** @var \Drupal\wa\Service\PasskeyLabeler $labeler */
+            $labeler = \Drupal::service('wa.passkey_labeler');
+            $replacements[$original] = $labeler->getLabel($aaguid);
+          }
+          break;
+      }
+    }
+  }
+
+  return $replacements;
+}

@@ -1,0 +1,197 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the wa module.
+ */
+
+use ParagonIE\ConstantTime\Base64UrlSafe;
+
+/**
+ * Implements hook_schema().
+ */
+function wa_schema(): array {
+  $schema['wa'] = [
+    'description' => 'Stores WebAuthn credentials.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique credential ID.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The {users}.uid that owns this credential.',
+      ],
+      'credential_id' => [
+        'type' => 'blob',
+        'not null' => TRUE,
+        'size' => 'big',
+        'description' => 'The credential ID (raw binary bytes).',
+      ],
+      'public_key' => [
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'medium',
+        'description' => 'The public key.',
+      ],
+      'credential_hash' => [
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'SHA-256 hash of the credential ID.',
+      ],
+      'user_handle' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The user handle.',
+      ],
+      'sign_counter' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'The signature counter.',
+      ],
+      'transports' => [
+        'type' => 'text',
+        'not null' => FALSE,
+        'description' => 'Serialized transports.',
+      ],
+      'aaguid' => [
+        'type' => 'varchar',
+        'length' => 36,
+        'not null' => TRUE,
+        'description' => 'The AAGUID of the authenticator.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp when the credential was created.',
+      ],
+      'last_used' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp when the credential was last used.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'unique keys' => [
+      'credential_id' => [['credential_id', 255]],
+      'credential_hash' => ['credential_hash'],
+    ],
+    'indexes' => [
+      'uid' => ['uid'],
+    ],
+  ];
+
+  return $schema;
+}
+
+/**
+ * Normalize credential_id storage to raw binary format.
+ *
+ * Previously, credential IDs could be stored in various formats (raw binary,
+ * base64-encoded, or base64url-encoded). This update normalizes all values
+ * to raw binary for consistent lookups.
+ */
+function wa_update_10001(): string {
+  $database = \Drupal::database();
+  $updated = 0;
+  $skipped = 0;
+
+  // Fetch all credentials.
+  $results = $database->select('wa', 'c')
+    ->fields('c', ['id', 'credential_id'])
+    ->execute();
+
+  foreach ($results as $record) {
+    $original = $record->credential_id;
+    $decoded = NULL;
+
+    // Try base64url decode first (WebAuthn standard).
+    // Base64url uses - and _ instead of + and /.
+    if (preg_match('/^[A-Za-z0-9_-]+$/', $original)) {
+      try {
+        $decoded = Base64UrlSafe::decodeNoPadding($original);
+      }
+      catch (\Throwable $e) {
+        // Not valid base64url, continue to next check.
+      }
+    }
+
+    // Try standard base64 decode if base64url didn't work.
+    if ($decoded === NULL && preg_match('/^[A-Za-z0-9+\/=]+$/', $original)) {
+      $tryDecode = base64_decode($original, TRUE);
+      if ($tryDecode !== FALSE && $tryDecode !== '') {
+        // Verify it's actually base64 by re-encoding.
+        if (base64_encode($tryDecode) === $original) {
+          $decoded = $tryDecode;
+        }
+      }
+    }
+
+    // If we successfully decoded, update the record.
+    if ($decoded !== NULL && $decoded !== $original) {
+      $database->update('wa')
+        ->fields([
+          'credential_id' => $decoded,
+          'credential_hash' => hash('sha256', $decoded),
+        ])
+        ->condition('id', $record->id)
+        ->execute();
+      $updated++;
+    }
+    else {
+      // Already raw binary or couldn't decode.
+      $skipped++;
+    }
+  }
+
+  return "Normalized credential_id storage: $updated updated, $skipped already raw binary.";
+}
+
+/**
+ * Remove credential_id handlers from existing views.
+ *
+ * The credential_id column stores raw binary and is no longer exposed to
+ * Views, so any field, filter, sort or contextual filter still referencing
+ * it would become a broken handler after the update.
+ */
+function wa_update_10002(): string {
+  $config_factory = \Drupal::configFactory();
+  $updated_views = [];
+
+  foreach ($config_factory->listAll('views.view.') as $config_name) {
+    $view = $config_factory->getEditable($config_name);
+    $changed = FALSE;
+
+    foreach ($view->get('display') ?? [] as $display_id => $display) {
+      foreach (['fields', 'filters', 'sorts', 'arguments'] as $handler_type) {
+        foreach ($display['display_options'][$handler_type] ?? [] as $handler_id => $handler) {
+          if (($handler['table'] ?? NULL) === 'wa' && ($handler['field'] ?? NULL) === 'credential_id') {
+            $view->clear("display.$display_id.display_options.$handler_type.$handler_id");
+            $changed = TRUE;
+          }
+        }
+      }
+    }
+
+    if ($changed) {
+      $view->save(TRUE);
+      $updated_views[] = $view->get('id');
+    }
+  }
+
+  if (!$updated_views) {
+    return (string) t('No views referenced the removed credential_id field.');
+  }
+  return (string) t('Removed credential_id handlers from views: @views.', [
+    '@views' => implode(', ', $updated_views),
+  ]);
+}

@@ -1,0 +1,29 @@
+services:
+  # Service definitions for WA module.
+  wa.passkey_manage_access_check:
+    class: Drupal\wa\Access\PasskeyManageAccessCheck
+    tags:
+      - { name: access_check, applies_to: _wa_passkey_manage_access }
+    arguments: ['@config.factory']
+
+  wa.passkey_labeler:
+    class: Drupal\wa\Service\PasskeyLabeler
+    arguments: ['@string_translation', '@config.factory']
+
+  wa.webauthn:
+    class: Drupal\wa\Service\WebAuthnService
+    arguments: ['@request_stack', '@config.factory', '@datetime.time']
+
+  wa.ticket_service:
+    class: Drupal\wa\Service\PasskeyTicketService
+    arguments: ['@logger.factory']
+
+  wa.safe_login_finalizer:
+    class: Drupal\wa\Service\SafeLoginFinalizer
+    arguments: ['@logger.factory']
+
+  wa.route_subscriber:
+    class: Drupal\wa\Routing\RouteSubscriber
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: event_subscriber }

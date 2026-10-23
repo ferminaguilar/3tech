@@ -1,0 +1,13 @@
+name: 'WA Email OTP'
+type: module
+description: 'Provides Email OTP verification for WA module.'
+package: 'Security'
+core_version_requirement: ^10 || ^11
+dependencies:
+  - wa:wa
+  - drupal:user
+
+# Information added by Drupal.org packaging script on 2026-07-05
+version: '2.1.0-beta2'
+project: 'wa'
+datestamp: 1783214172

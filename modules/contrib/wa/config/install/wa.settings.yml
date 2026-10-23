@@ -1,0 +1,6 @@
+allowed_aaguids: []
+custom_aaguid_labels: []
+enable_passkey_login: false
+allowed_roles: []
+user_verification: preferred
+enforce_user_handle: false

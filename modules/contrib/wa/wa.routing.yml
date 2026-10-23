@@ -1,0 +1,72 @@
+wa.settings:
+  path: '/user/{user}/passkeys'
+  defaults:
+    _controller: '\Drupal\wa\Controller\PasskeyController::managePasskeys'
+    _title: 'Manage Passkeys'
+  requirements:
+    _wa_passkey_manage_access: 'TRUE'
+    user: \d+
+  options:
+    _admin_route: TRUE
+    no_cache: TRUE
+
+wa.passkey_delete:
+  path: '/wa/passkey/delete'
+  defaults:
+    _controller: '\Drupal\wa\Controller\PasskeyController::deletePasskey'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [POST]
+  options:
+    no_cache: TRUE
+
+wa.register_options:
+  path: '/wa/register/options'
+  defaults:
+    _controller: '\Drupal\wa\Controller\PasskeyController::registerOptions'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [POST]
+  options:
+    no_cache: TRUE
+
+wa.register_verify:
+  path: '/wa/register/verify'
+  defaults:
+    _controller: '\Drupal\wa\Controller\PasskeyController::registerVerify'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+  methods: [POST]
+  options:
+    no_cache: TRUE
+
+wa.login_options:
+  path: '/wa/login/options'
+  defaults:
+    _controller: '\Drupal\wa\Controller\PasskeyController::loginOptions'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
+  options:
+    no_cache: TRUE
+
+wa.login_verify:
+  path: '/wa/login/verify'
+  defaults:
+    _controller: '\Drupal\wa\Controller\PasskeyController::loginVerify'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
+  options:
+    no_cache: TRUE
+
+wa.admin_settings:
+  path: '/admin/config/people/wa'
+  defaults:
+    _form: '\Drupal\wa\Form\PasskeySettingsForm'
+    _title: 'Passkey settings'
+  requirements:
+    _permission: 'administer all user passkey'
+  options:
+    _admin_route: TRUE
+    no_cache: TRUE

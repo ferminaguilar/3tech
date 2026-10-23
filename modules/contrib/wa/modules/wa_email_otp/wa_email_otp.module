@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * @file
+ * Primary module hooks for WA Email OTP module.
+ */
+
+use Drupal\Core\Url;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_wa_login().
+ */
+function wa_email_otp_wa_login(UserInterface $user): array {
+  // Check if the OTP feature is enabled. If not, bypass OTP completely.
+  $config = \Drupal::config('wa_email_otp.settings');
+  if ($config->get('enable_otp') === FALSE) {
+    return [];
+  }
+  // Use the OTP service to generate credentials.
+  /** @var \Drupal\wa_email_otp\Service\OtpService $otp_service */
+  $otp_service = \Drupal::service('wa_email_otp.otp_service');
+  $data = $otp_service->generate($user->id());
+  $otp = $data['otp'];
+  $hash = $data['hash'];
+
+  // Set session marker to ensure binding.
+  $request = \Drupal::request();
+  $session = $request->getSession();
+  $session->set('wa_email_otp_uid', $user->id());
+
+  // Send Email.
+  if (!$otp_service->sendOtp($user, $otp)) {
+    // If email fails, we might want to allow login or block with message.
+    // Blocking is safer.
+    return [[
+      'allowed_login' => FALSE,
+      'redirect_url' => NULL,
+    ],
+    ];
+  }
+
+  // Redirect to OTP entry form.
+  $options = ['state' => ['uid' => $user->id(), 'hash' => $hash]];
+
+  $url = Url::fromRoute('wa_email_otp.login', ['uid' => $user->id(), 'hash' => $hash], $options);
+
+  return [[
+    // Prevent immediate login.
+    'allowed_login' => FALSE,
+    // Redirect to OTP entry.
+    'redirect_url' => $url,
+  ],
+  ];
+}
+
+/**
+ * Implements hook_mail().
+ */
+function wa_email_otp_mail(string $key, array &$message, array $params): void {
+  $options = [
+    'langcode' => $message['langcode'],
+  ];
+
+  switch ($key) {
+    case 'otp_login':
+      $config = \Drupal::config('wa_email_otp.settings');
+      $subject = $config->get('otp_email_subject') ?: t('Your One-Time Password for Login', [], $options);
+      $body = $config->get('otp_email_body') ?: "Use the following One-Time Password to complete your login:\n\n@otp\n\nThis code is valid for 60 seconds.";
+
+      // Replace placeholders.
+      $site_name = \Drupal::config('system.site')->get('name');
+      $replacements = [
+        '@otp' => $params['otp'],
+        '@site' => $site_name,
+      ];
+
+      $subject = strtr($subject, $replacements);
+      $body = strtr($body, $replacements);
+
+      $message['from'] = \Drupal::config('system.site')->get('mail');
+      $message['subject'] = $subject;
+      $message['body'][] = $body;
+      break;
+  }
+}

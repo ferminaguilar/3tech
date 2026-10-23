@@ -1,0 +1,14 @@
+name: 'Web Authentication'
+type: module
+description: 'Enables authentication using WebAuthn and passkeys.'
+core_version_requirement: ^10.5 || ^11.2
+package: 'Authentication'
+configure: wa.admin_settings
+dependencies:
+  - drupal:user
+  - drupal:views
+
+# Information added by Drupal.org packaging script on 2026-07-05
+version: '2.1.0-beta2'
+project: 'wa'
+datestamp: 1783214172

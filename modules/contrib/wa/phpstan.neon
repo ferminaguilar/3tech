@@ -1,0 +1,18 @@
+parameters:
+    level: 6
+    paths:
+        - .
+    excludePaths:
+        analyseAndScan:
+            - local_test (?)
+    ignoreErrors:
+    # new static() is a best practice in Drupal, so we cannot fix that.
+    - "#^Unsafe usage of new static#"
+    # Ignore common Drupal errors for now.
+    - identifier: missingType.iterableValue
+    # BrowserKitDriver::getClient() is not defined in DriverInterface
+    - "#^Call to an undefined method Behat\\\\Mink\\\\Driver\\\\DriverInterface::getClient\\(\\)#"
+    # PHPUnit attribute classes may not exist in older PHPUnit versions
+    -
+      message: "#^Attribute class PHPUnit\\\\Framework\\\\Attributes\\\\.* does not exist#"
+      reportUnmatched: false

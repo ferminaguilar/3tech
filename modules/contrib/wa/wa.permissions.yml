@@ -1,0 +1,4 @@
+administer all user passkey:
+  title: 'Administer all user passkey'
+  description: 'View and delete passkeys for any user account.'
+  restrict access: true

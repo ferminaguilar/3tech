@@ -1,0 +1,176 @@
+uuid: 9df57dd5-4522-4346-819a-6e8ba796ba3a
+langcode: en
+status: true
+dependencies:
+  module:
+    - user
+    - wa
+_core:
+  default_config_hash: KHJ4WBN_mbEmG61tyiaCeCyVMl8qc7X2_hiHzMbmgEQ
+id: wa_passkeys
+label: Passkeys
+module: wa
+description: 'Admin overview of all passkeys.'
+tag: default
+base_table: wa
+base_field: id
+display:
+  default:
+    id: default
+    display_title: Master
+    display_plugin: default
+    position: 0
+    display_options:
+      title: Passkeys
+      fields:
+        name:
+          id: name
+          table: users_field_data
+          field: name
+          relationship: uid
+          entity_type: user
+          entity_field: name
+          plugin_id: field
+          label: User
+          type: user_name
+          settings:
+            link_to_entity: true
+        provider_label:
+          id: provider_label
+          table: wa
+          field: provider_label
+          relationship: none
+          plugin_id: wa_passkey_provider
+          label: Provider
+        created:
+          id: created
+          table: wa
+          field: created
+          relationship: none
+          plugin_id: date
+          label: Created
+          date_format: medium
+          custom_date_format: ''
+          timezone: ''
+        last_used:
+          id: last_used
+          table: wa
+          field: last_used
+          relationship: none
+          plugin_id: date
+          label: 'Last used'
+          date_format: medium
+          custom_date_format: ''
+          timezone: ''
+      pager:
+        type: full
+        options:
+          offset: 0
+          items_per_page: 50
+          id: 0
+      exposed_form:
+        type: basic
+        options:
+          reset_button: true
+          reset_button_label: Reset
+      access:
+        type: perm
+        options:
+          perm: 'administer all user passkey'
+      cache:
+        type: none
+        options: {  }
+      sorts:
+        created:
+          id: created
+          table: wa
+          field: created
+          relationship: none
+          plugin_id: date
+          order: DESC
+          granularity: second
+      filters:
+        uid:
+          id: uid
+          table: users_field_data
+          field: uid
+          relationship: uid
+          entity_type: user
+          entity_field: uid
+          plugin_id: user_name
+          operator: in
+          value: {  }
+          exposed: true
+          expose:
+            operator_id: uid_op
+            label: 'Drupal user'
+            description: ''
+            identifier: uid
+            required: false
+            multiple: false
+            reduce: false
+        provider_label:
+          id: provider_label
+          table: wa
+          field: provider_label
+          relationship: none
+          plugin_id: wa_passkey_provider
+          operator: in
+          value: {  }
+          exposed: true
+          expose:
+            operator_id: provider_label_op
+            label: Provider
+            description: 'Filter by passkey provider (select one or more)'
+            identifier: provider
+            required: false
+            multiple: true
+            reduce: false
+      style:
+        type: table
+        options:
+          default: '-1'
+          empty_table: false
+      row:
+        type: fields
+        options: {  }
+      query:
+        type: views_query
+        options: {  }
+      relationships:
+        uid:
+          id: uid
+          table: wa
+          field: uid
+          relationship: none
+          group_type: group
+          admin_label: User
+          plugin_id: standard
+          required: false
+      display_extenders: {  }
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - user.permissions
+      tags: {  }
+  page_1:
+    id: page_1
+    display_title: Page
+    display_plugin: page
+    position: 1
+    display_options:
+      display_extenders: {  }
+      path: admin/people/passkeys
+    cache_metadata:
+      max-age: -1
+      contexts:
+        - 'languages:language_content'
+        - 'languages:language_interface'
+        - url
+        - url.query_args
+        - user.permissions
+      tags: {  }

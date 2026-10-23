@@ -1,0 +1,17 @@
+# macOS system files
+.DS_Store
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Composer
+/vendor/
+local_test/
+*.zip
+
+# AI Agent
+.claude/

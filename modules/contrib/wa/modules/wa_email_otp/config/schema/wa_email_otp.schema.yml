@@ -1,0 +1,13 @@
+wa_email_otp.settings:
+  type: config_object
+  label: 'Email OTP Settings'
+  mapping:
+    enable_otp:
+      type: boolean
+      label: 'Enable Email OTP'
+    otp_email_subject:
+      type: label
+      label: 'OTP Email Subject'
+    otp_email_body:
+      type: text
+      label: 'OTP Email Body'

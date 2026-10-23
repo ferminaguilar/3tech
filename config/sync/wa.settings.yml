@@ -1,0 +1,20 @@
+_core:
+  default_config_hash: kG6bAOVgcpM-i9KknVtE3xnmoSBUzN1K-EVRMDpWvc8
+allowed_aaguids:
+  - 00000000-0000-0000-0000-000000000000
+  - 08987058-cadc-4b81-b6e1-30de50dcbe96
+  - dd4ec289-e01d-41c9-bb89-70fa845d4bf2
+  - ea9b8d66-4d01-1d21-3ce4-b6b48cb575d4
+  - fbfc3007-154e-4ecc-8c0b-6e020557d7bd
+custom_aaguid_labels: {  }
+enable_passkey_login: true
+allowed_roles:
+  content_editor: content_editor
+  administrator: administrator
+user_verification: preferred
+enforce_user_handle: false
+resident_key: preferred
+passkey_add_notification_subject: 'Security Alert: A new passkey was added to your account'
+passkey_add_notification_body: "Dear [user:name],\r\n\r\nA new passkey has been added to your account. The authenticator used was [wa:key:authenticator].\r\n\r\nIf you did not perform this action, please contact the site administrator immediately."
+login_fieldset_title: 'Other sign in options'
+login_fieldset_description: ''

@@ -1,0 +1,13 @@
+{
+    "name": "drupal/wa",
+    "description": "Enables authentication using WebAuthn and passkeys.",
+    "type": "drupal-module",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev",
+    "require": {
+        "php": ">=8.2",
+        "drupal/core": "^10.5 || ^11.2",
+        "symfony/type-info": "^7.4",
+        "web-auth/webauthn-lib": "^5.3.5"
+    }
+}

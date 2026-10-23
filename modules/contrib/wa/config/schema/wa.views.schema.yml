@@ -1,0 +1,8 @@
+views.field.wa_passkey_provider:
+  type: views_field
+  label: 'Passkey provider field'
+  mapping: { }
+
+views.filter.wa_passkey_provider:
+  type: views.filter.in_operator
+  label: 'Passkey provider filter'
