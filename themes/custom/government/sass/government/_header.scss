@@ -18,6 +18,15 @@ header.government-header {
     pointer-events: none !important;
 }
 
+/* When logged in, ensure header sits back behind Drupal admin theme / admin toolbar / contextual links / off-canvas dialogs */
+body.user-logged-in header.government-header,
+body.user-logged-in .usa-header.government-header,
+body.toolbar-tray-open header.government-header,
+body.toolbar-horizontal header.government-header,
+body.toolbar-vertical header.government-header {
+    z-index: 99 !important;
+}
+
 body:not(:has(.usa-banner)) header.government-header {
     top: 1.5rem !important;
 }
@@ -464,11 +473,23 @@ header.government-header .grid-container {
     header.government-header {
         position: absolute !important;
         top: 0.75rem !important;
-        z-index: 10005 !important;
+        z-index: 1000 !important;
         pointer-events: none !important;
     }
 
     body.mobile-nav-active header.government-header {
+        z-index: 10005 !important;
+        pointer-events: auto !important;
+    }
+
+    /* When logged in on mobile/tablet, keep header behind admin theme unless mobile drawer is open */
+    body.user-logged-in header.government-header,
+    body.user-logged-in .usa-header.government-header {
+        z-index: 99 !important;
+    }
+
+    body.user-logged-in.mobile-nav-active header.government-header {
+        z-index: 10005 !important;
         pointer-events: auto !important;
     }
 
