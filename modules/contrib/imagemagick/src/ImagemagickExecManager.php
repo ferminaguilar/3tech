@@ -358,7 +358,7 @@ class ImagemagickExecManager implements ImagemagickExecManagerInterface {
    *   '@suite': string|\Drupal\Core\StringTranslation\TranslatableMarkup,
    *   '@raw': string,
    *   '@return_code'?: int,
-   *   '@execution_time'?: array<string, mixed>
+   *   '@execution_time'?: float,
    * } $context
    *   Context information.
    */

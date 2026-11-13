@@ -72,9 +72,10 @@ abstract class FileMetadataPluginBase extends PluginBase implements FileMetadata
     array $configuration,
     string $plugin_id,
     array $plugin_definition,
-    protected readonly CacheBackendInterface $cache,
-    protected readonly ConfigFactoryInterface $configFactory,
-    protected readonly StreamWrapperManagerInterface $streamWrapperManager,
+    // @todo add readonly to the arguments.
+    protected CacheBackendInterface $cache,
+    protected ConfigFactoryInterface $configFactory,
+    protected StreamWrapperManagerInterface $streamWrapperManager,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
   }
@@ -86,6 +87,8 @@ abstract class FileMetadataPluginBase extends PluginBase implements FileMetadata
    *   The plugin id.
    * @param array<mixed> $plugin_definition
    *   The plugin definition.
+   *
+   * @return static
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     // @phpstan-ignore new.static
@@ -127,7 +130,10 @@ abstract class FileMetadataPluginBase extends PluginBase implements FileMetadata
     return $editable ? $this->configFactory->getEditable($config_name) : $this->configFactory->get($config_name);
   }
 
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+  /**
+   * @return array
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state): array {
     $form['override'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Override main caching settings'),
@@ -153,10 +159,10 @@ abstract class FileMetadataPluginBase extends PluginBase implements FileMetadata
     return $form;
   }
 
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state): void {
   }
 
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state): void {
     // @codingStandardsIgnoreStart
     $this->configuration['cache']['override'] = (bool) $form_state->getValue([$this->getPluginId(), 'override']);
     $this->configuration['cache']['settings'] = $form_state->getValue([$this->getPluginId(), 'cache_details', 'settings']);

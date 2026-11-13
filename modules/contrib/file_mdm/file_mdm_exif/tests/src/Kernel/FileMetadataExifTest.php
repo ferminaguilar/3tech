@@ -14,11 +14,13 @@ use lsolesen\pel\PelEntryRational;
 use lsolesen\pel\PelEntryShort;
 use lsolesen\pel\PelEntrySRational;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests that File Metadata EXIF plugin works properly.
  */
 #[Group('file_mdm')]
+#[RunTestsInSeparateProcesses]
 class FileMetadataExifTest extends FileMetadataManagerTestBase {
 
   protected static $modules = [

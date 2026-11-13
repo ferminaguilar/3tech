@@ -8,11 +8,13 @@ use Drupal\file_mdm\FileMetadataInterface;
 use Drupal\file_mdm\FileMetadataManagerInterface;
 use Drupal\Tests\file_mdm\Kernel\FileMetadataManagerTestBase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests that the file metadata 'font' plugin works properly.
  */
 #[Group('file_mdm')]
+#[RunTestsInSeparateProcesses]
 class FileMetadataFontTest extends FileMetadataManagerTestBase {
 
   protected static $modules = [

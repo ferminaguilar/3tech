@@ -21,15 +21,15 @@ use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
  * Tests that Imagemagick integrates properly with File Metadata Manager.
  *
  * @phpstan-type TestFileData array{
- *     skip_dimensions_check?: bool,
- *     default_configs?: array<string, mixed>,
- *     width?: positive-int,
- *     height?: positive-int,
- *     frames: positive-int,
- *     mimetype: string,
- *     colorspace: string,
- *     profiles: list<string>,
- *   }
+ *   skip_dimensions_check?: bool,
+ *   default_configs?: array<string, mixed>,
+ *   width?: positive-int,
+ *   height?: positive-int,
+ *   frames: positive-int,
+ *   mimetype: string,
+ *   colorspace: string,
+ *   profiles: list<string>,
+ * }
  */
 #[Group('imagemagick')]
 #[RunTestsInSeparateProcesses]

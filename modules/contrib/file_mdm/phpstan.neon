@@ -13,9 +13,6 @@ parameters:
   treatPhpDocTypesAsCertain: false
 
   ignoreErrors:
-    # Ignore common errors for now.
-    - "#^Class .* has an uninitialized readonly property .*\\. Assign it in the constructor\\.#"
-    - "#^Readonly property .* is assigned outside of the constructor\\.#"
     -
       identifier: classExtendsInternalClass.classExtendsInternalClass
       reportUnmatched: false

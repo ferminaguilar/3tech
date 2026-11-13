@@ -38,6 +38,9 @@ class FileMetadataPluginManager extends DefaultPluginManager implements FileMeta
     $this->setCacheBackend($cache, 'file_metadata_plugins');
   }
 
+  /**
+   * @return FileMetadataPluginInterface
+   */
   public function createInstance($plugin_id, array $configuration = []) {
     $plugin_definition = $this->getDefinition($plugin_id);
     $default_config = call_user_func($plugin_definition['class'] . '::defaultConfiguration');

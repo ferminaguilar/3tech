@@ -28,7 +28,14 @@ variables:
   OPT_IN_TEST_NEXT_MAJOR: '1'
   BROWSERTEST_OUTPUT_VERBOSE: false
 
+# Allow Composer to resolve dependencies for next-major testing even if modules
+# haven't yet expanded their declared Drupal core compatibility.
+# @todo remove once all dependencies are available.
+composer (next major):
+  variables:
+    _LENIENT_ALLOW_LIST: vendor_stream_wrapper
+
 phpunit:
   extends: .phpunit-base
   variables:
-    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$CI_PROJECT_DIR/$_WEB_ROOT/core/.deprecation-ignore.txt"
+    DRUPAL_DEPRECATION_FILTER_CONFIG: '{"projectIgnoreFile":"$CI_PROJECT_DIR/.deprecation-ignore.txt"}'

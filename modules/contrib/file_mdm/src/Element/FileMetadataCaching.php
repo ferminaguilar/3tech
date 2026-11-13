@@ -32,7 +32,7 @@ class FileMetadataCaching extends FormElementBase {
         while (empty($disallowed_paths[count($disallowed_paths) - 1])) {
           array_pop($disallowed_paths);
         }
-        $input['disallowed_paths'] = $disallowed_paths ?: [];
+        $input['disallowed_paths'] = $disallowed_paths;
       }
       else {
         $input['disallowed_paths'] = [];

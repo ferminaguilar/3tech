@@ -90,7 +90,7 @@ class Scale extends Resize {
     // are specified then the dimension calculated is the one that would not be
     // calculated to be bigger than its target.
     $aspect = $this->getToolkit()->getHeight() / $this->getToolkit()->getWidth();
-    if (($arguments['width'] && !$arguments['height']) || ($arguments['width'] && $arguments['height'] && $aspect < $arguments['height'] / $arguments['width'])) {
+    if (($arguments['width'] && !$arguments['height']) || ($arguments['width'] && $aspect < $arguments['height'] / $arguments['width'])) {
       $arguments['height'] = (int) round($arguments['width'] * $aspect);
     }
     else {

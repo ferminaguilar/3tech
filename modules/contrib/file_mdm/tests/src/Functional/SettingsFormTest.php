@@ -9,11 +9,13 @@ use Drupal\Core\Logger\RfcLogLevel;
 use Drupal\file_mdm\FileMetadataManagerInterface;
 use Drupal\Tests\BrowserTestBase;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Settings form test.
  */
 #[Group('image_effects')]
+#[RunTestsInSeparateProcesses]
 class SettingsFormTest extends BrowserTestBase {
 
   protected static $modules = [

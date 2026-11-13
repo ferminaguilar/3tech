@@ -26,6 +26,7 @@ use Drupal\imagemagick\ImagemagickExecManagerInterface;
 use Drupal\imagemagick\ImagemagickFormatMapperInterface;
 use Drupal\imagemagick\PackageCommand;
 use Drupal\imagemagick\PackageSuite;
+use Drupal\imagemagick\Plugin\ImageToolkit\Operation\imagemagick\ImagemagickImageToolkitOperationBase;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
@@ -93,10 +94,11 @@ class ImagemagickToolkit extends ImageToolkitBase {
     #[Autowire(service: 'logger.channel.image')]
     LoggerInterface $logger,
     ConfigFactoryInterface $configFactory,
-    protected readonly ImagemagickFormatMapperInterface $formatMapper,
-    protected readonly FileMetadataManagerInterface $fileMetadataManager,
-    protected readonly ImagemagickExecManagerInterface $execManager,
-    protected readonly EventDispatcherInterface $eventDispatcher,
+    // @todo add readonly.
+    protected ImagemagickFormatMapperInterface $formatMapper,
+    protected FileMetadataManagerInterface $fileMetadataManager,
+    protected ImagemagickExecManagerInterface $execManager,
+    protected EventDispatcherInterface $eventDispatcher,
   ) {
     parent::__construct($configuration, $pluginId, $pluginDefinition, $operationManager, $logger, $configFactory);
     $this->arguments = new ImagemagickExecArguments($this->execManager);
@@ -355,7 +357,7 @@ class ImagemagickToolkit extends ImageToolkitBase {
    * {@inheritdoc}
    */
   // @phpstan-ignore missingType.iterableValue
-  public function apply($operation, array $arguments = []) {
+  public function apply($operation, array $arguments = []): bool {
     if ($operation === 'rotate' && !empty($arguments['background']) && strlen($arguments['background']) === 7) {
       try {
         // @phpstan-ignore offsetAccess.nonOffsetAccessible
@@ -374,10 +376,12 @@ class ImagemagickToolkit extends ImageToolkitBase {
   /**
    * {@inheritdoc}
    */
-  protected function getToolkitOperation($operation) {
+  protected function getToolkitOperation($operation): ImagemagickImageToolkitOperationBase {
     if ($operation === 'rotate') {
       try {
-        return $this->operationManager->getToolkitOperation($this, 'rotate');
+        $toolkitOperation = $this->operationManager->getToolkitOperation($this, 'rotate');
+        assert($toolkitOperation instanceof ImagemagickImageToolkitOperationBase);
+        return $toolkitOperation;
       }
       catch (PluginNotFoundException) {
         // Fallback to using the 'rotate_ie' operation defined within
@@ -385,7 +389,9 @@ class ImagemagickToolkit extends ImageToolkitBase {
         $operation = 'rotate_ie';
       }
     }
-    return $this->operationManager->getToolkitOperation($this, $operation);
+    $toolkitOperation = $this->operationManager->getToolkitOperation($this, $operation);
+    assert($toolkitOperation instanceof ImagemagickImageToolkitOperationBase);
+    return $toolkitOperation;
   }
 
   /**

@@ -19,21 +19,19 @@ include:
 
 variables:
   SKIP_CSPELL: '1'
-  _PHPUNIT_CONCURRENT: '1'
   BROWSERTEST_OUTPUT_VERBOSE: 'false'
   OPT_IN_TEST_PREVIOUS_MAJOR: '0'
   OPT_IN_TEST_PREVIOUS_MINOR: '0'
   OPT_IN_TEST_NEXT_MINOR: '1'
-  OPT_IN_TEST_NEXT_MAJOR: '0'
-  OPT_IN_TEST_MAX_PHP: '1'
+  OPT_IN_TEST_NEXT_MAJOR: '1'
+  OPT_IN_TEST_MAX_PHP: '0'
 
 phpunit:
   extends: .phpunit-base
   variables:
-    SYMFONY_DEPRECATIONS_HELPER: "ignoreFile=$CI_PROJECT_DIR/$_WEB_ROOT/modules/custom/imagemagick/.deprecation-ignore.txt"
+    DRUPAL_DEPRECATION_FILTER_CONFIG: '{"projectIgnoreFile":"$CI_PROJECT_DIR/.deprecation-ignore.txt"}'
   before_script:
-    # Merge core's deprecation ignore file into module's.
-    - cat $CI_PROJECT_DIR/$_WEB_ROOT/core/.deprecation-ignore.txt >> $CI_PROJECT_DIR/$_WEB_ROOT/modules/custom/imagemagick/.deprecation-ignore.txt
+    # Install ImageMagick and GraphicsMagick binaries.
     - echo -e "\e[0Ksection_start:`date +%s`:package_install[collapsed=true]\r\e[0K\e[0;30;103m *** ImageMagick and GraphicsMagick packages install *** \e[0m"
     - sudo apt-get update
     - sudo apt-get install -y --no-install-recommends imagemagick graphicsmagick ghostscript-x

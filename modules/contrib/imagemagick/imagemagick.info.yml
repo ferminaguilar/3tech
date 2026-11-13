@@ -1,5 +1,5 @@
 type: module
-core_version_requirement: ^11.3
+core_version_requirement: ^11.3 | ^12
 name: ImageMagick
 description: 'Provides ImageMagick integration.'
 package: Media
@@ -8,7 +8,7 @@ dependencies:
   - file_mdm:file_mdm
   - sophron:sophron
 
-# Information added by Drupal.org packaging script on 2026-01-30
-version: '5.0.1'
+# Information added by Drupal.org packaging script on 2026-11-01
+version: '5.0.2'
 project: 'imagemagick'
-datestamp: 1769759257
+datestamp: 1793561394

@@ -37,6 +37,7 @@ class ImagemagickFormatMapper implements ImagemagickFormatMapperInterface {
    * {@inheritdoc}
    */
   public function validateMap(array $map): array {
+    /** @var array<string, mixed> $errors */
     $errors = [];
 
     // Get current config object and change the format map.

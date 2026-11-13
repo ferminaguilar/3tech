@@ -23,6 +23,15 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * FileMetadata plugin for ImageMagick's identify results.
+ *
+ * @phpstan-type FrameInfo array{
+ *   format: string,
+ *   width: ?int,
+ *   height: ?int,
+ *   colorspace?: ?string,
+ *   profiles?: list<string>,
+ *   exif_orientation: ?int,
+ * }
  */
 #[FileMetadata(
   id: 'imagemagick_identify',
@@ -39,8 +48,9 @@ class ImagemagickIdentify extends FileMetadataPluginBase {
     CacheBackendInterface $cache,
     ConfigFactoryInterface $configFactory,
     StreamWrapperManagerInterface $streamWrapperManager,
-    protected readonly EventDispatcherInterface $eventDispatcher,
-    protected readonly ImagemagickExecManagerInterface $execManager,
+    // @todo add readonly.
+    protected EventDispatcherInterface $eventDispatcher,
+    protected ImagemagickExecManagerInterface $execManager,
   ) {
     parent::__construct($configuration, $plugin_id, $plugin_definition, $cache, $configFactory, $streamWrapperManager);
   }
@@ -50,7 +60,7 @@ class ImagemagickIdentify extends FileMetadataPluginBase {
    */
   protected ?ImagemagickExecArguments $arguments;
 
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition): static {
     // While file_mdm overrides PluginBase::create, we need to fallback to
     // parent to allow autowiring.
     // @todo remove the method when file_mdm:4.0.0 is out.
@@ -175,14 +185,7 @@ class ImagemagickIdentify extends FileMetadataPluginBase {
    *
    * @return array{
    *     'source_local_path'?: string,
-   *     'data'?: array{
-   *       'format': string,
-   *       'width': int,
-   *       'height': int,
-   *       'colorspace'?: string,
-   *       'profiles'?: list<string>,
-   *       'exif_orientation'?: int,
-   *     }
+   *     'data'?: list<FrameInfo>,
    *   }
    *   The array with identify metadata, if the file was parsed correctly.
    *   An empty array otherwise.
@@ -222,31 +225,10 @@ class ImagemagickIdentify extends FileMetadataPluginBase {
 
     // Process results.
     $data = [];
-    if ($ret) {
-      // Remove any CR character (GraphicsMagick on Windows produces such).
-      $output = str_replace("\r", '', $output);
-
+    $frames = $this->processOutput($output);
+    if ($ret && $frames !== []) {
       // Builds the frames info.
-      $frames = [];
-      $frames_tmp = explode("\n", $output);
-      // Remove empty items at the end of the array.
-      while (empty($frames_tmp[count($frames_tmp) - 1])) {
-        array_pop($frames_tmp);
-      }
-      foreach ($frames_tmp as $i => $frame) {
-        $info = explode('|', $frame);
-        foreach ($info as $item) {
-          [$key, $value] = explode(':', $item);
-          if (trim($key) === 'profiles') {
-            $profiles_tmp = empty($value) ? [] : explode(',', $value);
-            $frames[$i][trim($key)] = $profiles_tmp;
-          }
-          else {
-            $frames[$i][trim($key)] = trim($value);
-          }
-        }
-      }
-      $data['frames'] = $frames;
+      $data['frames'] = $this->processOutput($output);
       // Adds the local file path that was resolved via
       // event subscriber implementations.
       $data['source_local_path'] = $arguments->getSourceLocalPath();
@@ -254,6 +236,45 @@ class ImagemagickIdentify extends FileMetadataPluginBase {
 
     $this->arguments = $arguments;
     return $data;
+  }
+
+  /**
+   * Processes the output of the binary into an array of frames.
+   *
+   * @param string $data
+   *   The output of the package.
+   *
+   * @return list<FrameInfo>
+   */
+  public static function processOutput(string $data): array {
+    // Remove any CR character (GraphicsMagick on Windows produces such).
+    $data = str_replace("\r", '', $data);
+    // Remove trailing newline.
+    $data = trim($data, "\n");
+
+    // Builds the frames info.
+    $frames = [];
+    foreach (explode("\n", $data) as $line) {
+      $matches = [];
+      if (preg_match("/^(?:.*)(?:format:.*\|width:.*\|height:.*)/", $line, $matches) === 1) {
+        $info = explode('|', $matches[0]);
+        $frame = [];
+        foreach ($info as $item) {
+          $tmp = explode(':', $item);
+          $key = trim($tmp[0]);
+          $value = trim($tmp[1] ?? '');
+          /** @var FrameInfo $frame */
+          $frame[$key] = match ($key) {
+            'profiles' => empty($value) ? [] : explode(',', $value),
+            'width', 'height', 'exif_orientation' => $value === '' ? NULL : (int) $value,
+            default => $value === '' ? NULL : $value,
+          };
+        }
+        $frames[] = $frame;
+      }
+    }
+    /** @var list<FrameInfo> $frames */
+    return $frames;
   }
 
   /**

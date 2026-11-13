@@ -9,11 +9,13 @@ use Drupal\Core\File\FileSystemInterface;
 use Drupal\file_mdm\FileMetadataInterface;
 use Drupal\file_mdm\FileMetadataManagerInterface;
 use PHPUnit\Framework\Attributes\Group;
+use PHPUnit\Framework\Attributes\RunTestsInSeparateProcesses;
 
 /**
  * Tests that File Metadata Manager works properly.
  */
 #[Group('file_mdm')]
+#[RunTestsInSeparateProcesses]
 class FileMetadataManagerTest extends FileMetadataManagerTestBase {
 
   protected static $modules = ['system', 'file_mdm', 'file_test'];
@@ -367,7 +369,6 @@ class FileMetadataManagerTest extends FileMetadataManagerTestBase {
 
     // Get the file metadata manager service.
     $fmdm = $this->container->get(FileMetadataManagerInterface::class);
-    $file_system = $this->container->get('file_system');
 
     // Copy the test file to dummy-remote wrapper.
     $this->fileSystem->copy($this->moduleList->getPath('file_mdm') . '/tests/files/test-exif.jpeg', 'dummy-remote://', FileExists::Replace);
@@ -378,7 +379,7 @@ class FileMetadataManagerTest extends FileMetadataManagerTestBase {
       // File to be found at destination URI.
       $this->assertTrue(file_exists($image_file['uri']));
       // File to be found at local temp URI.
-      $this->assertSame(0, strpos($file_system->basename($file_metadata->getLocalTempPath()), 'file_mdm_'));
+      $this->assertSame(0, strpos(basename($file_metadata->getLocalTempPath()), 'file_mdm_'));
       $this->assertTrue(file_exists($file_metadata->getLocalTempPath()));
       $this->assertEquals($image_file['count_keys'], $this->countMetadataKeys($file_metadata, 'getimagesize'));
       foreach ($image_file['test_keys'] as $test) {
