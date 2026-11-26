@@ -208,6 +208,9 @@
 .me-button--mobile {
   --me-button-icon: svg-load("mobile.svg");
 }
+.me-button--block-preview {
+  --me-button-icon: svg-load("blocks.svg");
+}
 .me-button--undo,
 .me-button--redo {
   padding: 0.3em;

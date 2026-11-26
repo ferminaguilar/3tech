@@ -6,6 +6,9 @@
  */
 
 use Drupal\Core\Url;
+use Drupal\block\BlockInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\taxonomy\TermForm;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Entity\EntityInterface;
@@ -274,6 +277,82 @@ function mercury_editor_block_build_alter(array &$build, BlockPluginInterface $b
 }
 
 /**
+ * Implements hook_block_access().
+ */
+function mercury_editor_block_access(BlockInterface $block, string $operation, AccountInterface $account) {
+  if ($operation !== 'view' || !str_starts_with($block->getPluginId(), 'block_content:')) {
+    return AccessResult::neutral();
+  }
+  $config = \Drupal::config('mercury_editor.settings');
+  $enabled_bundles = $config->get('bundles.block_content') ?? [];
+  if (empty($enabled_bundles)) {
+    return AccessResult::neutral()->addCacheableDependency($config);
+  }
+  $context = \Drupal::service('mercury_editor.context');
+  $entity = $context->getEntity();
+  $is_preview_placement = \Drupal::routeMatch()->getRouteName() === 'entity.block_content.mercury_editor_preview'
+    && $entity
+    && $entity->getEntityTypeId() === 'block_content'
+    && !empty($enabled_bundles[$entity->bundle()])
+    && $block->getPluginId() === 'block_content:' . $entity->uuid();
+
+  // The working block is rendered separately in the preview.
+  return AccessResult::forbiddenIf($is_preview_placement)
+    ->addCacheableDependency($config)
+    ->addCacheContexts(['route.name', 'route.name.is_mercury_editor_preview']);
+}
+
+/**
+ * Implements hook_contextual_links_view_alter().
+ */
+function mercury_editor_contextual_links_view_alter(array &$element, array $items) {
+  $placement_id = $element['#contextual_links']['block']['route_parameters']['block'] ?? NULL;
+  if (!$placement_id) {
+    return;
+  }
+  $placement = \Drupal::entityTypeManager()->getStorage('block')->load($placement_id);
+  if (!$placement instanceof BlockInterface) {
+    return;
+  }
+  foreach ($element['#links'] as &$link) {
+    if ($link['url'] instanceof Url && $link['url']->isRouted() && $link['url']->getRouteName() === 'entity.block_content.edit_form') {
+      _mercury_editor_add_block_placement($link['url'], $placement);
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_operation_alter().
+ */
+function mercury_editor_entity_operation_alter(array &$operations, EntityInterface $entity, ?CacheableMetadata $cacheability = NULL) {
+  $url = $operations['block-edit']['url'] ?? NULL;
+  if ($entity instanceof BlockInterface && $url instanceof Url && $url->isRouted() && $url->getRouteName() === 'entity.block_content.edit_form') {
+    $cacheability?->addCacheableDependency(\Drupal::config('mercury_editor.settings'));
+    _mercury_editor_add_block_placement($url, $entity);
+  }
+}
+
+/**
+ * Adds placement context to an enabled content block's edit link.
+ */
+function _mercury_editor_add_block_placement(Url $url, BlockInterface $placement): void {
+  $id = $url->getRouteParameters()['block_content'] ?? NULL;
+  $entity = $id ? \Drupal::entityTypeManager()->getStorage('block_content')->load($id) : NULL;
+  if (!$entity || $placement->getPluginId() !== 'block_content:' . $entity->uuid()) {
+    return;
+  }
+  $bundles = \Drupal::config('mercury_editor.settings')->get('bundles.block_content') ?? [];
+  if (empty($bundles[$entity->bundle()])) {
+    return;
+  }
+  $query = $url->getOption('query') ?? [];
+  $query['me_block_placement'] = $placement->id();
+  $query['me_block_token'] = \Drupal::service('mercury_editor.block_preview_options')
+    ->placementToken($placement->id(), $entity->uuid());
+  $url->setOption('query', $query);
+}
+
+/**
  * Implements hook_build_alter().
  */
 function mercury_editor_entity_display_build_alter(&$build, $context) {
@@ -356,13 +435,28 @@ function mercury_editor_block_alter(&$definitions) {
 
 /**
  * Implements hook_preprocess_html().
- *
- * Removes admin toolbar for Mercury Editor edit screens.
  */
-function mercury_editor_preprocess_html(&$variables) {
+function mercury_editor_preprocess_html(array &$variables) {
+  // Handles page_top and page_bottom regions for Mercury Editor block previews
+  // as these are special regions that need to be rendered separately.
+  if (\Drupal::routeMatch()->getRouteName() === 'entity.block_content.mercury_editor_preview') {
+    $entity = \Drupal::service('mercury_editor.context')->getEntity();
+    $options = \Drupal::service('mercury_editor.block_preview_options')->resolve($entity, \Drupal::request());
+    if (in_array($options['region'], ['page_top', 'page_bottom'], TRUE)) {
+      $variables[$options['region']]['mercury_editor_preview'] = [
+        '#theme_wrappers' => ['region'],
+        '#region' => $options['region'],
+        'content' => \Drupal::service('mercury_editor.preview')->buildEntityPreview($entity),
+      ];
+    }
+  }
+
+  // Adds a class to the HTML element for Mercury Editor edit screens.
   if (\Drupal::routeMatch()->getRouteName() == 'mercury_editor.editor') {
     $variables['attributes']['class'][] = 'me-edit-screen';
   }
+
+  // Removes admin toolbar for Mercury Editor edit screens.
   if (\Drupal::routeMatch()->getRouteObject()->getOption('_hide_admin_toolbar')) {
     // Check if toolbar is enabled.
     // Remove toolbar from the page.
@@ -440,6 +534,11 @@ function mercury_editor_preprocess_page__mercury_editor(&$variables) {
   // Get uuid from the route.
   $mercury_editor_entity = \Drupal::service('mercury_editor.context')->getEntity();
   if ($mercury_editor_entity) {
+    // Add block content preview options.
+    if ($mercury_editor_entity->getEntityTypeId() === 'block_content') {
+      $variables['block_preview_options'] = \Drupal::service('mercury_editor.block_preview_options')
+        ->resolve($mercury_editor_entity, \Drupal::request());
+    }
     $variables['preview_url'] = Url::fromRoute('entity.' . $mercury_editor_entity->getEntityTypeId() . '.mercury_editor_preview', [
       $mercury_editor_entity->getEntityTypeId() => $mercury_editor_entity->uuid(),
     ])->toString();
@@ -465,8 +564,7 @@ function mercury_editor_preprocess_page__mercury_editor(&$variables) {
     $destination = \Drupal::request()->query->get('destination');
     $variables['exit_url'] = Url::fromRoute('mercury_editor.exit', [
       'mercury_editor_entity' => $mercury_editor_entity->uuid(),
-      $destination ? ['destination' => $destination] : NULL,
-    ]);
+    ], $destination ? ['query' => ['destination' => $destination]] : []);
   }
   $variables['#attached']['library'][] = 'core/drupal.dialog';
 
@@ -481,6 +579,20 @@ function mercury_editor_preprocess_page__mercury_editor(&$variables) {
  * Implements hook_preprocess_page().
  */
 function mercury_editor_preprocess_page(&$variables) {
+  if (\Drupal::routeMatch()->getRouteName() === 'entity.block_content.mercury_editor_preview') {
+    $entity = \Drupal::service('mercury_editor.context')->getEntity();
+    $options = \Drupal::service('mercury_editor.block_preview_options')->resolve($entity, \Drupal::request());
+    $region = $options['region'];
+    if (!in_array($region, ['page_top', 'page_bottom'], TRUE)) {
+      if (empty($variables['page'][$region]['#theme_wrappers'])) {
+        $variables['page'][$region]['#theme_wrappers'][] = 'region';
+        $variables['page'][$region]['#region'] = $region;
+      }
+      unset($variables['page'][$region]['#sorted']);
+      $variables['page'][$region]['mercury_editor_preview'] = \Drupal::service('mercury_editor.preview')
+        ->buildEntityPreview($entity);
+    }
+  }
   // Add the rollover padding settings.
   $rollover_padding_block = \Drupal::config('mercury_editor.settings')->get('rollover_padding_block');
   if ($rollover_padding_block) {
@@ -552,7 +664,7 @@ function mercury_editor_preprocess_taxonomy_term(&$variables) {
 function mercury_editor_theme_registry_alter(&$theme_registry) {
   $index = array_search('mercury_editor_preprocess_html', $theme_registry['html']['preprocess functions']);
   unset($theme_registry['html']['preprocess functions'][$index]);
-  $theme_registry['html']['preprocess functions'][50] = 'mercury_editor_preprocess_html';
+  $theme_registry['html']['preprocess functions'][] = 'mercury_editor_preprocess_html';
 }
 
 /**

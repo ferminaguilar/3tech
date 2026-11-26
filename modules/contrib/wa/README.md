@@ -18,15 +18,15 @@ The module leverages the robust `web-auth/webauthn-lib` library to handle crypto
 -   **Email Notifications:** Automatically sends email notifications to users when a new passkey is added to their account, providing an additional security layer by alerting them of any authentication changes.
 -   **Service Ticket System:** Generates unique ticket IDs for errors during passkey operations, allowing for easier troubleshooting and support.
 -   **Security:**
-    -   **Flood Control:** Protects against brute-force attacks on registration and login endpoints.
-    -   **Origin Validation:** Strictly validates the origin of authentication requests.
-    -   **CSRF Protection:** Secures sensitive management actions.
-    -   **AAGUID Validation:** (Optional) Restrict authenticators to specific models.
+    -   **Flood Control:** Protects against brute-force attacks on registration, re-authentication, and login endpoints.
+    -   **Origin Validation:** Strictly validates the exact expected origin (scheme, host, and port) without permitting arbitrary subdomains.
+    -   **CSRF Protection:** Uses Drupal's `_csrf_request_header_token` route check with `/session/token` on authenticated endpoints.
+    -   **Step-up Re-authentication:** Requires confirming the current password, an existing passkey, or (for SSO-only accounts without a local password or passkey) a one-time email verification code before registering a new passkey.
 
 ## Requirements
--   **Drupal:** ^11.2
--   **PHP:** ^8.3
--   **Library:** `web-auth/webauthn-lib` ^5.2
+-   **Drupal:** ^10.5 || ^11.2
+-   **PHP:** >= 8.2
+-   **Library:** `web-auth/webauthn-lib` ^5.3.15
 -   **HTTPS:** WebAuthn **requires** a secure context (HTTPS) to function. It will not work over HTTP (except for `localhost`).
 
 ## Installation
@@ -43,22 +43,23 @@ drush en wa
 Navigate to **Configuration > People > Passkey Settings** (`/admin/config/people/wa`).
 
 -   **Enable Passkey Login:** Toggle this off to disable the "Sign in with Passkey" button and block all passkey API endpoints.
--   **Allowed Roles:** Select which user roles are permitted to use passkeys. If no roles are selected, all authenticated users can use passkeys.
--   **Allowed Authenticators:** Select which authenticator types (by AAGUID) are permitted. Common options include YubiKey, Touch ID, Windows Hello, and Generic/Software Authenticators. If no authenticators are selected, no types are allowed (deny-all default).
+-   **Allowed Roles:** Select which user roles are permitted to use passkeys. If no roles are selected, no users can use passkeys (deny-all default). Select the **Authenticated user** role to allow all authenticated users.
+-   **Allowed Authenticators:** Select which authenticator types (by self-reported AAGUID) are permitted. Common options include YubiKey, Touch ID, Windows Hello, and Generic/Software Authenticators. If no authenticators are selected, no types are allowed (deny-all default). **Note:** Because attestation is set to `none`, AAGUID values are self-reported by clients and act as a labelling/UX filter rather than cryptographic hardware enforcement.
 -   **Additional AAGUIDs:** To add a specific authenticator not in the default list, enter its AAGUID (one per line) in lowercase UUID format (e.g., `00000000-0000-0000-0000-000000000000`). You can find AAGUIDs in the Drupal logs after a registration attempt or by consulting the [FIDO Alliance Metadata Service](https://fidoalliance.org/metadata/).
--   **User Verification:** Choose whether user verification (PIN, biometric) is "Preferred" (default) or "Required" for login.
+-   **User Verification:** Choose whether user verification (PIN, biometric) is "Required" (default, enforced at both registration and login) or "Preferred" (allows possession-only login, bypassing password-form TFA).
 -   **Resident Key Requirement:** Controls whether the authenticator must create a client-side discoverable credential (resident key). Options include:
-    -   **Discouraged:** Server stores the key handle; saves storage space on hardware keys but requires entering a username first.
-    -   **Preferred (default):** Attempts to create a resident key when possible.
-    -   **Required:** Forces resident key creation; necessary for the "Sign in with Passkey" button (usernameless login) to work.
+    -   **Required (default):** Forces resident key creation; recommended for usernameless "Sign in with Passkey" login.
+    -   **Preferred:** Attempts to create a resident key when possible.
 -   **Enforce User Handle Validation:** When enabled, login will fail if the authenticator doesn't provide a user handle. Disable this if you encounter compatibility issues with older devices.
--   **Send Email Notification on Passkey Addition:** When enabled, users will receive an email notification whenever a new passkey is added to their account. This provides an additional security layer by alerting users of authentication changes. The email template can be customized at **Configuration > People > Account settings** (`/admin/config/people/accounts`).
+-   **Revoke Passkeys on Password Change or Reset:** Enabled by default; automatically deletes a user's stored passkeys when a new password is submitted through Drupal's user edit or password-reset forms (including custom user form modes) so unauthorized credentials cannot persist across account recovery. Transparent password rehashing during routine login does not revoke passkeys; out-of-band password changes (such as `drush user:password`, JSON:API/REST, contrib standalone password forms, or programmatic `$user->save()`) are not automatically intercepted.
+-   **Send Email Notification on Passkey Addition:** Users receive an email notification whenever a new passkey is added to their account. The email template can be customized in **Passkey Settings** (`/admin/config/people/wa`).
 
 ### 2. Permissions
 Configure permissions at `/admin/people/permissions`:
 
 
--   `administer all user passkey`: Allows administrators to manage (delete) passkeys for other users.
+-   `administer all user passkey`: Allows administrators to view and delete passkeys for any user account.
+-   `administer passkey settings`: Allows administrators to configure site-wide passkey security policies and Email OTP settings.
 
 ### 3. Passkey Overview
 Administrators can view a list of all registered passkeys on the site by navigating to **Administration > People > Passkeys** (`/admin/people/passkeys`). This view provides details such as:

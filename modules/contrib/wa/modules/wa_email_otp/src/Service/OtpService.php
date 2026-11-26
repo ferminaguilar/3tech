@@ -15,6 +15,16 @@ use Drupal\user\UserInterface;
 class OtpService {
 
   /**
+   * Validity window for verifying an OTP code (seconds).
+   */
+  public const VALID_WINDOW = 60;
+
+  /**
+   * Maximum age of an OTP record during which the user may request a resend.
+   */
+  public const RESEND_WINDOW = 900;
+
+  /**
    * The database connection.
    *
    * @var \Drupal\Core\Database\Connection
@@ -81,6 +91,10 @@ class OtpService {
    *   An array containing 'otp' and 'hash'.
    */
   public function generate(int $uid): array {
+    // Replace any previous OTP records for this user so only one active code
+    // exists at a time.
+    $this->cleanupAll($uid);
+
     $otp = $this->randomCharacters(6, '0123456789');
     $hash = bin2hex(random_bytes(32));
     $timestamp = $this->time->getRequestTime();
@@ -112,7 +126,6 @@ class OtpService {
    *   The OTP record object if valid, NULL otherwise.
    */
   public function validate(int $uid, string $hash): ?object {
-    $valid_window = 60;
     $timestamp = $this->time->getRequestTime();
 
     $query = $this->database->select('wa_email_otp', 't')
@@ -128,11 +141,57 @@ class OtpService {
       return NULL;
     }
 
-    if (($timestamp - $record->created) > $valid_window) {
+    if (($timestamp - $record->created) > self::VALID_WINDOW) {
       return NULL;
     }
 
     return $record;
+  }
+
+  /**
+   * Checks whether an OTP hash exists for a user within the resend window.
+   *
+   * Allows the OTP entry form to render a "Resend OTP" action after the
+   * 60-second code verification window has elapsed, instead of redirecting
+   * every POST back to the login page.
+   *
+   * @param int $uid
+   *   The user ID.
+   * @param string $hash
+   *   The URL hash.
+   *
+   * @return bool
+   *   TRUE if a matching record exists within RESEND_WINDOW, FALSE otherwise.
+   */
+  public function hasHash(int $uid, string $hash): bool {
+    $timestamp = $this->time->getRequestTime();
+
+    $created = $this->database->select('wa_email_otp', 't')
+      ->fields('t', ['created'])
+      ->condition('uid', $uid)
+      ->condition('hash', $hash)
+      ->range(0, 1)
+      ->execute()
+      ->fetchField();
+
+    if ($created === FALSE) {
+      return FALSE;
+    }
+
+    return ($timestamp - (int) $created) <= self::RESEND_WINDOW;
+  }
+
+  /**
+   * Deletes expired OTP records older than the resend window.
+   *
+   * @return int
+   *   The number of deleted records.
+   */
+  public function cleanupExpired(): int {
+    $cutoff = $this->time->getRequestTime() - self::RESEND_WINDOW;
+    return (int) $this->database->delete('wa_email_otp')
+      ->condition('created', $cutoff, '<')
+      ->execute();
   }
 
   /**

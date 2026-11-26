@@ -8,12 +8,11 @@ wa.settings:
       sequence:
         type: string
     custom_aaguid_labels:
-      type: mapping
+      type: sequence
       label: 'Custom AAGUID labels'
-      mapping:
-        '*':
-          type: label
-          label: 'Label'
+      sequence:
+        type: label
+        label: 'Label'
     enable_passkey_login:
       type: boolean
       label: 'Enable Passkey Login'
@@ -32,6 +31,9 @@ wa.settings:
     resident_key:
       type: string
       label: 'Resident Key Requirement'
+    revoke_on_password_change:
+      type: boolean
+      label: 'Revoke passkeys on password change or reset'
     passkey_add_notification_subject:
       type: label
       label: 'Passkey Added Notification Subject'

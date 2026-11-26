@@ -2,15 +2,21 @@
 
 namespace Drupal\wa_email_otp\Form;
 
-use Drupal\wa_email_otp\Service\OtpService;
-use Drupal\wa\Service\SafeLoginFinalizer;
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Flood\FloodInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Flood\FloodInterface;
-use Drupal\user\UserStorageInterface;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Routing\LocalRedirectResponse;
+use Drupal\user\RoleInterface;
+use Drupal\user\UserInterface;
+use Drupal\wa\Service\LoginPolicyEvaluator;
+use Drupal\wa\Service\SafeLoginFinalizer;
+use Drupal\wa_email_otp\Service\OtpService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 /**
@@ -33,18 +39,11 @@ class OtpEntryForm extends FormBase {
   protected $flood;
 
   /**
-   * The user storage.
+   * The entity type manager.
    *
-   * @var \Drupal\user\UserStorageInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $userStorage;
-
-  /**
-   * The request stack.
-   *
-   * @var \Symfony\Component\HttpFoundation\RequestStack
-   */
-  protected $requestStack;
+  protected $entityTypeManager;
 
   /**
    * The logger factory.
@@ -61,33 +60,58 @@ class OtpEntryForm extends FormBase {
   protected $safeLoginFinalizer;
 
   /**
+   * The login policy evaluator.
+   *
+   * @var \Drupal\wa\Service\LoginPolicyEvaluator
+   */
+  protected LoginPolicyEvaluator $loginPolicyEvaluator;
+
+  /**
+   * The time service.
+   *
+   * @var \Drupal\Component\Datetime\TimeInterface
+   */
+  protected TimeInterface $time;
+
+  /**
    * Constructs an OtpEntryForm object.
    *
    * @param \Drupal\wa_email_otp\Service\OtpService $otp_service
    *   The OTP service.
    * @param \Drupal\Core\Flood\FloodInterface $flood
    *   The flood service.
-   * @param \Drupal\user\UserStorageInterface $user_storage
-   *   The user storage.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
    * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
    *   The request stack.
    * @param \Drupal\Core\Logger\LoggerChannelFactoryInterface $logger_factory
    *   The logger factory.
    * @param \Drupal\wa\Service\SafeLoginFinalizer $safe_login_finalizer
    *   The safe login finalizer service.
+   * @param \Drupal\wa\Service\LoginPolicyEvaluator $login_policy_evaluator
+   *   The login policy evaluator service.
+   * @param \Drupal\Component\Datetime\TimeInterface $time
+   *   The time service.
    */
-  public function __construct(OtpService $otp_service, FloodInterface $flood, UserStorageInterface $user_storage, RequestStack $request_stack, LoggerChannelFactoryInterface $logger_factory, SafeLoginFinalizer $safe_login_finalizer) {
+  public function __construct(
+    OtpService $otp_service,
+    FloodInterface $flood,
+    EntityTypeManagerInterface $entity_type_manager,
+    RequestStack $request_stack,
+    LoggerChannelFactoryInterface $logger_factory,
+    SafeLoginFinalizer $safe_login_finalizer,
+    LoginPolicyEvaluator $login_policy_evaluator,
+    TimeInterface $time,
+  ) {
     $this->otpService = $otp_service;
     $this->flood = $flood;
-    $this->userStorage = $user_storage;
+    $this->entityTypeManager = $entity_type_manager;
     $this->requestStack = $request_stack;
     $this->loggerFactory = $logger_factory;
     $this->safeLoginFinalizer = $safe_login_finalizer;
+    $this->loginPolicyEvaluator = $login_policy_evaluator;
+    $this->time = $time;
   }
-
-  /**
-   * {@inheritdoc}
-   */
 
   /**
    * {@inheritdoc}
@@ -96,10 +120,12 @@ class OtpEntryForm extends FormBase {
     return new static(
       $container->get('wa_email_otp.otp_service'),
       $container->get('flood'),
-      $container->get('entity_type.manager')->getStorage('user'),
+      $container->get('entity_type.manager'),
       $container->get('request_stack'),
       $container->get('logger.factory'),
-      $container->get('wa.safe_login_finalizer')
+      $container->get('wa.safe_login_finalizer'),
+      $container->get('wa.login_policy_evaluator'),
+      $container->get('datetime.time')
     );
   }
 
@@ -111,19 +137,65 @@ class OtpEntryForm extends FormBase {
   }
 
   /**
+   * Clears all pending Email OTP session markers.
+   */
+  protected function clearPendingOtpSession(?SessionInterface $session): void {
+    if (!$session) {
+      return;
+    }
+    $session->remove('wa_email_otp_uid');
+    $session->remove('wa_email_otp_started');
+    $session->remove('wa_email_otp_destination');
+  }
+
+  /**
+   * Checks whether the pending OTP session has expired.
+   */
+  protected function isPendingOtpSessionExpired(?SessionInterface $session): bool {
+    if (!$session) {
+      return TRUE;
+    }
+    $started = $session->get('wa_email_otp_started');
+    if (!is_int($started) && !is_numeric($started)) {
+      return TRUE;
+    }
+    return ($this->time->getRequestTime() - (int) $started) > OtpService::RESEND_WINDOW;
+  }
+
+  /**
+   * Checks whether the user is still permitted to complete passkey login.
+   */
+  protected function isPasskeyLoginStillPermitted(UserInterface $user): bool {
+    $waConfig = $this->config('wa.settings');
+    if (!(bool) $waConfig->get('enable_passkey_login')) {
+      return FALSE;
+    }
+    if ($user->isBlocked()) {
+      return FALSE;
+    }
+
+    $allowedRoles = $waConfig->get('allowed_roles') ?? [];
+    $allowedRoles = array_filter(is_array($allowedRoles) ? $allowedRoles : []);
+    if (empty($allowedRoles)) {
+      return FALSE;
+    }
+    if (in_array(RoleInterface::AUTHENTICATED_ID, $allowedRoles, TRUE)) {
+      return $user->isAuthenticated();
+    }
+    return !empty(array_intersect($user->getRoles(), $allowedRoles));
+  }
+
+  /**
    * {@inheritdoc}
    *
    * @return array|\Symfony\Component\HttpFoundation\Response
    *   The render array for the form or a redirect response.
    */
   public function buildForm(array $form, FormStateInterface $form_state, mixed $uid = NULL, ?string $hash = NULL) {
-    // Casting collapses every such variant to the canonical
-    // integer before $uid is stored in form state and later used as a flood
-    // identifier, preventing an over-length INSERT into flood.identifier.
+    // Casting collapses every variant to the canonical integer before $uid is
+    // stored in form state and later used as a flood identifier.
     $uid = (int) $uid;
 
-    // Validate hash validity (integrity and expiry).
-    // Expiry: 60 seconds.
     if (!$uid || !$hash) {
       throw new AccessDeniedHttpException();
     }
@@ -133,15 +205,31 @@ class OtpEntryForm extends FormBase {
     $session = $request ? $request->getSession() : NULL;
     $session_uid = $session ? $session->get('wa_email_otp_uid') : NULL;
 
-    if (!$session_uid || $session_uid != $uid) {
+    if (!$session_uid || (int) $session_uid !== $uid) {
       throw new AccessDeniedHttpException();
     }
 
+    // Enforce bounded lifetime on pending OTP sessions (RESEND_WINDOW = 15m).
+    if ($this->isPendingOtpSessionExpired($session)) {
+      $this->otpService->cleanupAll($uid);
+      $this->clearPendingOtpSession($session);
+      $session->remove('wa_completed_step_ups');
+      $this->messenger()->addError($this->t('Your verification session has expired. Please sign in again.'));
+      return $this->redirect('user.login');
+    }
+
     $valid = $this->otpService->validate($uid, $hash);
+    $isExpiredAllowResend = FALSE;
 
     if (!$valid) {
-      $this->messenger()->addError($this->t('Invalid or expired login link.'));
-      return $this->redirect('user.login');
+      // Allow rendering the form (and handling Resend POSTs) when the hash
+      // exists for this session-bound user and has only passed the 60-second
+      // verification window. Reject unknown or fully expired links.
+      if (!$this->otpService->hasHash($uid, $hash)) {
+        $this->messenger()->addError($this->t('Invalid or expired login link.'));
+        return $this->redirect('user.login');
+      }
+      $isExpiredAllowResend = TRUE;
     }
 
     $form['uid'] = [
@@ -153,6 +241,12 @@ class OtpEntryForm extends FormBase {
       '#type' => 'value',
       '#value' => $hash,
     ];
+
+    if ($isExpiredAllowResend) {
+      $form['expired_notice'] = [
+        '#markup' => '<p class="messages messages--warning">' . $this->t('Your verification code has expired. Click "Resend OTP" to receive a new code.') . '</p>',
+      ];
+    }
 
     $form['otp_entry'] = [
       '#type' => 'textfield',
@@ -171,7 +265,11 @@ class OtpEntryForm extends FormBase {
     ];
     $form['actions']['resend'] = [
       '#type' => 'submit',
+      '#name' => 'resend',
       '#value' => $this->t('Resend OTP'),
+      // Use a non-empty #validate callback so FormValidator does not fall back
+      // to form-level validateForm() and burn verification flood attempts.
+      '#validate' => ['::validateResend'],
       '#submit' => ['::resendOtp'],
       '#limit_validation_errors' => [['uid']],
     ];
@@ -180,18 +278,29 @@ class OtpEntryForm extends FormBase {
   }
 
   /**
-   * {@inheritdoc}
+   * Validation handler for the Resend OTP button.
+   *
+   * Intentionally skips OTP code verification; resend rate limiting is
+   * enforced in ::resendOtp().
    */
+  public function validateResend(array &$form, FormStateInterface $form_state): void {
+    // No-op: prevents FormValidator from falling back to ::validateForm().
+  }
 
   /**
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
-    $otp_input = $form_state->getValue('otp_entry');
-    $uid = $form_state->getValue('uid');
-    $hash = $form_state->getValue('hash');
+    $triggering_element = $form_state->getTriggeringElement();
+    if (is_array($triggering_element) && ($triggering_element['#name'] ?? NULL) === 'resend') {
+      return;
+    }
+
+    $otp_input = (string) ($form_state->getValue('otp_entry') ?? '');
+    $uid = (int) $form_state->getValue('uid');
+    $hash = (string) ($form_state->getValue('hash') ?? '');
     $request = $this->requestStack->getCurrentRequest();
-    $ip = $request ? $request->getClientIp() : '0.0.0.0';
+    $ip = $request ? ($request->getClientIp() ?? '0.0.0.0') : '0.0.0.0';
 
     $flood_name = 'wa_email_otp_entry_ip';
     if (!$this->flood->isAllowed($flood_name, 5, 3600, $ip)) {
@@ -200,7 +309,7 @@ class OtpEntryForm extends FormBase {
     }
 
     $flood_name_user = 'wa_email_otp_entry_user';
-    if (!$this->flood->isAllowed($flood_name_user, 5, 3600, $uid)) {
+    if (!$this->flood->isAllowed($flood_name_user, 5, 3600, (string) $uid)) {
       $form_state->setErrorByName('otp_entry', $this->t('Too many attempts for this user. Please try again later.'));
       return;
     }
@@ -208,47 +317,109 @@ class OtpEntryForm extends FormBase {
     // Verify OTP using service.
     if (!$this->otpService->verify($uid, $hash, $otp_input)) {
       $this->flood->register($flood_name, 3600, $ip);
-      $this->flood->register($flood_name_user, 3600, $uid);
-      $form_state->setErrorByName('otp_entry', $this->t('Invalid One-Time Password.'));
+      $this->flood->register($flood_name_user, 3600, (string) $uid);
+      $form_state->setErrorByName('otp_entry', $this->t('Invalid or expired One-Time Password.'));
     }
   }
 
   /**
    * {@inheritdoc}
    */
-
-  /**
-   * {@inheritdoc}
-   */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $uid = $form_state->getValue('uid');
+    $uid = (int) $form_state->getValue('uid');
+    $user = $this->entityTypeManager->getStorage('user')->load($uid);
 
-    // Load user.
-    $user = $this->userStorage->load($uid);
+    if (!$user instanceof UserInterface) {
+      $form_state->setRedirect('user.login');
+      return;
+    }
 
-    if ($user) {
-      $request = $this->requestStack->getCurrentRequest();
+    $request = $this->requestStack->getCurrentRequest();
+    $session = ($request && $request->hasSession()) ? $request->getSession() : NULL;
+    $savedDestination = $session ? $session->get('wa_email_otp_destination') : NULL;
+    $sessionExpired = $this->isPendingOtpSessionExpired($session);
 
-      // Cleanup all OTPs for this user to ensure single-use.
-      $this->otpService->cleanupAll($uid);
+    // Cleanup all OTPs and pending OTP markers to ensure single-use.
+    $this->otpService->cleanupAll($uid);
+    $this->clearPendingOtpSession($session);
 
-      // Cleanup session marker.
-      if ($request && $request->hasSession()) {
-        $request->getSession()->remove('wa_email_otp_uid');
+    if ($sessionExpired) {
+      if ($session) {
+        $session->remove('wa_completed_step_ups');
       }
+      $this->messenger()->addError($this->t('Your verification session has expired. Please sign in again.'));
+      $form_state->setRedirect('user.login');
+      return;
+    }
+
+    // Re-check global kill switch, account status, and allowed roles right
+    // before finalizing login in case configuration or user roles changed
+    // while the OTP challenge was pending.
+    if (!$this->isPasskeyLoginStillPermitted($user)) {
+      if ($session) {
+        $session->remove('wa_completed_step_ups');
+      }
+      $this->loggerFactory->get('wa_email_otp')->warning('Email OTP login blocked because passkey login is disabled or user @uid is no longer permitted.', [
+        '@uid' => $uid,
+      ]);
+      $this->messenger()->addError($this->t('Passkey login is not permitted for this account.'));
+      $form_state->setRedirect('user.login');
+      return;
+    }
+
+    // Record completion of wa_email_otp and re-evaluate hook_wa_login() so
+    // both hard policy vetoes AND any additional uncompleted step-up modules
+    // are honored before finalizing login.
+    $completedStepUps = $session ? $session->get('wa_completed_step_ups', []) : [];
+    if (!is_array($completedStepUps)) {
+      $completedStepUps = [];
+    }
+    $completedStepUps[] = 'wa_email_otp';
+    $completedStepUps = array_values(array_unique($completedStepUps));
+    if ($session) {
+      $session->set('wa_completed_step_ups', $completedStepUps);
+    }
+
+    $policy = $this->loginPolicyEvaluator->evaluate($user, TRUE, $completedStepUps);
+    if (!$policy['allowed_login']) {
+      if (!$policy['is_step_up'] && $session) {
+        $session->remove('wa_completed_step_ups');
+      }
+      $this->loggerFactory->get('wa_email_otp')->info('Email OTP login handed off or denied by module @module for user @uid.', [
+        '@module' => $policy['denied_by'] ?? 'unknown',
+        '@uid' => $uid,
+      ]);
+      $policyRedirect = $request
+        ? $this->safeLoginFinalizer->normalizeLocalRedirectUrl($policy['redirect_url'], $request)
+        : NULL;
+      if ($policyRedirect !== NULL) {
+        $form_state->setRedirect('<none>');
+        $form_state->setResponse(new LocalRedirectResponse($policyRedirect));
+      }
+      else {
+        $this->messenger()->addError($this->t('Login prevented by site policy.'));
+        $form_state->setRedirect('user.login');
+      }
+      return;
+    }
+
+    if ($session) {
+      $session->remove('wa_completed_step_ups');
+    }
+
+    if ($request) {
+      // Regenerate session ID before login to prevent session fixation.
+      $request->getSession()->migrate(TRUE);
 
       // Finalize login with redirect interception.
-      // The service handles: stripping ?destination, ob_start() buffering,
-      // Location header interception, and candidate validation.
       $finalRedirectUrl = $this->safeLoginFinalizer->finalizeLogin(
         $user,
-        $request
+        $request,
+        [$savedDestination, $policy['redirect_url']]
       );
 
-      if ($request) {
-        $this->flood->clear('wa_email_otp_entry_ip', $request->getClientIp());
-        $this->flood->clear('wa_email_otp_entry_user', $uid);
-      }
+      $this->flood->clear('wa_email_otp_entry_ip', $request->getClientIp() ?? '0.0.0.0');
+      $this->flood->clear('wa_email_otp_entry_user', (string) $uid);
 
       // Always use setResponse() to bypass Drupal's RedirectResponseSubscriber
       // which could re-inject a ?destination parameter for open redirect.
@@ -264,35 +435,46 @@ class OtpEntryForm extends FormBase {
    * Resend OTP handler.
    */
   public function resendOtp(array &$form, FormStateInterface $form_state): void {
-    $uid = $form_state->getValue('uid');
+    $uid = (int) $form_state->getValue('uid');
 
-    // Flood control: Check limit BEFORE any OTP operations.
+    // Flood control: Check limits BEFORE any OTP operations.
     $request = $this->requestStack->getCurrentRequest();
+    $session = ($request && $request->hasSession()) ? $request->getSession() : NULL;
 
     // Strip ?destination to prevent RedirectResponseSubscriber from
     // overriding our setRedirect() with an unvalidated external URL.
     if ($request) {
       $request->query->remove('destination');
     }
-    $client_ip = $request ? $request->getClientIp() : '0.0.0.0';
-    $flood_name = 'wa_email_otp_resend_ip';
 
-    if (!$this->flood->isAllowed($flood_name, 5, 3600, $client_ip)) {
+    if ($this->isPendingOtpSessionExpired($session)) {
       $this->otpService->cleanupAll($uid);
-      $this->messenger()->addError($this->t('Too many resend attempts. Please try again later.'));
+      $this->clearPendingOtpSession($session);
+      $this->messenger()->addError($this->t('Your verification session has expired. Please sign in again.'));
+      $form_state->setRedirect('user.login');
       return;
     }
 
-    // Clear old OTPs.
-    $this->otpService->cleanupAll($uid);
+    $client_ip = $request ? ($request->getClientIp() ?? '0.0.0.0') : '0.0.0.0';
+    $flood_name_ip = 'wa_email_otp_resend_ip';
+    $flood_name_user = 'wa_email_otp_resend_user';
 
-    // Generate new.
+    if (!$this->flood->isAllowed($flood_name_ip, 5, 3600, $client_ip)
+      || !$this->flood->isAllowed($flood_name_user, 5, 3600, (string) $uid)) {
+      $this->otpService->cleanupAll($uid);
+      $this->clearPendingOtpSession($session);
+      $this->messenger()->addError($this->t('Too many resend attempts. Please try again later.'));
+      $form_state->setRedirect('user.login');
+      return;
+    }
+
+    // Generate new (cleanupAll is also invoked inside generate()).
     $data = $this->otpService->generate($uid);
-    $user = $this->userStorage->load($uid);
+    $user = $this->entityTypeManager->getStorage('user')->load($uid);
 
-    if ($user && $this->otpService->sendOtp($user, $data['otp'])) {
-      // Register flood event.
-      $this->flood->register($flood_name, 3600, $client_ip);
+    if ($user instanceof UserInterface && $this->otpService->sendOtp($user, $data['otp'])) {
+      $this->flood->register($flood_name_ip, 3600, $client_ip);
+      $this->flood->register($flood_name_user, 3600, (string) $uid);
 
       $this->messenger()->addStatus($this->t('A new OTP has been sent to your email.'));
       // Redirect to new hash.

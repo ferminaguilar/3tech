@@ -2,39 +2,65 @@
 
 namespace Drupal\wa\Controller;
 
-use Symfony\Component\HttpFoundation\RedirectResponse;
-use Drupal\Core\Routing\LocalRedirectResponse;
-use Drupal\Core\Form\EnforcedResponseException;
+use Drupal\Component\Datetime\TimeInterface;
+use Drupal\Core\Cache\CacheTagsInvalidatorInterface;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
-use Drupal\Component\Datetime\TimeInterface;
-use Drupal\Core\Access\CsrfTokenGenerator;
 use Drupal\Core\Flood\FloodInterface;
+use Drupal\Core\Form\EnforcedResponseException;
 use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\Password\PasswordInterface;
 use Drupal\Core\Url;
-use Drupal\Core\Utility\Token;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\HttpFoundation\JsonResponse;
-use Symfony\Component\HttpFoundation\Request;
+use Drupal\user\RoleInterface;
+use Drupal\user\UserInterface;
+use Drupal\wa\Service\LoginPolicyEvaluator;
 use Drupal\wa\Service\PasskeyLabeler;
-use Drupal\wa\Service\WebAuthnService;
 use Drupal\wa\Service\PasskeyTicketService;
 use Drupal\wa\Service\SafeLoginFinalizer;
+use Drupal\wa\Service\WebAuthnService;
 use Drupal\wa\WaPermissions;
 use ParagonIE\ConstantTime\Base64UrlSafe;
-use Drupal\user\UserInterface;
-use Drupal\user\RoleInterface;
+use Psr\Log\LogLevel;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Controller for Passkey registration, authentication, and management.
  *
  * This controller handles the routes for:
  * - Listing and managing user passkeys.
+ * - Re-authenticating before registering new passkeys.
  * - Generating options for WebAuthn registration and authentication.
  * - Verifying WebAuthn responses for registration and login.
  */
 class PasskeyController extends ControllerBase {
+
+  /**
+   * Duration in seconds for which a registration re-authentication stays valid.
+   */
+  public const REAUTH_TTL = 300;
+
+  /**
+   * Session key for storing recent registration re-authentication state.
+   */
+  public const REAUTH_SESSION_KEY = 'wa_reauth';
+
+  /**
+   * Session key tracking completed step-up modules in a multi-step login flow.
+   */
+  public const COMPLETED_STEP_UPS_SESSION_KEY = 'wa_completed_step_ups';
+
+  /**
+   * Session key for storing a passkey re-authentication WebAuthn challenge.
+   */
+  public const REAUTH_CHALLENGE_SESSION_KEY = 'wa_reauth_challenge';
+
+  /**
+   * Session key for storing an email verification code for SSO-only re-auth.
+   */
+  public const REAUTH_EMAIL_SESSION_KEY = 'wa_reauth_email_code';
 
   /**
    * The database connection.
@@ -72,18 +98,46 @@ class PasskeyController extends ControllerBase {
   protected $ticketService;
 
   /**
-   * The CSRF token generator.
-   *
-   * @var \Drupal\Core\Access\CsrfTokenGenerator
-   */
-  protected $csrfToken;
-
-  /**
    * The flood service.
    *
    * @var \Drupal\Core\Flood\FloodInterface
    */
   protected $flood;
+
+  /**
+   * The mail manager.
+   *
+   * @var \Drupal\Core\Mail\MailManagerInterface
+   */
+  protected $mailManager;
+
+  /**
+   * The login policy evaluator.
+   *
+   * @var \Drupal\wa\Service\LoginPolicyEvaluator
+   */
+  protected LoginPolicyEvaluator $loginPolicyEvaluator;
+
+  /**
+   * The safe login finalizer.
+   *
+   * @var \Drupal\wa\Service\SafeLoginFinalizer
+   */
+  protected $safeLoginFinalizer;
+
+  /**
+   * The password hasher.
+   *
+   * @var \Drupal\Core\Password\PasswordInterface
+   */
+  protected PasswordInterface $passwordHasher;
+
+  /**
+   * The cache tags invalidator.
+   *
+   * @var \Drupal\Core\Cache\CacheTagsInvalidatorInterface
+   */
+  protected CacheTagsInvalidatorInterface $cacheTagsInvalidator;
 
   /**
    * Constructs a PasskeyController object.
@@ -98,31 +152,43 @@ class PasskeyController extends ControllerBase {
    *   The WebAuthn service.
    * @param \Drupal\wa\Service\PasskeyTicketService $ticket_service
    *   The ticket service.
-   * @param \Drupal\Core\Access\CsrfTokenGenerator $csrf_token
-   *   The CSRF token generator.
    * @param \Drupal\Core\Flood\FloodInterface $flood
    *   The flood service.
    * @param \Drupal\Core\Mail\MailManagerInterface $mail_manager
    *   The mail manager service.
-   * @param \Drupal\Core\Utility\Token $token
-   *   The token service.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   The module handler service.
+   * @param \Drupal\wa\Service\LoginPolicyEvaluator $login_policy_evaluator
+   *   The login policy evaluator service.
    * @param \Drupal\wa\Service\SafeLoginFinalizer $safe_login_finalizer
    *   The safe login finalizer service.
+   * @param \Drupal\Core\Password\PasswordInterface $password_hasher
+   *   The password hashing service.
+   * @param \Drupal\Core\Cache\CacheTagsInvalidatorInterface $cache_tags_invalidator
+   *   The cache tags invalidator.
    */
-  public function __construct(Connection $database, TimeInterface $time, PasskeyLabeler $passkey_labeler, WebAuthnService $web_authn_service, PasskeyTicketService $ticket_service, CsrfTokenGenerator $csrf_token, FloodInterface $flood, MailManagerInterface $mail_manager, Token $token, ModuleHandlerInterface $module_handler, SafeLoginFinalizer $safe_login_finalizer) {
+  public function __construct(
+    Connection $database,
+    TimeInterface $time,
+    PasskeyLabeler $passkey_labeler,
+    WebAuthnService $web_authn_service,
+    PasskeyTicketService $ticket_service,
+    FloodInterface $flood,
+    MailManagerInterface $mail_manager,
+    LoginPolicyEvaluator $login_policy_evaluator,
+    SafeLoginFinalizer $safe_login_finalizer,
+    PasswordInterface $password_hasher,
+    CacheTagsInvalidatorInterface $cache_tags_invalidator,
+  ) {
     $this->database = $database;
     $this->time = $time;
     $this->passkeyLabeler = $passkey_labeler;
     $this->webAuthnService = $web_authn_service;
     $this->ticketService = $ticket_service;
-    $this->csrfToken = $csrf_token;
     $this->flood = $flood;
     $this->mailManager = $mail_manager;
-    $this->token = $token;
-    $this->moduleHandler = $module_handler;
+    $this->loginPolicyEvaluator = $login_policy_evaluator;
     $this->safeLoginFinalizer = $safe_login_finalizer;
+    $this->passwordHasher = $password_hasher;
+    $this->cacheTagsInvalidator = $cache_tags_invalidator;
   }
 
   /**
@@ -135,42 +201,24 @@ class PasskeyController extends ControllerBase {
       $container->get('wa.passkey_labeler'),
       $container->get('wa.webauthn'),
       $container->get('wa.ticket_service'),
-      $container->get('csrf_token'),
       $container->get('flood'),
       $container->get('plugin.manager.mail'),
-      $container->get('token'),
-      $container->get('module_handler'),
-      $container->get('wa.safe_login_finalizer')
+      $container->get('wa.login_policy_evaluator'),
+      $container->get('wa.safe_login_finalizer'),
+      $container->get('password'),
+      $container->get('cache_tags.invalidator')
     );
   }
 
   /**
-   * The mail manager.
+   * Checks whether passkey login is enabled (fail-closed).
    *
-   * @var \Drupal\Core\Mail\MailManagerInterface
+   * @return bool
+   *   TRUE only when enable_passkey_login is explicitly truthy.
    */
-  protected $mailManager;
-
-  /**
-   * The token service.
-   *
-   * @var \Drupal\Core\Utility\Token
-   */
-  protected $token;
-
-  /**
-   * The module handler service.
-   *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
-
-  /**
-   * The safe login finalizer.
-   *
-   * @var \Drupal\wa\Service\SafeLoginFinalizer
-   */
-  protected $safeLoginFinalizer;
+  protected function isPasskeyLoginEnabled(): bool {
+    return (bool) $this->config('wa.settings')->get('enable_passkey_login');
+  }
 
   /**
    * Checks if a user has an allowed role for passkey operations.
@@ -201,7 +249,7 @@ class PasskeyController extends ControllerBase {
 
     $config = $this->config('wa.settings');
     $allowed_roles = $config->get('allowed_roles') ?? [];
-    $allowed_roles = array_filter($allowed_roles);
+    $allowed_roles = array_filter(is_array($allowed_roles) ? $allowed_roles : []);
 
     if (empty($allowed_roles)) {
       return FALSE;
@@ -217,6 +265,61 @@ class PasskeyController extends ControllerBase {
   }
 
   /**
+   * Checks whether the current session has a recent re-authentication marker.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request.
+   * @param \Drupal\user\UserInterface $user
+   *   The authenticated user attempting passkey registration.
+   *
+   * @return bool
+   *   TRUE if the session has a valid, non-expired re-auth record for $user.
+   */
+  protected function hasValidReauth(Request $request, UserInterface $user): bool {
+    if (!$request->hasSession()) {
+      return FALSE;
+    }
+    $reauth = $request->getSession()->get(self::REAUTH_SESSION_KEY);
+    if (!is_array($reauth)) {
+      return FALSE;
+    }
+    $uid = $reauth['uid'] ?? NULL;
+    $timestamp = $reauth['time'] ?? NULL;
+    if (!is_int($uid) || !is_int($timestamp)) {
+      return FALSE;
+    }
+    if ($uid !== (int) $user->id()) {
+      return FALSE;
+    }
+    return ($this->time->getCurrentTime() - $timestamp) <= self::REAUTH_TTL;
+  }
+
+  /**
+   * Checks whether Origin or Referer matches the current request host.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request.
+   *
+   * @return bool
+   *   TRUE when Origin (or fallback Referer) matches the request host.
+   */
+  protected function hasValidOriginOrReferer(Request $request): bool {
+    $origin = $request->headers->get('Origin');
+    $referer = $request->headers->get('Referer');
+    $host = $request->getHost();
+
+    if ($origin) {
+      $parsed = parse_url($origin);
+      return is_array($parsed) && isset($parsed['host']) && $parsed['host'] === $host;
+    }
+    if ($referer) {
+      $parsed = parse_url($referer);
+      return is_array($parsed) && isset($parsed['host']) && $parsed['host'] === $host;
+    }
+    return FALSE;
+  }
+
+  /**
    * Renders the Passkey management page.
    *
    * @param \Drupal\user\UserInterface $user
@@ -226,13 +329,6 @@ class PasskeyController extends ControllerBase {
    *   A Drupal render array.
    */
   public function managePasskeys(UserInterface $user): array {
-    $delete_path = ltrim(Url::fromRoute('wa.passkey_delete')->getInternalPath(), '/');
-    $delete_token = $this->csrfToken->get($delete_path);
-    $register_path = ltrim(Url::fromRoute('wa.register_options')->getInternalPath(), '/');
-    $register_token = $this->csrfToken->get($register_path);
-    $register_verify_path = ltrim(Url::fromRoute('wa.register_verify')->getInternalPath(), '/');
-    $register_verify_token = $this->csrfToken->get($register_verify_path);
-
     $build = [
       '#type' => 'container',
       '#attributes' => ['class' => ['passkey-management']],
@@ -240,11 +336,10 @@ class PasskeyController extends ControllerBase {
         'library' => ['wa/passkey'],
         'drupalSettings' => [
           'wa' => [
-            'passkeyDeleteToken' => $delete_token,
-            'registerOptionsToken' => $register_token,
-            'registerVerifyToken' => $register_verify_token,
             'routes' => [
+              'csrfToken' => Url::fromRoute('system.csrftoken')->toString(),
               'passkeyDelete' => Url::fromRoute('wa.passkey_delete')->toString(),
+              'registerReauth' => Url::fromRoute('wa.register_reauth')->toString(),
               'registerOptions' => Url::fromRoute('wa.register_options')->toString(),
               'registerVerify' => Url::fromRoute('wa.register_verify')->toString(),
             ],
@@ -261,7 +356,8 @@ class PasskeyController extends ControllerBase {
       '#markup' => '<p>' . $this->t('Passkeys allow you to log in securely without a password.') . '</p>',
     ];
 
-    // List existing passkeys.
+    // List existing passkeys (including transports so PasskeyLabeler can
+    // classify internal/platform authenticators consistently with Views).
     $header = [
       'authenticator' => $this->t('Authenticator'),
       'created' => $this->t('Created'),
@@ -271,7 +367,7 @@ class PasskeyController extends ControllerBase {
 
     $rows = [];
     $query = $this->database->select('wa', 'c')
-      ->fields('c', ['credential_id', 'created', 'last_used', 'aaguid'])
+      ->fields('c', ['credential_id', 'created', 'last_used', 'aaguid', 'transports'])
       ->condition('uid', $user->id())
       ->execute();
 
@@ -300,21 +396,86 @@ class PasskeyController extends ControllerBase {
       '#open' => TRUE,
     ];
 
-    // Only show 'Add New Passkey' button
-    // if viewing own page AND role is allowed.
+    // Only allow adding new passkeys when viewing own page, feature is enabled,
+    // and the user's role is in allowed_roles.
     $canRegister = (int) $this->currentUser()->id() === (int) $user->id()
+      && $this->isPasskeyLoginEnabled()
       && $this->userHasAllowedRole($user);
 
-    if (empty($rows)) {
-      if ($canRegister) {
-        $build['passkey_management']['add_button'] = [
-          '#type' => 'button',
-          '#value' => $this->t('Add New Passkey'),
+    $reauthSection = NULL;
+    if ($canRegister) {
+      $hasPassword = is_string($user->getPassword()) && $user->getPassword() !== '';
+      $hasExistingPasskeys = !empty($rows);
+
+      $reauthSection = [
+        '#type' => 'container',
+        '#attributes' => ['class' => ['wa-reauth-controls']],
+      ];
+
+      if ($hasPassword) {
+        $reauthSection['current_password'] = [
+          '#type' => 'password',
+          '#title' => $this->t('Current password'),
+          '#title_display' => 'before',
+          '#description' => $this->t('Confirm your current password before adding a new passkey.'),
+          '#description_display' => 'after',
           '#attributes' => [
-            'id' => 'register-passkey',
-            'class' => ['button', 'button--primary'],
+            'id' => 'wa-reauth-password',
+            'autocomplete' => 'current-password',
           ],
         ];
+      }
+
+      if ($hasExistingPasskeys) {
+        $reauthSection['verify_passkey'] = [
+          '#type' => 'button',
+          '#value' => $this->t('Confirm with Existing Passkey'),
+          '#attributes' => [
+            'id' => 'wa-reauth-passkey',
+            'class' => ['button'],
+          ],
+        ];
+      }
+
+      // SSO-only accounts with neither a local password nor an existing
+      // passkey can confirm their identity via a one-time email code.
+      $hasEmail = is_string($user->getEmail()) && $user->getEmail() !== '';
+      if (!$hasPassword && !$hasExistingPasskeys && $hasEmail) {
+        $reauthSection['send_email_code'] = [
+          '#type' => 'button',
+          '#value' => $this->t('Send Verification Code to Email'),
+          '#attributes' => [
+            'id' => 'wa-reauth-email-send',
+            'class' => ['button'],
+          ],
+        ];
+        $reauthSection['email_code'] = [
+          '#type' => 'textfield',
+          '#title' => $this->t('Email verification code'),
+          '#title_display' => 'before',
+          '#description' => $this->t('Enter the 6-digit verification code sent to your email address before adding a passkey.'),
+          '#description_display' => 'after',
+          '#attributes' => [
+            'id' => 'wa-reauth-email-code',
+            'autocomplete' => 'one-time-code',
+            'inputmode' => 'numeric',
+          ],
+        ];
+      }
+
+      $reauthSection['add_button'] = [
+        '#type' => 'button',
+        '#value' => $this->t('Add New Passkey'),
+        '#attributes' => [
+          'id' => 'register-passkey',
+          'class' => ['button', 'button--primary'],
+        ],
+      ];
+    }
+
+    if (empty($rows)) {
+      if ($reauthSection !== NULL) {
+        $build['passkey_management']['add_passkey'] = $reauthSection;
       }
       $build['passkey_management']['table'] = [
         '#markup' => '<p>' . $this->t('No passkeys registered yet.') . '</p>',
@@ -327,15 +488,8 @@ class PasskeyController extends ControllerBase {
         '#rows' => $rows,
         '#empty' => $this->t('No passkeys registered yet.'),
       ];
-      if ($canRegister) {
-        $build['passkey_management']['add_button'] = [
-          '#type' => 'button',
-          '#value' => $this->t('Add New Passkey'),
-          '#attributes' => [
-            'id' => 'register-passkey',
-            'class' => ['button', 'button--primary'],
-          ],
-        ];
+      if ($reauthSection !== NULL) {
+        $build['passkey_management']['add_passkey'] = $reauthSection;
       }
     }
 
@@ -348,53 +502,346 @@ class PasskeyController extends ControllerBase {
   }
 
   /**
+   * Re-authenticates the current user before registering a new passkey.
+   *
+   * Accepts either the user's current password (`method: "password"`) or a
+   * fresh WebAuthn assertion from an existing passkey with user verification
+   * required (`method: "passkey_options"` followed by `method: "passkey"`).
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The request containing the re-authentication payload.
+   *
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   JSON response indicating re-auth status or WebAuthn options.
+   */
+  public function registerReauth(Request $request): JsonResponse {
+    if (!$this->isPasskeyLoginEnabled()) {
+      return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed (reauth)', [], 403, LogLevel::WARNING);
+    }
+
+    $floodName = 'wa_register_reauth';
+    $window = 900;
+    $maxAttempts = 5;
+    $ipIdentifier = 'ip:' . ($request->getClientIp() ?? 'unknown');
+    $userIdentifier = 'user:' . $this->currentUser()->id();
+
+    if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $ipIdentifier)
+      || !$this->flood->isAllowed($floodName, $maxAttempts, $window, $userIdentifier)) {
+      return $this->ticketService->logAndReturnError('Too many verification attempts. Please try again later.', 'Flood control blocked registration re-authentication', [], 429, LogLevel::WARNING);
+    }
+
+    if (!$this->userHasAllowedRole()) {
+      return $this->ticketService->logAndReturnError('Passkey registration not permitted for your role.', 'Role check failed for registration re-authentication', [], 403, LogLevel::WARNING);
+    }
+
+    $user = $this->entityTypeManager()->getStorage('user')->load($this->currentUser()->id());
+    if (!$user instanceof UserInterface) {
+      return $this->ticketService->logAndReturnError('Unable to process request.', 'User load failed for registration re-authentication', [], 400);
+    }
+
+    $data = json_decode($request->getContent(), TRUE);
+    if (!is_array($data)) {
+      $this->flood->register($floodName, $window, $ipIdentifier);
+      $this->flood->register($floodName, $window, $userIdentifier);
+      return $this->ticketService->logAndReturnError('Invalid verification request.', 'Invalid JSON payload for registration re-authentication', [], 400, LogLevel::WARNING);
+    }
+
+    $method = $data['method'] ?? 'password';
+
+    if ($method === 'password') {
+      $password = $data['password'] ?? '';
+      $storedHash = $user->getPassword();
+      if (!is_string($password) || $password === '' || !is_string($storedHash) || $storedHash === ''
+        || !$this->passwordHasher->check($password, $storedHash)) {
+        $this->flood->register($floodName, $window, $ipIdentifier);
+        $this->flood->register($floodName, $window, $userIdentifier);
+        return $this->ticketService->logAndReturnError('Current password verification failed.', 'Password re-authentication failed for user @uid', ['@uid' => $user->id()], 403, LogLevel::WARNING);
+      }
+
+      $request->getSession()->set(self::REAUTH_SESSION_KEY, [
+        'uid' => (int) $user->id(),
+        'time' => $this->time->getCurrentTime(),
+      ]);
+      $this->flood->clear($floodName, $ipIdentifier);
+      $this->flood->clear($floodName, $userIdentifier);
+
+      return new JsonResponse(['status' => 'ok']);
+    }
+
+    if ($method === 'passkey_options') {
+      $credentials = $this->loadUserCredentials((int) $user->id());
+
+      if (empty($credentials)) {
+        return $this->ticketService->logAndReturnError('No existing passkeys available for verification.', 'No existing passkeys for passkey re-authentication for user @uid', ['@uid' => $user->id()], 400, LogLevel::WARNING);
+      }
+
+      $allowCredentials = [];
+      foreach ($credentials as $row) {
+        $descriptor = [
+          'type' => 'public-key',
+          'id' => Base64UrlSafe::encodeUnpadded($row['credential_id']),
+        ];
+        $decodedTransports = !empty($row['transports']) ? json_decode($row['transports'], TRUE) : [];
+        if (is_array($decodedTransports) && !empty($decodedTransports)) {
+          $descriptor['transports'] = array_values(array_filter($decodedTransports, 'is_string'));
+        }
+        $allowCredentials[] = $descriptor;
+      }
+
+      $challengeEncoded = Base64UrlSafe::encodeUnpadded(random_bytes(32));
+      $request->getSession()->set(self::REAUTH_CHALLENGE_SESSION_KEY, [
+        'value' => $challengeEncoded,
+        'created' => $this->time->getCurrentTime(),
+        'uid' => (int) $user->id(),
+      ]);
+
+      return new JsonResponse([
+        'challenge' => $challengeEncoded,
+        'timeout' => 60000,
+        'rpId' => $request->getHost(),
+        'userVerification' => 'required',
+        'allowCredentials' => $allowCredentials,
+      ]);
+    }
+
+    if ($method === 'passkey') {
+      try {
+        $challengeData = $request->getSession()->get(self::REAUTH_CHALLENGE_SESSION_KEY);
+        if (empty($challengeData) || !is_array($challengeData) || (int) ($challengeData['uid'] ?? 0) !== (int) $user->id()) {
+          throw new \Exception('No re-authentication challenge found in session.');
+        }
+        if (!isset($challengeData['created']) || ($this->time->getCurrentTime() - $challengeData['created']) > 120) {
+          throw new \Exception('Re-authentication challenge expired.');
+        }
+
+        $credential = $data['credential'] ?? NULL;
+        if (!is_array($credential) || empty($credential['id']) || !is_string($credential['id'])) {
+          throw new \Exception('Missing credential response.');
+        }
+
+        $decodedCredentialId = Base64UrlSafe::decodeNoPadding($credential['id']);
+        if ($decodedCredentialId === '') {
+          throw new \Exception('Invalid credential id format.');
+        }
+        $credentialHash = hash('sha256', $decodedCredentialId);
+
+        $record = $this->database->select('wa', 'c')
+          ->fields('c', ['credential_id', 'public_key', 'user_handle', 'sign_counter', 'transports', 'aaguid'])
+          ->condition('credential_hash', $credentialHash)
+          ->condition('uid', $user->id())
+          ->execute()
+          ->fetchAssoc();
+
+        if (!$record || !hash_equals((string) $record['credential_id'], $decodedCredentialId)) {
+          throw new \Exception('Existing passkey not found for current user.');
+        }
+
+        $validatedSource = NULL;
+        $validated = $this->webAuthnService->validateLoginRequest(
+          $credential,
+          [
+            'credential_id' => $record['credential_id'],
+            'transports' => $record['transports'] ?? '[]',
+            'aaguid' => $record['aaguid'],
+            'public_key' => $record['public_key'] ?? '',
+            'user_handle' => $record['user_handle'],
+            'sign_counter' => $record['sign_counter'],
+          ],
+          (string) ($challengeData['value'] ?? ''),
+          $request->getHost(),
+          $request->getSchemeAndHttpHost(),
+          'required',
+          $validatedSource
+        );
+
+        if ($validated !== TRUE || !$validatedSource) {
+          throw new \Exception('Passkey verification failed.');
+        }
+
+        $this->database->update('wa')
+          ->fields([
+            'last_used' => $this->time->getRequestTime(),
+            'sign_counter' => $validatedSource->counter,
+          ])
+          ->condition('credential_hash', $credentialHash)
+          ->execute();
+
+        $request->getSession()->set(self::REAUTH_SESSION_KEY, [
+          'uid' => (int) $user->id(),
+          'time' => $this->time->getCurrentTime(),
+        ]);
+        $this->flood->clear($floodName, $ipIdentifier);
+        $this->flood->clear($floodName, $userIdentifier);
+
+        return new JsonResponse(['status' => 'ok']);
+      }
+      catch (\Throwable $e) {
+        $this->flood->register($floodName, $window, $ipIdentifier);
+        $this->flood->register($floodName, $window, $userIdentifier);
+        return $this->ticketService->logAndReturnError('Passkey verification failed.', 'Passkey re-authentication failed: @message', ['@message' => $e->getMessage()], 403, LogLevel::WARNING);
+      }
+      finally {
+        $request->getSession()->remove(self::REAUTH_CHALLENGE_SESSION_KEY);
+      }
+    }
+
+    // Email verification fallback for SSO-only accounts with neither a local
+    // password nor an existing passkey.
+    if ($method === 'email_send') {
+      $hasPassword = is_string($user->getPassword()) && $user->getPassword() !== '';
+      $hasExistingPasskeys = !empty($this->loadUserCredentials((int) $user->id()));
+      if ($hasPassword || $hasExistingPasskeys) {
+        return $this->ticketService->logAndReturnError('Please confirm with your password or existing passkey.', 'Email re-auth requested by account with password or passkey (uid @uid)', ['@uid' => $user->id()], 400, LogLevel::WARNING);
+      }
+
+      $email = $user->getEmail();
+      if (!is_string($email) || $email === '') {
+        return $this->ticketService->logAndReturnError('No email address is configured on this account.', 'Email re-auth unavailable: missing email for user @uid', ['@uid' => $user->id()], 400, LogLevel::WARNING);
+      }
+
+      $sendFloodName = 'wa_reauth_email_send';
+      if (!$this->flood->isAllowed($sendFloodName, 5, 3600, $ipIdentifier)
+        || !$this->flood->isAllowed($sendFloodName, 5, 3600, $userIdentifier)) {
+        return $this->ticketService->logAndReturnError('Too many verification emails requested. Please try again later.', 'Flood control blocked re-auth email send for user @uid', ['@uid' => $user->id()], 429, LogLevel::WARNING);
+      }
+
+      $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+      $request->getSession()->set(self::REAUTH_EMAIL_SESSION_KEY, [
+        'hash' => password_hash($code, PASSWORD_DEFAULT),
+        'created' => $this->time->getCurrentTime(),
+        'uid' => (int) $user->id(),
+      ]);
+
+      $result = $this->mailManager->mail('wa', 'passkey_reauth_code', $email, $user->getPreferredLangcode(), [
+        'code' => $code,
+        'user' => $user,
+      ], NULL, TRUE);
+
+      if (($result['result'] ?? FALSE) !== TRUE) {
+        $request->getSession()->remove(self::REAUTH_EMAIL_SESSION_KEY);
+        return $this->ticketService->logAndReturnError('Unable to send verification code.', 'Failed to send passkey re-auth code email for user @uid', ['@uid' => $user->id()], 500);
+      }
+
+      $this->flood->register($sendFloodName, 3600, $ipIdentifier);
+      $this->flood->register($sendFloodName, 3600, $userIdentifier);
+      return new JsonResponse(['status' => 'ok']);
+    }
+
+    if ($method === 'email_verify') {
+      $code = trim((string) ($data['code'] ?? ''));
+      $stored = $request->getSession()->get(self::REAUTH_EMAIL_SESSION_KEY);
+
+      $isValid = $code !== ''
+        && is_array($stored)
+        && (int) ($stored['uid'] ?? 0) === (int) $user->id()
+        && isset($stored['created'], $stored['hash'])
+        && is_string($stored['hash'])
+        && ($this->time->getCurrentTime() - (int) $stored['created']) <= self::REAUTH_TTL
+        && password_verify($code, $stored['hash']);
+
+      if (!$isValid) {
+        $this->flood->register($floodName, $window, $ipIdentifier);
+        $this->flood->register($floodName, $window, $userIdentifier);
+        return $this->ticketService->logAndReturnError('Invalid or expired verification code.', 'Email code re-authentication failed for user @uid', ['@uid' => $user->id()], 403, LogLevel::WARNING);
+      }
+
+      $request->getSession()->remove(self::REAUTH_EMAIL_SESSION_KEY);
+      $request->getSession()->set(self::REAUTH_SESSION_KEY, [
+        'uid' => (int) $user->id(),
+        'time' => $this->time->getCurrentTime(),
+      ]);
+      $this->flood->clear($floodName, $ipIdentifier);
+      $this->flood->clear($floodName, $userIdentifier);
+
+      return new JsonResponse(['status' => 'ok']);
+    }
+
+    return $this->ticketService->logAndReturnError('Unsupported verification method.', 'Unsupported re-authentication method: @method', ['@method' => (string) $method], 400, LogLevel::WARNING);
+  }
+
+  /**
    * Provides registration options for passkey creation.
+   *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The registration options response.
    */
   public function registerOptions(Request $request) {
+    if (!$this->isPasskeyLoginEnabled()) {
+      return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed', [], 403, LogLevel::WARNING);
+    }
+
     // Flood control: limit registration option requests.
     $floodName = 'wa_register_options';
     $window = 300;
     $maxAttempts = 10;
     $ipIdentifier = 'ip:' . ($request->getClientIp() ?? 'unknown');
+    $userIdentifier = 'user:' . $this->currentUser()->id();
 
-    if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $ipIdentifier)) {
-      return $this->ticketService->logAndReturnError('Too many registration attempts. Please try again later.', 'Flood control blocked register options (IP)', [], 429);
+    if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $ipIdentifier)
+      || !$this->flood->isAllowed($floodName, $maxAttempts, $window, $userIdentifier)) {
+      return $this->ticketService->logAndReturnError('Too many registration attempts. Please try again later.', 'Flood control blocked register options', [], 429, LogLevel::WARNING);
     }
 
-    $token = $request->headers->get('X-CSRF-Token');
-    $path = ltrim(Url::fromRoute('wa.register_options')->getInternalPath(), '/');
-
-    $config = $this->config('wa.settings');
-    if ($config->get('enable_passkey_login') === FALSE) {
-      return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed', [], 403);
-    }
-
-    $valid = $this->csrfToken->validate($token, $path);
-
-    if (!$valid) {
-      $this->flood->register($floodName, $window, $ipIdentifier);
-      return $this->ticketService->logAndReturnError('Invalid CSRF token.', 'CSRF Fail: Token=@token, Path=@path', [
-        '@token' => $token ?? '',
-        '@path' => $path,
-      ], 403);
-    }
+    $this->flood->register($floodName, $window, $ipIdentifier);
+    $this->flood->register($floodName, $window, $userIdentifier);
 
     if (!$this->userHasAllowedRole()) {
-      return $this->ticketService->logAndReturnError('Passkey registration not permitted for your role.', 'Role check failed for registration', [], 403);
+      return $this->ticketService->logAndReturnError('Passkey registration not permitted for your role.', 'Role check failed for registration', [], 403, LogLevel::WARNING);
     }
 
     $user = $this->entityTypeManager()->getStorage('user')->load($this->currentUser()->id());
     if (!$user instanceof UserInterface) {
       return $this->ticketService->logAndReturnError('Unable to process request.', 'User load failed for registration', [], 400);
     }
-    $rpId = $request->getHost();
 
-    $options = $this->webAuthnService->getRegistrationOptions($user, $rpId);
+    if (!$this->hasValidReauth($request, $user)) {
+      return $this->ticketService->logAndReturnError(
+        'Please confirm your identity before adding a passkey.',
+        'Re-authentication required before registration options for user @uid',
+        ['@uid' => $user->id()],
+        403,
+        LogLevel::NOTICE,
+        ['reauth_required' => TRUE]
+      );
+    }
+
+    // Include existing credentials in excludeCredentials so re-registering the
+    // same authenticator does not silently overwrite an on-device credential.
+    $existingCredentials = $this->loadUserCredentials((int) $user->id());
+
+    $rpId = $request->getHost();
+    $options = $this->webAuthnService->getRegistrationOptions($user, $rpId, $existingCredentials);
 
     return new JsonResponse($options);
+  }
+
+  /**
+   * Loads stored credential IDs and transports for a user (D10 & D11 safe).
+   *
+   * @param int $uid
+   *   The user ID.
+   *
+   * @return array<int, array{credential_id: string, transports: string|null}>
+   *   List of associative arrays with raw binary credential_id and transports.
+   */
+  protected function loadUserCredentials(int $uid): array {
+    $statement = $this->database->select('wa', 'c')
+      ->fields('c', ['credential_id', 'transports'])
+      ->condition('uid', $uid)
+      ->execute();
+
+    $credentials = [];
+    while ($row = $statement->fetchAssoc()) {
+      $credentials[] = [
+        'credential_id' => (string) $row['credential_id'],
+        'transports' => is_string($row['transports']) ? $row['transports'] : NULL,
+      ];
+    }
+
+    return $credentials;
   }
 
   /**
@@ -407,40 +854,27 @@ class PasskeyController extends ControllerBase {
    *   The verification result response.
    */
   public function registerVerify(Request $request) {
+    if (!$this->isPasskeyLoginEnabled()) {
+      return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed during verify', [], 403, LogLevel::WARNING);
+    }
+
     $floodName = 'wa_register';
-    // 1 hour
+    // 1 hour.
     $window = 3600;
     $maxAttempts = 5;
     $ipIdentifier = 'ip:' . ($request->getClientIp() ?? 'unknown');
     $userIdentifier = 'user:' . $this->currentUser()->id();
 
     if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $ipIdentifier)) {
-      return $this->ticketService->logAndReturnError('Too many registration attempts. Please try again later.', 'Flood control blocked registration (IP)', [], 429);
+      return $this->ticketService->logAndReturnError('Too many registration attempts. Please try again later.', 'Flood control blocked registration (IP)', [], 429, LogLevel::WARNING);
     }
     if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $userIdentifier)) {
-      return $this->ticketService->logAndReturnError('Too many registration attempts. Please try again later.', 'Flood control blocked registration (User)', [], 429);
+      return $this->ticketService->logAndReturnError('Too many registration attempts. Please try again later.', 'Flood control blocked registration (User)', [], 429, LogLevel::WARNING);
     }
 
     try {
-      $token = $request->headers->get('X-CSRF-Token');
-      $path = ltrim(Url::fromRoute('wa.register_verify')->getInternalPath(), '/');
-
-      $valid = $this->csrfToken->validate($token, $path);
-
-      if (!$valid) {
-        return $this->ticketService->logAndReturnError('Invalid CSRF token.', 'CSRF Fail on verify: Token=@token, Path=@path', [
-          '@token' => $token ?? '',
-          '@path' => $path,
-        ], 403);
-      }
-
-      $config = $this->config('wa.settings');
-      if ($config->get('enable_passkey_login') === FALSE) {
-        return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed during verify', [], 403);
-      }
-
       if (!$this->userHasAllowedRole()) {
-        return $this->ticketService->logAndReturnError('Passkey registration not permitted for your role.', 'Role check failed for registration verify', [], 403);
+        return $this->ticketService->logAndReturnError('Passkey registration not permitted for your role.', 'Role check failed for registration verify', [], 403, LogLevel::WARNING);
       }
 
       $content = json_decode($request->getContent(), TRUE);
@@ -449,7 +883,20 @@ class PasskeyController extends ControllerBase {
       if (!$user instanceof UserInterface) {
         throw new \Exception('User not found.');
       }
+
+      if (!$this->hasValidReauth($request, $user)) {
+        return $this->ticketService->logAndReturnError(
+          'Please confirm your identity before adding a passkey.',
+          'Re-authentication required before registration verify for user @uid',
+          ['@uid' => $user->id()],
+          403,
+          LogLevel::NOTICE,
+          ['reauth_required' => TRUE]
+        );
+      }
+
       $rpId = $request->getHost();
+      $expectedOrigin = $request->getSchemeAndHttpHost();
       $challengeData = $request->getSession()->get('wa_challenge');
 
       if (empty($challengeData) || !is_array($challengeData)) {
@@ -464,12 +911,12 @@ class PasskeyController extends ControllerBase {
 
       $challenge = $challengeData['value'] ?? '';
 
-      // Reconstruct creation options for validation.
+      // Reconstruct creation options for validation with strict origin check.
       $publicKeyCredentialSource = $this->webAuthnService->validateRegistrationRequest(
-        $content,
+        is_array($content) ? $content : [],
         $rpId,
         $challenge,
-        $request->getHost(),
+        $expectedOrigin,
         $user->getAccountName(),
         (string) $user->id(),
         $user->getDisplayName()
@@ -477,7 +924,7 @@ class PasskeyController extends ControllerBase {
 
       $aaguid = strtolower($publicKeyCredentialSource->aaguid->toRfc4122());
       if (!$this->passkeyLabeler->isAaguidAllowed($aaguid)) {
-        return $this->ticketService->logAndReturnError('This authenticator is not allowed for passkey login.', 'Passkey registration blocked for disallowed AAGUID: @aaguid', ['@aaguid' => $aaguid], 403);
+        return $this->ticketService->logAndReturnError('This authenticator is not allowed for passkey login.', 'Passkey registration blocked for disallowed AAGUID: @aaguid', ['@aaguid' => $aaguid], 403, LogLevel::WARNING);
       }
 
       $credentialHash = hash('sha256', $publicKeyCredentialSource->publicKeyCredentialId);
@@ -512,6 +959,12 @@ class PasskeyController extends ControllerBase {
         ])
         ->execute();
 
+      $this->cacheTagsInvalidator->invalidateTags(['wa_user_passkeys:' . $user->id()]);
+
+      // Consume the re-authentication marker so each registration requires a
+      // fresh confirmation.
+      $request->getSession()->remove(self::REAUTH_SESSION_KEY);
+
       $encodedCredentialId = base64_encode($publicKeyCredentialSource->publicKeyCredentialId);
       $maskedCredentialId = '****' . substr($encodedCredentialId, -6);
       $this->getLogger('wa')->info('Passkey added for user @uid. Credential ID: @credential_id, AAGUID: @aaguid.', [
@@ -531,7 +984,17 @@ class PasskeyController extends ControllerBase {
           'aaguid' => $publicKeyCredentialSource->aaguid->toRfc4122(),
         ],
       ];
-      $this->mailManager->mail($module, $key, $to, $langcode, $params, NULL, TRUE);
+      // The passkey is already saved at this point, so a problem with sending
+      // the notification must not be reported as a failed registration.
+      try {
+        $this->mailManager->mail($module, $key, $to, $langcode, $params, NULL, TRUE);
+      }
+      catch (\Throwable $e) {
+        $this->getLogger('wa')->error('The notification email for the new passkey of user @uid could not be sent: @message', [
+          '@uid' => $user->id(),
+          '@message' => $e->getMessage(),
+        ]);
+      }
 
       return new JsonResponse(['status' => 'ok']);
     }
@@ -550,86 +1013,81 @@ class PasskeyController extends ControllerBase {
    * Deletes a stored passkey for the current user (or admin).
    */
   public function deletePasskey(Request $request): JsonResponse {
-    $token = $request->headers->get('X-CSRF-Token');
-    $path = ltrim(Url::fromRoute('wa.passkey_delete')->getInternalPath(), '/');
-
-    if (!$this->csrfToken->validate($token, $path)) {
-      return $this->ticketService->logAndReturnError('Invalid CSRF token.', 'CSRF Fail on delete: Token=@token, Path=@path', [
-        '@token' => $token ?? '',
-        '@path' => $path,
-      ], 403);
-    }
-
     $data = json_decode($request->getContent(), TRUE) ?? [];
     $credentialId = $data['id'] ?? $request->request->get('id');
 
-    if (empty($credentialId)) {
-      return $this->ticketService->logAndReturnError('Missing credential id', 'Missing credential id for deletion', [], 400);
-    }
-
-    $canAdminister = $this->currentUser()->hasPermission(WaPermissions::ADMINISTER_ALL_USER_PASSKEY);
-    if (!$canAdminister) {
-      // Check if user has allowed role for API endpoint consistency.
-      if (!$this->userHasAllowedRole()) {
-        return $this->ticketService->logAndReturnError('Deletion not permitted.', 'Role check failed for deletion', [], 403);
-      }
+    if (empty($credentialId) || !is_string($credentialId)) {
+      return $this->ticketService->logAndReturnError('Missing credential id', 'Missing credential id for deletion', [], 400, LogLevel::WARNING);
     }
 
     $current_uid = (int) $this->currentUser()->id();
 
     // Decode base64-encoded credential ID from UI.
-    // The database now stores credential IDs as raw binary.
+    // The database stores credential IDs as raw binary; lookups use the
+    // portable SHA-256 credential_hash column so PostgreSQL bytea comparisons
+    // are avoided.
     $decodedCredentialId = base64_decode($credentialId, TRUE);
     if ($decodedCredentialId === FALSE || $decodedCredentialId === '') {
-      return $this->ticketService->logAndReturnError('Invalid credential id format', 'Invalid credential id format for deletion', [], 400);
+      return $this->ticketService->logAndReturnError('Invalid credential id format', 'Invalid credential id format for deletion', [], 400, LogLevel::WARNING);
     }
 
+    $credentialHash = hash('sha256', $decodedCredentialId);
+
     // Fetch record details before deletion so we can log the owner correctly.
-    $query = $this->database->select('wa', 'c')
-      ->fields('c', ['aaguid', 'uid'])
-      ->condition('credential_id', $decodedCredentialId);
-    $result = $query->execute()->fetchAssoc();
-    $target_uid = $result ? (int) $result['uid'] : NULL;
-    $aaguid = $result ? $result['aaguid'] : 'Unknown';
+    $result = $this->database->select('wa', 'c')
+      ->fields('c', ['aaguid', 'uid', 'credential_id'])
+      ->condition('credential_hash', $credentialHash)
+      ->execute()
+      ->fetchAssoc();
 
-    // Delete for owner.
-    $deleted = $this->deleteByCredentialId($decodedCredentialId, $current_uid);
+    if (!$result || !hash_equals((string) $result['credential_id'], $decodedCredentialId)) {
+      return $this->ticketService->logAndReturnError('Deletion failed or unauthorized', 'Deletion failed or unauthorized', [], 403, LogLevel::WARNING);
+    }
 
-    // Allow administrators with permission to remove any credential.
+    $target_uid = (int) $result['uid'];
+    $aaguid = $result['aaguid'] ?? 'Unknown';
+
+    // Owners can always delete their own passkeys, even if their role was
+    // removed from allowed_roles (prevents stranded credentials). Admins with
+    // administer all user passkey can delete any user's passkeys.
+    $deleted = $this->deleteByCredentialHash($credentialHash, $current_uid);
+
     if (!$deleted && $this->currentUser()->hasPermission(WaPermissions::ADMINISTER_ALL_USER_PASSKEY)) {
-      $deleted = $this->deleteByCredentialId($decodedCredentialId);
+      $deleted = $this->deleteByCredentialHash($credentialHash);
     }
 
     if ($deleted) {
+      $this->cacheTagsInvalidator->invalidateTags(['wa_user_passkeys:' . $target_uid]);
+      $maskedCredentialId = '****' . substr($credentialId, -6);
       $this->getLogger('wa')->info('Passkey deleted for user @uid. Credential ID: @credential_id, AAGUID: @aaguid.', [
-        '@credential_id' => $credentialId,
-        '@uid' => $target_uid ?? $current_uid,
+        '@credential_id' => $maskedCredentialId,
+        '@uid' => $target_uid,
         '@aaguid' => $aaguid,
       ]);
       return new JsonResponse(['status' => 'ok']);
     }
 
-    return $this->ticketService->logAndReturnError('Deletion failed or unauthorized', 'Deletion failed or unauthorized', [], 403);
+    return $this->ticketService->logAndReturnError('Deletion failed or unauthorized', 'Deletion failed or unauthorized', [], 403, LogLevel::WARNING);
   }
 
   /**
-   * Deletes a credential by its ID.
+   * Deletes a credential by its SHA-256 hash.
    *
-   * @param string $credentialId
-   *   The raw binary credential ID to delete.
+   * @param string $credentialHash
+   *   The SHA-256 hex digest of the raw binary credential ID.
    * @param int|null $uid
    *   Optional user ID to restrict deletion to a specific user.
    *
    * @return int
    *   Number of credentials deleted (0 or 1).
    */
-  protected function deleteByCredentialId(string $credentialId, ?int $uid = NULL): int {
-    if ($credentialId === '') {
+  protected function deleteByCredentialHash(string $credentialHash, ?int $uid = NULL): int {
+    if ($credentialHash === '') {
       return 0;
     }
 
     $query = $this->database->delete('wa')
-      ->condition('credential_id', $credentialId);
+      ->condition('credential_hash', $credentialHash);
 
     if ($uid !== NULL) {
       $query->condition('uid', $uid);
@@ -641,54 +1099,37 @@ class PasskeyController extends ControllerBase {
   /**
    * Provides login options for passkey authentication.
    *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request.
+   *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The login options response.
    */
   public function loginOptions(Request $request) {
+    if (!$this->isPasskeyLoginEnabled()) {
+      return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed (login options)', [], 403, LogLevel::WARNING);
+    }
+
     $floodName = 'wa_login_options';
     $window = 300;
     $maxAttempts = 10;
     $ipIdentifier = 'ip:' . ($request->getClientIp() ?? 'unknown');
 
-    // Check the Origin/Referer header.
-    $config = $this->config('wa.settings');
-    if ($config->get('enable_passkey_login') === FALSE) {
-      return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed (login options)', [], 403);
+    if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $ipIdentifier)) {
+      return $this->ticketService->logAndReturnError('Too many login attempts. Please try again later.', 'Flood control blocked login options (IP)', [], 429, LogLevel::WARNING);
     }
 
-    if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $ipIdentifier)) {
-      return $this->ticketService->logAndReturnError('Too many login attempts. Please try again later.', 'Flood control blocked login options (IP)', [], 429);
-    }
+    // Register every request against the IP flood window so anonymous callers
+    // cannot spawn unbounded session rows or flood dblog.
+    $this->flood->register($floodName, $window, $ipIdentifier);
 
     // Enforce X-Requested-With header to prevent CSRF.
-    // This works because browsers do not allow cross-site requests to set
-    // custom headers unless explicitly allowed by CORS.
     if (!$request->isXmlHttpRequest()) {
-      return $this->ticketService->logAndReturnError('Invalid request.', 'Missing X-Requested-With header (CSRF check)', [], 403);
+      return $this->ticketService->logAndReturnError('Invalid request.', 'Missing X-Requested-With header (CSRF check)', [], 403, LogLevel::NOTICE);
     }
 
-    $origin = $request->headers->get('Origin');
-    $referer = $request->headers->get('Referer');
-    $host = $request->getHost();
-
-    // Allow if Origin matches host (standard for CORS/fetch).
-    // If Origin is missing, check Referer.
-    $valid_origin = FALSE;
-    if ($origin) {
-      $parsed_origin = parse_url($origin);
-      if (isset($parsed_origin['host']) && $parsed_origin['host'] === $host) {
-        $valid_origin = TRUE;
-      }
-    }
-    elseif ($referer) {
-      $parsed_referer = parse_url($referer);
-      if (isset($parsed_referer['host']) && $parsed_referer['host'] === $host) {
-        $valid_origin = TRUE;
-      }
-    }
-
-    if (!$valid_origin) {
-      return $this->ticketService->logAndReturnError('Invalid Origin or Referer.', 'Invalid Origin or Referer', [], 403);
+    if (!$this->hasValidOriginOrReferer($request)) {
+      return $this->ticketService->logAndReturnError('Invalid Origin or Referer.', 'Invalid Origin or Referer', [], 403, LogLevel::NOTICE);
     }
 
     $rpId = $request->getHost();
@@ -699,7 +1140,8 @@ class PasskeyController extends ControllerBase {
       'created' => $this->time->getCurrentTime(),
     ]);
 
-    $userVerification = $config->get('user_verification') ?? 'preferred';
+    $config = $this->config('wa.settings');
+    $userVerification = $config->get('user_verification') ?? 'required';
 
     $options = [
       'challenge' => $challengeEncoded,
@@ -714,73 +1156,61 @@ class PasskeyController extends ControllerBase {
   /**
    * Validates a passkey assertion and logs the user in.
    *
+   * Returns a JSON response with a validated `redirect_url` on success or
+   * policy redirect so the client performs a single top-level navigation
+   * without consuming one-shot status messages via a hidden fetch() redirect.
+   *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request containing the assertion response.
    *
-   * @return \Symfony\Component\HttpFoundation\JsonResponse|\Symfony\Component\HttpFoundation\RedirectResponse
-   *   The verification result response or a redirect.
+   * @return \Symfony\Component\HttpFoundation\JsonResponse
+   *   The verification result response.
    */
   public function loginVerify(Request $request) {
+    if (!$this->isPasskeyLoginEnabled()) {
+      return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed (login verify)', [], 403, LogLevel::WARNING);
+    }
+
     $floodName = 'wa_login';
     $window = 900;
     $maxAttempts = 5;
     $ipIdentifier = 'ip:' . ($request->getClientIp() ?? 'unknown');
-    $credentialIdentifier = NULL;
     $registerFloodOnFailure = TRUE;
     $credentialId = '';
     $uid = 0;
 
     if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $ipIdentifier)) {
-      return $this->ticketService->logAndReturnError('Too many login attempts. Please try again later.', 'Flood control blocked login verify (IP)', [], 429);
+      return $this->ticketService->logAndReturnError('Too many login attempts. Please try again later.', 'Flood control blocked login verify (IP)', [], 429, LogLevel::WARNING);
     }
 
     // Enforce X-Requested-With header to prevent CSRF.
     if (!$request->isXmlHttpRequest()) {
-      return $this->ticketService->logAndReturnError('Invalid request.', 'Missing X-Requested-With header on loginVerify (CSRF check)', [], 403);
+      $this->flood->register($floodName, $window, $ipIdentifier);
+      return $this->ticketService->logAndReturnError('Invalid request.', 'Missing X-Requested-With header on loginVerify (CSRF check)', [], 403, LogLevel::NOTICE);
     }
 
     // Validate Origin or Referer header.
-    $origin = $request->headers->get('Origin');
-    $referer = $request->headers->get('Referer');
-    $host = $request->getHost();
-    $valid_origin = FALSE;
-    if ($origin) {
-      $parsed_origin = parse_url($origin);
-      if (isset($parsed_origin['host']) && $parsed_origin['host'] === $host) {
-        $valid_origin = TRUE;
-      }
-    }
-    elseif ($referer) {
-      $parsed_referer = parse_url($referer);
-      if (isset($parsed_referer['host']) && $parsed_referer['host'] === $host) {
-        $valid_origin = TRUE;
-      }
-    }
-
-    if (!$valid_origin) {
-      return $this->ticketService->logAndReturnError('Invalid Origin or Referer.', 'Invalid Origin or Referer on loginVerify', [], 403);
+    if (!$this->hasValidOriginOrReferer($request)) {
+      $this->flood->register($floodName, $window, $ipIdentifier);
+      return $this->ticketService->logAndReturnError('Invalid Origin or Referer.', 'Invalid Origin or Referer on loginVerify', [], 403, LogLevel::NOTICE);
     }
 
     try {
       $config = $this->config('wa.settings');
-      if ($config->get('enable_passkey_login') === FALSE) {
-        return $this->ticketService->logAndReturnError('Passkey login is disabled.', 'Passkey login disabled check failed (login verify)', [], 403);
-      }
 
       $content = json_decode($request->getContent(), TRUE);
+      if (!is_array($content)) {
+        throw new \Exception('Invalid login payload.');
+      }
+
       $credentialId = $content['id'] ?? '';
-      if ($credentialId === '') {
+      if (!is_string($credentialId) || $credentialId === '') {
         throw new \Exception('Missing credential id.');
       }
 
-      $credentialIdentifier = 'cred:' . hash('sha256', $credentialId);
-      if (!$this->flood->isAllowed($floodName, $maxAttempts, $window, $credentialIdentifier)) {
-        return $this->ticketService->logAndReturnError('Too many login attempts. Please try again later.', 'Flood control blocked login verify (Credential)', [], 429);
-      }
-
       // Decode base64url-encoded credential ID from client.
-      // The database stores credential IDs as raw binary.
-      $decodedCredentialId = '';
+      // The database stores credential IDs as raw binary; lookup uses the
+      // portable SHA-256 credential_hash column for cross-DB compatibility.
       try {
         $decodedCredentialId = Base64UrlSafe::decodeNoPadding($credentialId);
       }
@@ -805,15 +1235,17 @@ class PasskeyController extends ControllerBase {
 
       $challenge = $challengeData['value'] ?? '';
 
-      // Find user by credential ID.
+      $credentialHash = hash('sha256', $decodedCredentialId);
+
+      // Find user by portable SHA-256 credential hash.
       $query = $this->database->select('wa', 'c')
         ->fields('c', ['uid', 'credential_id', 'public_key', 'user_handle', 'sign_counter', 'transports', 'aaguid'])
-        ->condition('credential_id', $decodedCredentialId);
+        ->condition('credential_hash', $credentialHash);
 
       // If the client provided the user handle (user ID), use it
       // to narrow down the search.
       $userHandleEncoded = $content['response']['userHandle'] ?? '';
-      $enforce_user_handle = $config->get('enforce_user_handle');
+      $enforce_user_handle = (bool) $config->get('enforce_user_handle');
 
       // Check if we must enforce user handle presence.
       if ($enforce_user_handle && $userHandleEncoded === '') {
@@ -827,20 +1259,12 @@ class PasskeyController extends ControllerBase {
         }
         catch (\Throwable $e) {
           if ($enforce_user_handle) {
-            // When enforcement is enabled, reject malformed user handles.
             throw new \Exception('User handle decode failed.');
           }
-          // When enforcement is disabled, ignore invalid user handle encoding.
-          // This is just an optimization hint, so we fall back to the standard
-          // lookup by credential_id.
         }
 
         if ($userHandle !== '') {
           // Validate that the decoded user handle is a positive integer UID.
-          // The user handle is set to the Drupal UID during registration
-          // (see WebAuthnService::getRegistrationOptions()). Without this
-          // validation, a non-numeric string would be silently coerced to 0
-          // by the database layer, bypassing the UID narrowing entirely.
           if (!ctype_digit($userHandle) || (int) $userHandle <= 0) {
             throw new \Exception('Invalid user handle format.');
           }
@@ -848,22 +1272,18 @@ class PasskeyController extends ControllerBase {
           $query->condition('uid', (int) $userHandle);
         }
         elseif ($enforce_user_handle) {
-          // If we must enforce user handle presence,
-          // The user ID must be matched.
           throw new \Exception('User handle is required by policy.');
         }
       }
 
       $statement = $query->execute();
-
       $result = $statement->fetchAssoc();
 
-      if (!$result) {
+      if (!$result || !hash_equals((string) $result['credential_id'], $decodedCredentialId)) {
         throw new \Exception('Credential not found.');
       }
 
-      // Load and validate user BEFORE expensive WebAuthn validation
-      // to avoid wasted computation for blocked/invalid users.
+      // Load and validate user BEFORE expensive WebAuthn validation.
       $uid = (int) $result['uid'];
       $user = $this->entityTypeManager()->getStorage('user')->load($uid);
 
@@ -871,7 +1291,6 @@ class PasskeyController extends ControllerBase {
         throw new \Exception('User not found or invalid.');
       }
 
-      // Check if the user is blocked or disallowed before WebAuthn validation.
       if ($user->isBlocked()) {
         throw new \Exception('User account is blocked.');
       }
@@ -884,7 +1303,7 @@ class PasskeyController extends ControllerBase {
         throw new \Exception('This authenticator is not allowed for passkey login. AAGUID: ' . $result['aaguid']);
       }
 
-      // Validate assertion via WebAuthn service.
+      // Validate assertion via WebAuthn service with strict origin matching.
       $storedCredentialId = $result['credential_id'];
       $storedPublicKey = $result['public_key'] ?? '';
 
@@ -900,106 +1319,77 @@ class PasskeyController extends ControllerBase {
           'sign_counter' => $result['sign_counter'],
         ],
         $challenge,
-        // RP ID (domain is usually correct for RP ID).
         $request->getHost(),
-        // Expected Origin (must include scheme).
         $request->getSchemeAndHttpHost(),
-        $config->get('user_verification') ?? 'preferred',
+        $config->get('user_verification') ?? 'required',
         $publicKeyCredentialSource
       );
       if ($validated !== TRUE || !$publicKeyCredentialSource) {
         throw new \Exception('Passkey validation failed.');
       }
 
-      // Update counter and last used.
+      // Update counter and last used using portable credential_hash.
       $this->database->update('wa')
         ->fields([
           'last_used' => $this->time->getRequestTime(),
           'sign_counter' => $publicKeyCredentialSource->counter,
         ])
-        ->condition('credential_id', $storedCredentialId)
+        ->condition('credential_hash', $credentialHash)
         ->execute();
 
-      // Ensure we have a valid user ID before logging in.
-      // Note: $credentialId is already validated to be non-empty at
-      // line 647-650.
       if ($uid === 0) {
         throw new \Exception('Invalid login state: Missing user ID.');
       }
 
-      // Allow modules to react to passkey login and potentially redirect.
-      $allow_login = TRUE;
-      $redirect_url = NULL;
-
-      $results = $this->moduleHandler->invokeAll('wa_login', [$user]);
-      foreach ($results as $result) {
-        if (isset($result['allowed_login']) && $result['allowed_login'] === FALSE) {
-          $allow_login = FALSE;
-          if (!empty($result['redirect_url'])) {
-            $redirect_url = $result['redirect_url'];
-          }
-          break;
-        }
-        if (!empty($result['redirect_url'])) {
-          $redirect_url = $result['redirect_url'];
-        }
-      }
-
-      if ($redirect_url && $redirect_url instanceof Url) {
-        $redirect_url = $redirect_url->toString();
-      }
-      // Validate redirect_url from hook is a safe local path.
-      $originalRedirectUrl = $redirect_url;
-      if ($redirect_url && is_string($redirect_url)) {
-        try {
-          $redirect_url = Url::fromUserInput($redirect_url)->toString();
-        }
-        catch (\Throwable $e) {
-          $redirect_url = NULL;
-        }
-      }
-      else {
-        $redirect_url = NULL;
-      }
+      // Reset any stale step-up completion state from an earlier login attempt
+      // and evaluate hook_wa_login() with fail-closed veto composition.
+      $request->getSession()->remove('wa_completed_step_ups');
+      $policy = $this->loginPolicyEvaluator->evaluate($user, TRUE, []);
+      $allow_login = $policy['allowed_login'];
+      $originalRedirectUrl = $policy['redirect_url'];
+      $validatedRedirectUrl = $this->safeLoginFinalizer->normalizeLocalRedirectUrl($originalRedirectUrl, $request);
 
       if (!$allow_login) {
-        // If login is not allowed, check for redirect URL.
-        if ($redirect_url) {
-          $this->getLogger('wa')->info('Passkey login prevented by external module for user @uid. Redirecting user.', [
+        $registerFloodOnFailure = FALSE;
+        if ($validatedRedirectUrl !== NULL) {
+          $this->getLogger('wa')->info('Passkey login intercepted by module @module for user @uid. Redirecting user.', [
+            '@module' => $policy['denied_by'] ?? 'unknown',
             '@uid' => $uid,
           ]);
-          return new LocalRedirectResponse($redirect_url);
+          return new JsonResponse([
+            'status' => 'redirect',
+            'redirect_url' => $validatedRedirectUrl,
+          ]);
         }
-        // If the hook provided an invalid redirect URL, return a ticketed
-        // error so the issue can be traced.
         if ($originalRedirectUrl !== NULL) {
           return $this->ticketService->logAndReturnError(
             'Login prevented. Invalid redirect configuration.',
             'Login blocked by hook for user @uid with invalid redirect URL: @url',
-            ['@uid' => $uid, '@url' => (string) $originalRedirectUrl],
-            403
+            [
+              '@uid' => $uid,
+              '@url' => $originalRedirectUrl instanceof Url ? $originalRedirectUrl->toUriString() : (string) $originalRedirectUrl,
+            ],
+            403,
+            LogLevel::WARNING
           );
         }
-        // No redirect URL provided at all.
         return $this->ticketService->logAndReturnError(
           'Login prevented by site policy.',
           'Login blocked by external module for user @uid, no redirect URL provided.',
           ['@uid' => $uid],
-          403
+          403,
+          LogLevel::WARNING
         );
       }
 
       // Regenerate session ID before login to prevent session fixation.
-      // This ensures any pre-authentication session ID is invalidated.
       $request->getSession()->migrate(TRUE);
 
       // Finalize login with redirect interception.
-      // The service handles: stripping ?destination, ob_start() buffering,
-      // Location header interception, and candidate validation.
       $finalRedirectUrl = $this->safeLoginFinalizer->finalizeLogin(
         $user,
         $request,
-        [$redirect_url]
+        [$originalRedirectUrl]
       );
 
       $maskedCredentialId = '****' . substr($credentialId, -6);
@@ -1010,19 +1400,16 @@ class PasskeyController extends ControllerBase {
 
       $registerFloodOnFailure = FALSE;
 
-      return $this->safeLoginFinalizer->createRedirectResponse($finalRedirectUrl, $uid);
+      return new JsonResponse([
+        'status' => 'ok',
+        'redirect_url' => $this->safeLoginFinalizer->getFinalRedirectUrl($finalRedirectUrl, $uid),
+      ]);
     }
     catch (EnforcedResponseException $e) {
-      // If a module forces a response (like a redirect),
-      // Clean buffer if it was started.
-      if (ob_get_level()) {
-        ob_end_clean();
-      }
-
-      // Extract the redirect URL if possible.
+      // SafeLoginFinalizer::finalizeLogin() already unwinds only the buffers
+      // it opened in its finally block; do not pop outer output buffers here.
       $response = $e->getResponse();
 
-      // Only log success if the user successfully logged in.
       if ($this->currentUser()->isAuthenticated()) {
         $maskedCredentialId = '****' . substr($credentialId, -6);
         $this->getLogger('wa')->info('User logged in with passkey (EnforcedResponseException caught). User: @uid, Credential ID: @credential_id.', [
@@ -1037,47 +1424,36 @@ class PasskeyController extends ControllerBase {
         ]);
       }
 
-      // Validate the redirect URL if it's a RedirectResponse.
-      // Modules like login_destination may force external redirects that
-      // break AJAX (CORS errors). Validate through Url::fromUserInput().
       if ($response instanceof RedirectResponse) {
         $targetUrl = $response->getTargetUrl();
-        try {
-          $safeUrl = Url::fromUserInput($targetUrl)->toString();
-          return new LocalRedirectResponse($safeUrl);
-        }
-        catch (\Throwable $e) {
-          $this->getLogger('wa')->warning('EnforcedResponseException redirect rejected (external URL): @url for user @uid', [
-            '@url' => $targetUrl,
-            '@uid' => $uid,
+        $safeUrl = $this->safeLoginFinalizer->normalizeLocalRedirectUrl($targetUrl, $request);
+        if ($safeUrl !== NULL) {
+          return new JsonResponse([
+            'status' => $this->currentUser()->isAuthenticated() ? 'ok' : 'redirect',
+            'redirect_url' => $safeUrl,
           ]);
-          // Fall through to safe default below.
         }
+        $this->getLogger('wa')->warning('EnforcedResponseException redirect rejected (external URL): @url for user @uid', [
+          '@url' => $targetUrl,
+          '@uid' => $uid,
+        ]);
       }
 
-      // If login was successful, redirect to user page.
       if ($this->currentUser()->isAuthenticated()) {
-        return new LocalRedirectResponse(Url::fromRoute('entity.user.canonical', ['user' => $this->currentUser()->id()])->toString());
+        return new JsonResponse([
+          'status' => 'ok',
+          'redirect_url' => $this->safeLoginFinalizer->getFinalRedirectUrl(NULL, $this->currentUser()->id()),
+        ]);
       }
 
-      // Login failed or was incomplete, return error.
       return new JsonResponse([
         'status' => 'error',
         'message' => 'Login failed or incomplete.',
       ], 400);
     }
     catch (\Throwable $e) {
-      // Clean buffer if it wasn't cleaned.
-      if (ob_get_level()) {
-        ob_end_clean();
-      }
-
       if ($registerFloodOnFailure) {
         $this->flood->register($floodName, $window, $ipIdentifier);
-        // We do NOT register flood events for the credential or user identifier
-        // on generic failures (like signature mismatch) to prevent DoS attacks.
-        // The cryptographic strength of the signature is sufficient protection
-        // against brute-force attacks on the key itself.
       }
 
       return $this->ticketService->logAndReturnError('Passkey login failed.', 'Passkey login failed: @message', ['@message' => $e->getMessage()], 400);

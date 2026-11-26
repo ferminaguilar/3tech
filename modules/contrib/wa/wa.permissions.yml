@@ -1,4 +1,9 @@
 administer all user passkey:
-  title: 'Administer all user passkey'
+  title: 'Administer all user passkeys'
   description: 'View and delete passkeys for any user account.'
+  restrict access: true
+
+administer passkey settings:
+  title: 'Administer passkey settings'
+  description: 'Configure WebAuthn passkey security policies, notifications, and Email OTP settings.'
   restrict access: true

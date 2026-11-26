@@ -12,6 +12,7 @@
   // Tracks in-flight undo/redo requests so rapid clicks are applied in order.
   let undoRedoQueue = Promise.resolve();
   let undoRedoSequence = 0;
+  let historyPending = 0;
 
   /**
    * Set the size of the preview iframe.
@@ -68,6 +69,13 @@
    * @param {Event} event The click event.
    */
   function save() {
+    if (
+      Drupal.mercuryEditorSaveLock?.isLocked() ||
+      historyPending ||
+      $.active > 0
+    ) {
+      return;
+    }
     const saveBtn = document.querySelector(
       '[data-drupal-selector="edit-submit"]:not([disabled])',
     );
@@ -113,6 +121,8 @@
    * @param {String} which Either 'undo' or 'redo'.
    */
   function undoRedo(which) {
+    if (Drupal.mercuryEditorSaveLock?.isLocked()) return;
+    historyPending += 1;
     const match = window.location.pathname.match(
       /^\/mercury-editor\/([0-9a-fA-F-]+)/,
     );
@@ -132,7 +142,10 @@
         }
         return Drupal.ajax({ url: `/mercury-editor/${id}` }).execute();
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        historyPending -= 1;
+      });
   }
 
   /**
@@ -332,7 +345,7 @@
    */
   function iFramePointerEventsToggle(e) {
     const iframe = document.querySelector('#me-preview');
-    if (iframe) {
+    if (iframe && !Drupal.mercuryEditorSaveLock?.isLocked()) {
       iframe.style.pointerEvents = e.type === 'mouseup' ? 'auto' : 'none';
     }
   }
@@ -347,12 +360,14 @@
       // This works because '.me-entity-form' is the form for the parent entity,
       // not a component.
       if (context?.classList?.contains('me-entity-form')) {
-        const uuid = document.querySelector('[name="uuid"]')?.value;
-        if (uuid) {
-          Drupal.mercuryEditorBus.post('preview:selectComponent', {
-            uuid,
-          });
-        }
+        Drupal.mercuryEditorSaveLock.afterUnlock(() => {
+          const uuid = document.querySelector('[name="uuid"]')?.value;
+          if (uuid) {
+            Drupal.mercuryEditorBus.post('preview:selectComponent', {
+              uuid,
+            });
+          }
+        });
       }
 
       // Move focus to the first input with error, if any.
@@ -362,9 +377,9 @@
         context,
       )[0];
       if (firstError) {
-        firstError.focus();
-        firstError.scrollIntoView({
-          behavior: 'smooth',
+        Drupal.mercuryEditorSaveLock.afterUnlock(() => {
+          firstError.focus();
+          firstError.scrollIntoView({ behavior: 'smooth' });
         });
       }
       // Initialize the toolbar.
@@ -392,6 +407,11 @@
               options,
             ) {
               this.beforeSerializeMercuryEditor(element, options);
+              // GET requests (e.g. views/ajax) are read from the URL, not the
+              // POST body the preview wrapper needs, so keep them small.
+              if (`${options.type || ''}`.toUpperCase() === 'GET') {
+                return;
+              }
               const pageState = drupalSettings.ajaxPreviewPageState || {};
               options.data['ajax_preview_page_state[theme]'] = pageState.theme;
               options.data['ajax_preview_page_state[theme_token]'] =

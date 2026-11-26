@@ -19,3 +19,5 @@ testuser
 normalised
 behaviour
 unvalidated
+cbor
+keytype

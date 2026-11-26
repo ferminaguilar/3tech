@@ -82,7 +82,6 @@ function wa_schema(): array {
     ],
     'primary key' => ['id'],
     'unique keys' => [
-      'credential_id' => [['credential_id', 255]],
       'credential_hash' => ['credential_hash'],
     ],
     'indexes' => [
@@ -194,4 +193,53 @@ function wa_update_10002(): string {
   return (string) t('Removed credential_id handlers from views: @views.', [
     '@views' => implode(', ', $updated_views),
   ]);
+}
+
+/**
+ * Drop credential_id unique key, grant settings permission, migrate config.
+ */
+function wa_update_10003(): string {
+  $messages = [];
+
+  // 1. Drop redundant blob-prefix unique key (credential_hash is unique and
+  // portable across MySQL and PostgreSQL).
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('wa')) {
+    $schema->dropUniqueKey('wa', 'credential_id');
+    $messages[] = 'Dropped redundant credential_id unique key.';
+  }
+
+  // 2. Migrate deprecated resident_key 'discouraged' and add default for
+  // revoke_on_password_change.
+  $config = \Drupal::configFactory()->getEditable('wa.settings');
+  $configChanged = FALSE;
+  if ($config->get('resident_key') === 'discouraged') {
+    $config->set('resident_key', 'preferred');
+    $configChanged = TRUE;
+    $messages[] = 'Updated resident_key from discouraged to preferred.';
+  }
+  if ($config->get('revoke_on_password_change') === NULL) {
+    $config->set('revoke_on_password_change', TRUE);
+    $configChanged = TRUE;
+  }
+  if ($configChanged) {
+    $config->save(TRUE);
+  }
+
+  // 3. Preserve settings access for roles that previously held the combined
+  // 'administer all user passkey' permission.
+  $roleStorage = \Drupal::entityTypeManager()->getStorage('user_role');
+  $updatedRoles = [];
+  foreach ($roleStorage->loadMultiple() as $role) {
+    if ($role->hasPermission('administer all user passkey') && !$role->hasPermission('administer passkey settings')) {
+      $role->grantPermission('administer passkey settings');
+      $role->save();
+      $updatedRoles[] = $role->id();
+    }
+  }
+  if ($updatedRoles) {
+    $messages[] = 'Granted administer passkey settings to roles: ' . implode(', ', $updatedRoles) . '.';
+  }
+
+  return implode(' ', $messages) ?: 'No changes needed.';
 }

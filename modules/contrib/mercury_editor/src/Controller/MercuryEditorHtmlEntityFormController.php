@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormBuilderInterface;
 use Drupal\mercury_editor\MercuryEditorTempstore;
+use Drupal\mercury_editor\BlockPreviewOptions;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
@@ -56,8 +57,16 @@ class MercuryEditorHtmlEntityFormController extends FormController {
    *   The Mercury Editor tempstore service.
    * @param \Drupal\Core\Form\FormBuilderInterface $form_builder
    *   The form builder service.
+   * @param \Drupal\mercury_editor\BlockPreviewOptions $blockPreviewOptions
+   *   The content block preview options.
    */
-  public function __construct(FormController $entity_form_controller, ConfigFactoryInterface $config_factory, MercuryEditorTempstore $tempstore, FormBuilderInterface $form_builder) {
+  public function __construct(
+    FormController $entity_form_controller,
+    ConfigFactoryInterface $config_factory,
+    MercuryEditorTempstore $tempstore,
+    FormBuilderInterface $form_builder,
+    protected BlockPreviewOptions $blockPreviewOptions,
+  ) {
     $this->entityFormController = $entity_form_controller;
     $this->config = $config_factory->get('mercury_editor.settings');
     $this->tempstore = $tempstore;
@@ -103,6 +112,10 @@ class MercuryEditorHtmlEntityFormController extends FormController {
           }
           if ($entity->hasField('moderation_state') && $entity->get('moderation_state')->isEmpty()) {
             $entity->get('moderation_state')->applyDefaultValue();
+          }
+          if ($entity_type_id === 'block_content') {
+            $this->blockPreviewOptions->resolve($entity, $request);
+            $this->tempstore->clearStates($entity);
           }
           // Store the entity in tempstore for retrieval in the ME editor.
           $this->tempstore->set($entity);

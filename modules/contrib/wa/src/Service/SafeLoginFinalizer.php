@@ -2,10 +2,11 @@
 
 namespace Drupal\wa\Service;
 
+use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Routing\LocalRedirectResponse;
 use Drupal\Core\Url;
 use Drupal\user\UserInterface;
-use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -18,8 +19,8 @@ use Symfony\Component\HttpFoundation\Request;
  * 3. Throwing EnforcedResponseException.
  *
  * This service wraps user_login_finalize() with protections to intercept
- * all of these, then validates redirect candidates through
- * Url::fromUserInput() which rejects external URLs.
+ * all of these, then validates redirect candidates so external URLs are
+ * rejected without double-prepending subdirectory base paths.
  */
 class SafeLoginFinalizer {
 
@@ -83,10 +84,9 @@ class SafeLoginFinalizer {
    *   The user to log in.
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The current request.
-   * @param string[] $additionalCandidates
+   * @param array<int, \Drupal\Core\Url|string|null> $additionalCandidates
    *   Optional additional redirect URL candidates to consider after the
-   *   intercepted ones (e.g., from hook_wa_login). These are validated
-   *   through Url::fromUserInput() like all other candidates.
+   *   intercepted ones (e.g., from hook_wa_login).
    *
    * @return string|null
    *   A validated local redirect URL string, or NULL if no valid redirect
@@ -104,25 +104,22 @@ class SafeLoginFinalizer {
     // response via $response->send() (fastcgi_finish_request on FPM,
     // closeOutputBuffers+flush on other SAPIs), the ob_start callback
     // replaces the external Location with this safe URL.
-    $safeFallback = NULL;
-    if ($preLoginDestination) {
-      try {
-        $safeFallback = Url::fromUserInput($preLoginDestination)->toString();
-      }
-      catch (\Throwable $e) {
-        // External or invalid — use default.
-      }
-    }
+    $safeFallback = $this->normalizeLocalRedirectUrl($preLoginDestination, $request);
     self::$fallbackRedirectUrl = $safeFallback
       ?? Url::fromRoute('entity.user.canonical', ['user' => $uid])->toString();
     self::$interceptedRedirectUrl = NULL;
     self::$inSafeLogin = TRUE;
 
+    // Record the output buffer level before opening our own buffer so we only
+    // unwind buffers opened during user_login_finalize().
+    $initialObLevel = ob_get_level();
+
     // (c) Output buffer with callback for universal $response->send()
     // defense. Rogue modules (login_destination, r4032login, etc.) may
     // call $response->send() during hook_user_login, which triggers:
-    // - FPM: fastcgi_finish_request() → php_output_end_all() → callback
-    // - Other SAPIs: Response::closeOutputBuffers() → ob_end_flush() → callback
+    // - FPM: fastcgi_finish_request() -> php_output_end_all() -> callback
+    // - Other SAPIs: Response::closeOutputBuffers() -> ob_end_flush()
+    //   -> callback
     // In both cases the callback fires BEFORE sapi_send_headers() commits
     // headers to the client, so we can strip/replace the Location header.
     ob_start(function (string $buffer): string {
@@ -148,7 +145,7 @@ class SafeLoginFinalizer {
     }
     finally {
       self::$inSafeLogin = FALSE;
-      if (ob_get_level()) {
+      while (ob_get_level() > $initialObLevel) {
         ob_end_clean();
       }
     }
@@ -180,44 +177,125 @@ class SafeLoginFinalizer {
     // 2. Destination injected by a module during hook_user_login.
     // 3. Location header intercepted from a rogue module.
     // 4. Additional candidates (e.g., from hook_wa_login).
-    //
-    // All candidates are validated through Url::fromUserInput() which
-    // requires paths starting with /, ?, or # and rejects external URLs.
-    $candidates = array_unique(array_merge(
+    $candidates = array_merge(
       [$preLoginDestination, $hookInjectedDestination, $interceptedRedirectUrl],
       $additionalCandidates
-    ));
+    );
 
-    return $this->resolveRedirect($candidates, $uid);
+    return $this->resolveRedirect($candidates, $uid, $request);
+  }
+
+  /**
+   * Normalizes and validates a candidate redirect URL as a safe local path.
+   *
+   * Prevents open redirects (including whitespace, backslash, and
+   * protocol-relative tricks) while preserving subdirectory base paths so
+   * generated URLs (such as `/sub/wa_otp/5/abc`) are not prefixed twice.
+   *
+   * @param \Drupal\Core\Url|string|null $candidate
+   *   The redirect candidate.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request (used to detect subdirectory base paths).
+   *
+   * @return string|null
+   *   A safe local URL string ready for navigation/redirect, or NULL if the
+   *   candidate is empty, malformed, or external.
+   */
+  public function normalizeLocalRedirectUrl(Url|string|null $candidate, Request $request): ?string {
+    if ($candidate instanceof Url) {
+      if ($candidate->isExternal()) {
+        return NULL;
+      }
+      $resolved = $candidate->toString();
+      return UrlHelper::isExternal($resolved) ? NULL : $resolved;
+    }
+
+    if (!is_string($candidate) || $candidate === '') {
+      return NULL;
+    }
+
+    // Reject anything that does not begin with '/', '?', or '#', or that
+    // Drupal's UrlHelper flags as external (e.g. //evil.com, /\evil.com).
+    if (!str_starts_with($candidate, '/') && !str_starts_with($candidate, '?') && !str_starts_with($candidate, '#')) {
+      return NULL;
+    }
+    if (UrlHelper::isExternal($candidate)) {
+      return NULL;
+    }
+
+    // If Drupal is installed in a subdirectory (basePath e.g. '/sub') and the
+    // string already carries that prefix (e.g. from Url::toString() or a
+    // Location header), strip it before passing to Url::fromUserInput() so the
+    // base path is not prepended a second time.
+    $input = $candidate;
+    $basePath = $request->getBasePath();
+    if ($basePath !== '' && ($input === $basePath || str_starts_with($input, $basePath . '/'))) {
+      $input = substr($input, strlen($basePath));
+      if ($input === '') {
+        $input = '/';
+      }
+    }
+
+    try {
+      $resolved = Url::fromUserInput($input)->toString();
+    }
+    catch (\Throwable $e) {
+      return NULL;
+    }
+
+    if (UrlHelper::isExternal($resolved)) {
+      return NULL;
+    }
+
+    return $resolved;
   }
 
   /**
    * Validates redirect candidates and returns the first valid local URL.
    *
-   * @param array $candidates
-   *   An array of URL strings to validate.
+   * @param array<int, \Drupal\Core\Url|string|null> $candidates
+   *   An array of URL objects or strings to validate.
    * @param string|int $uid
    *   The user ID for logging.
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   The current request.
    *
    * @return string|null
    *   The first valid local redirect URL, or NULL if none are valid.
    */
-  protected function resolveRedirect(array $candidates, string|int $uid): ?string {
+  protected function resolveRedirect(array $candidates, string|int $uid, Request $request): ?string {
     foreach ($candidates as $candidate) {
-      if (!is_string($candidate) || $candidate === '') {
+      if ($candidate === NULL || $candidate === '') {
         continue;
       }
-      try {
-        return Url::fromUserInput($candidate)->toString();
+      $resolved = $this->normalizeLocalRedirectUrl($candidate, $request);
+      if ($resolved !== NULL) {
+        return $resolved;
       }
-      catch (\Throwable $e) {
-        $this->logger->warning('Redirect URL rejected for user @uid: @url', [
-          '@uid' => $uid,
-          '@url' => $candidate,
-        ]);
-      }
+      $this->logger->warning('Redirect URL rejected for user @uid: @url', [
+        '@uid' => $uid,
+        '@url' => $candidate instanceof Url ? $candidate->toUriString() : (string) $candidate,
+      ]);
     }
     return NULL;
+  }
+
+  /**
+   * Returns the final validated redirect URL or the user canonical default.
+   *
+   * @param string|null $url
+   *   The validated redirect URL, or NULL for default.
+   * @param int|string $uid
+   *   The user ID for the default redirect.
+   *
+   * @return string
+   *   A safe local URL string.
+   */
+  public function getFinalRedirectUrl(?string $url, int|string $uid): string {
+    if ($url !== NULL && $url !== '' && !UrlHelper::isExternal($url)) {
+      return $url;
+    }
+    return Url::fromRoute('entity.user.canonical', ['user' => $uid])->toString();
   }
 
   /**
@@ -232,12 +310,7 @@ class SafeLoginFinalizer {
    *   The redirect response.
    */
   public function createRedirectResponse(?string $url, int|string $uid): LocalRedirectResponse {
-    if ($url !== NULL) {
-      return new LocalRedirectResponse($url);
-    }
-    return new LocalRedirectResponse(
-      Url::fromRoute('entity.user.canonical', ['user' => $uid])->toString()
-    );
+    return new LocalRedirectResponse($this->getFinalRedirectUrl($url, $uid));
   }
 
 }

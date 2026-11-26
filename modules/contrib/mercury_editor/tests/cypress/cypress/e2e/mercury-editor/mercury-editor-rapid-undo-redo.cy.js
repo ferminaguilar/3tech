@@ -19,7 +19,7 @@ describe('Mercury Editor rapid undo/redo', () => {
 
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
-    cy.wait(3000);
+    cy.meStateReady();
 
     cy.meAddComponent('me_test_text');
     cy.meSetCKEditor5Value('field_me_test_text', 'First edit');

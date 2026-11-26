@@ -24,6 +24,7 @@ describe('Mercury Editor autosave and optional saving tests', () => {
     // Create a new page.
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
+    cy.meStateReady();
 
     cy.meAddComponent('me_test_text');
     cy.meSetCKEditor5Value('field_me_test_text', 'Example text');
@@ -76,6 +77,7 @@ describe('Mercury Editor autosave and optional saving tests', () => {
   it('shows warning when clicking out of form with unsaved changes', () => {
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
+    cy.meStateReady();
 
     cy.meAddComponent('me_test_text');
     cy.get('.layout-paragraphs-component-form').should(

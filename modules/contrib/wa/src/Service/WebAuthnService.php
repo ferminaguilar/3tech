@@ -11,6 +11,7 @@ use Webauthn\AuthenticatorAssertionResponseValidator;
 use Webauthn\AuthenticatorAttestationResponse;
 use Webauthn\AuthenticatorAttestationResponseValidator;
 use Webauthn\AuthenticatorDataLoader;
+use Webauthn\AuthenticatorSelectionCriteria;
 use Webauthn\CeremonyStep\CeremonyStepManagerFactory;
 use Webauthn\CollectedClientData;
 use Webauthn\CredentialRecord;
@@ -81,15 +82,7 @@ class WebAuthnService {
     $this->requestStack = $request_stack;
     $this->configFactory = $config_factory;
     $this->time = $time;
-    // CeremonyStepManagerFactory provides sensible defaults:
-    // - ES256 and RS256 algorithms
-    // - NoneAttestationStatementSupport.
-    // @todo Before upgrading to web-auth/webauthn-lib v6.0:
-    // The default CheckOrigin step is deprecated in v5.2.
-    // Use explicit origin configuration to prepare for v6.0:
-    $this->validatorFactory = new CeremonyStepManagerFactory();
-    // Allow localhost and 127.0.0.1 without requiring HTTPS in local development.
-    $this->validatorFactory->setSecuredRelyingPartyId(['localhost', '127.0.0.1']);
+    $this->validatorFactory = $this->createValidatorFactory();
     // Create a reusable attestation object loader.
     $attestationStatementSupportManager = new AttestationStatementSupportManager([
       new NoneAttestationStatementSupport(),
@@ -98,10 +91,37 @@ class WebAuthnService {
   }
 
   /**
+   * Creates a CeremonyStepManagerFactory configured for strict origin checks.
+   *
+   * @param string|null $expectedOrigin
+   *   The exact allowed origin (scheme://host[:port]), or NULL to fall back to
+   *   the current request's scheme and HTTP host when available.
+   *
+   * @return \Webauthn\CeremonyStep\CeremonyStepManagerFactory
+   *   A configured ceremony step manager factory.
+   */
+  protected function createValidatorFactory(?string $expectedOrigin = NULL): CeremonyStepManagerFactory {
+    $factory = new CeremonyStepManagerFactory();
+    if ($expectedOrigin === NULL) {
+      $request = $this->requestStack->getCurrentRequest();
+      $expectedOrigin = $request ? $request->getSchemeAndHttpHost() : '';
+    }
+    if ($expectedOrigin !== '') {
+      // Strictly match the expected origin without allowing arbitrary
+      // subdomains (CheckAllowedOrigins with allowSubdomains: FALSE).
+      $factory->setAllowedOrigins([$expectedOrigin], FALSE);
+    }
+    return $factory;
+  }
+
+  /**
    * Creates a configured CeremonyStepManagerFactory.
    */
-  public function getValidatorFactory(): CeremonyStepManagerFactory {
-    return $this->validatorFactory;
+  public function getValidatorFactory(?string $expectedOrigin = NULL): CeremonyStepManagerFactory {
+    if ($expectedOrigin !== NULL) {
+      return $this->createValidatorFactory($expectedOrigin);
+    }
+    return $this->createValidatorFactory();
   }
 
   /**
@@ -183,9 +203,9 @@ class WebAuthnService {
       $content['response']['transports'] ?? []
     );
 
-    // Validate.
+    // Validate using strict per-origin CheckAllowedOrigins (no subdomains).
     $validator = AuthenticatorAttestationResponseValidator::create(
-      $this->getValidatorFactory()->creationCeremony()
+      $this->createValidatorFactory($host)->creationCeremony()
     );
 
     return $validator->check(
@@ -205,18 +225,21 @@ class WebAuthnService {
    * @param string $challenge
    *   The base64url-encoded challenge.
    * @param string $host
-   *   The current request host.
+   *   The expected origin (scheme://host[:port]) or host.
    * @param string $username
    *   The account name.
    * @param string $userId
    *   The user ID as string.
    * @param string $displayName
    *   The display name.
+   * @param string|null $userVerificationRequirement
+   *   Optional user verification requirement ('required' or 'preferred').
+   *   Defaults to the configured wa.settings value (or 'required').
    *
    * @return \Webauthn\CredentialRecord
    *   The validated credential record.
    */
-  public function validateRegistrationRequest(array $content, string $rpId, string $challenge, string $host, string $username, string $userId, string $displayName): CredentialRecord {
+  public function validateRegistrationRequest(array $content, string $rpId, string $challenge, string $host, string $username, string $userId, string $displayName, ?string $userVerificationRequirement = NULL): CredentialRecord {
     // Validate critical parameters are not empty.
     if (empty($challenge)) {
       throw new \Exception('Challenge cannot be empty.');
@@ -230,6 +253,23 @@ class WebAuthnService {
     if (empty($userId)) {
       throw new \Exception('User ID cannot be empty.');
     }
+
+    $config = $this->configFactory->get('wa.settings');
+    $uvSetting = $userVerificationRequirement ?? $config->get('user_verification') ?? 'required';
+    $userVerification = $uvSetting === 'preferred'
+      ? AuthenticatorSelectionCriteria::USER_VERIFICATION_REQUIREMENT_PREFERRED
+      : AuthenticatorSelectionCriteria::USER_VERIFICATION_REQUIREMENT_REQUIRED;
+
+    $residentKeySetting = $config->get('resident_key') ?? 'required';
+    $residentKey = $residentKeySetting === 'preferred'
+      ? AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_PREFERRED
+      : AuthenticatorSelectionCriteria::RESIDENT_KEY_REQUIREMENT_REQUIRED;
+
+    $authenticatorSelection = AuthenticatorSelectionCriteria::create(
+      authenticatorAttachment: AuthenticatorSelectionCriteria::AUTHENTICATOR_ATTACHMENT_NO_PREFERENCE,
+      userVerification: $userVerification,
+      residentKey: $residentKey,
+    );
 
     $publicKeyCredentialCreationOptions = PublicKeyCredentialCreationOptions::create(
       PublicKeyCredentialRpEntity::create('Web Authentication', $rpId),
@@ -245,7 +285,7 @@ class WebAuthnService {
         // RS256.
         PublicKeyCredentialParameters::createPk(-257),
       ],
-      NULL,
+      $authenticatorSelection,
       PublicKeyCredentialCreationOptions::ATTESTATION_CONVEYANCE_PREFERENCE_NONE,
       [],
       60000
@@ -326,9 +366,9 @@ class WebAuthnService {
       $userHandleDecoded
     );
 
-    // Validate.
+    // Validate using strict per-origin CheckAllowedOrigins (no subdomains).
     $validator = AuthenticatorAssertionResponseValidator::create(
-      $this->getValidatorFactory()->requestCeremony()
+      $this->createValidatorFactory($host)->requestCeremony()
     );
 
     return $validator->check(
@@ -347,11 +387,15 @@ class WebAuthnService {
    *   The user account.
    * @param string $rpId
    *   The relying party ID.
+   * @param array<int, array{credential_id: string, transports?: string|array<int, string>|null}> $existingCredentials
+   *   Existing stored credentials for this user to include in
+   *   excludeCredentials so authenticators do not overwrite an existing
+   *   discoverable credential and orphan the previous row.
    *
    * @return array<string, mixed>
    *   The registration options array.
    */
-  public function getRegistrationOptions(UserInterface $user, string $rpId): array {
+  public function getRegistrationOptions(UserInterface $user, string $rpId, array $existingCredentials = []): array {
     // Validate we have an active request with session.
     $request = $this->requestStack->getCurrentRequest();
     if (!$request) {
@@ -369,10 +413,40 @@ class WebAuthnService {
       'created' => $this->time->getCurrentTime(),
     ]);
 
-    $residentKey = $this->configFactory->get('wa.settings')->get('resident_key') ?? 'preferred';
+    $config = $this->configFactory->get('wa.settings');
+    $residentKeyConfig = $config->get('resident_key') ?? 'required';
+    // Only 'required' and 'preferred' are compatible with usernameless login;
+    // clamp any legacy 'discouraged' setting to 'preferred'.
+    $residentKey = $residentKeyConfig === 'preferred' || $residentKeyConfig === 'discouraged'
+      ? 'preferred'
+      : 'required';
+
+    $userVerificationConfig = $config->get('user_verification') ?? 'required';
+    $userVerification = $userVerificationConfig === 'preferred' ? 'preferred' : 'required';
+
+    $excludeCredentials = [];
+    foreach ($existingCredentials as $credential) {
+      $rawId = $credential['credential_id'];
+      if ($rawId === '') {
+        continue;
+      }
+      $descriptor = [
+        'type' => 'public-key',
+        'id' => Base64UrlSafe::encodeUnpadded($rawId),
+      ];
+      $transports = $credential['transports'] ?? [];
+      if (is_string($transports) && $transports !== '') {
+        $decoded = json_decode($transports, TRUE);
+        $transports = is_array($decoded) ? $decoded : [];
+      }
+      if (is_array($transports) && !empty($transports)) {
+        $descriptor['transports'] = array_values(array_filter($transports, 'is_string'));
+      }
+      $excludeCredentials[] = $descriptor;
+    }
 
     // Simplified options generation.
-    return [
+    $options = [
       'rp' => [
         'name' => 'Web Authentication',
         'id' => $rpId,
@@ -393,9 +467,18 @@ class WebAuthnService {
       'attestation' => 'none',
       'authenticatorSelection' => [
         'residentKey' => $residentKey,
-        'requireResidentKey' => $residentKey === 'required' || $residentKey === 'preferred',
+        // Per WebAuthn Level 2/3 §5.4.4, requireResidentKey MUST be true if
+        // and only if residentKey is 'required'.
+        'requireResidentKey' => $residentKey === 'required',
+        'userVerification' => $userVerification,
       ],
     ];
+
+    if (!empty($excludeCredentials)) {
+      $options['excludeCredentials'] = $excludeCredentials;
+    }
+
+    return $options;
   }
 
   /**

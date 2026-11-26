@@ -1,4 +1,33 @@
 services:
+  mercury_editor.block_preview_options:
+    class: Drupal\mercury_editor\BlockPreviewOptions
+    arguments: ['@entity_type.manager', '@theme_handler', '@config.factory', '@private_key']
+  mercury_editor.block_content_route_subscriber:
+    class: Drupal\mercury_editor\Routing\BlockContentRouteSubscriber
+    tags:
+      - { name: event_subscriber }
+  mercury_editor.page_preview_context_repository:
+    class: Drupal\mercury_editor\Render\PagePreviewContextRepository
+    decorates: context.repository
+    arguments:
+      - '@mercury_editor.page_preview_context_repository.inner'
+      - '@request_stack'
+      - '@service_container'
+  mercury_editor.page_preview:
+    class: Drupal\mercury_editor\MercuryEditorPagePreview
+    arguments:
+      - '@http_kernel.basic'
+      - '@request_stack'
+      - '@mercury_editor.context'
+      - '@theme.manager'
+      - '@theme.initialization'
+      - '@config.factory'
+  mercury_editor.page_preview_render_cache:
+    class: Drupal\mercury_editor\Render\PagePreviewRenderCache
+    decorates: render_cache
+    arguments:
+      - '@mercury_editor.page_preview_render_cache.inner'
+      - '@request_stack'
   cache_context.route.name.is_mercury_editor_preview:
     class: Drupal\mercury_editor\Cache\MercuryEditorPreviewCacheContext
     arguments: ['@current_route_match', '@mercury_editor.context']
@@ -43,6 +72,7 @@ services:
         '@config.factory',
         '@mercury_editor.tempstore_repository',
         '@form_builder',
+        '@mercury_editor.block_preview_options',
       ]
   mercury_editor.dialog:
     class: Drupal\mercury_editor\DialogService
@@ -106,6 +136,10 @@ services:
       - '@mercury_editor.iframe_ajax_response_wrapper'
       - '@entity_type.manager'
       - '@event_dispatcher'
+      - '@mercury_editor.block_preview_options'
+      - '@request_stack'
+      - '@config.factory'
+      - '@mercury_editor.page_preview'
   mercury_editor.render_component_preview_subscriber:
     class: Drupal\mercury_editor\EventSubscriber\RenderComponentPreviewSubscriber
     arguments:
@@ -129,6 +163,6 @@ services:
     arguments: ['@tempstore.private', '@config.factory']
   mercury_editor.theme.negotiator:
     class: Drupal\mercury_editor\Theme\ThemeNegotiator
-    arguments: ['@config.factory', '@request_stack']
+    arguments: ['@config.factory', '@request_stack', '@mercury_editor.context', '@mercury_editor.block_preview_options']
     tags:
       - { name: theme_negotiator, priority: 1500 }

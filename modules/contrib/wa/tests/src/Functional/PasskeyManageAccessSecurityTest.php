@@ -175,6 +175,44 @@ class PasskeyManageAccessSecurityTest extends BrowserTestBase {
   }
 
   /**
+   * Tests that a user who lost an allowed role can still delete stranded keys.
+   */
+  public function testDisallowedRoleUserCanDeleteStrandedPasskeys(): void {
+    $disallowedUser = $this->drupalCreateUser([]);
+    $credentialId = 'cred-stranded-user';
+    \Drupal::database()->insert('wa')
+      ->fields([
+        'uid' => $disallowedUser->id(),
+        'credential_id' => $credentialId,
+        'credential_hash' => hash('sha256', $credentialId),
+        'public_key' => base64_encode('publickey'),
+        'user_handle' => (string) $disallowedUser->id(),
+        'sign_counter' => 0,
+        'transports' => json_encode(['internal']),
+        'aaguid' => 'fbfc3007-154e-4ecc-8c0b-6e020557d7bd',
+        'created' => \Drupal::time()->getRequestTime(),
+        'last_used' => \Drupal::time()->getRequestTime(),
+      ])
+      ->execute();
+
+    // Owner with a stranded passkey can view their page and delete it, but
+    // cannot see or use Add New Passkey.
+    $this->drupalLogin($disallowedUser);
+    $this->drupalGet('user/' . $disallowedUser->id() . '/passkeys');
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->buttonExists('Delete');
+    $this->assertSession()->buttonNotExists('Add New Passkey');
+
+    $token = $this->getSessionCsrfToken();
+    $this->drupalPostJson('/wa/passkey/delete', ['id' => base64_encode($credentialId)], [], ['X-CSRF-Token' => $token]);
+    $this->assertSession()->statusCodeEquals(200);
+
+    // Once all stranded passkeys are deleted, the page is forbidden again.
+    $this->drupalGet('user/' . $disallowedUser->id() . '/passkeys');
+    $this->assertSession()->statusCodeEquals(403);
+  }
+
+  /**
    * Tests that admins cannot add passkeys for users with disallowed roles.
    *
    * When the current user (admin) tries to register a passkey for themselves
@@ -183,15 +221,11 @@ class PasskeyManageAccessSecurityTest extends BrowserTestBase {
   public function testAdminCannotAddPasskeyWhenRoleNotAllowed(): void {
     // Admin user doesn't have the allowed role.
     $this->drupalLogin($this->adminUser);
-
-    // Get CSRF token from the passkey management page.
-    $this->drupalGet('user/' . $this->adminUser->id() . '/passkeys');
-    $settings = $this->getDrupalSettings();
-    $registerOptionsToken = $settings['wa']['registerOptionsToken'] ?? '';
+    $token = $this->getSessionCsrfToken();
 
     // Attempt to get registration options - should be denied because
     // the admin's role is not in allowed_roles.
-    $this->drupalPostJson('/wa/register/options', [], [], ['X-CSRF-Token' => $registerOptionsToken]);
+    $this->drupalPostJson('/wa/register/options', [], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(403);
     $this->assertSession()->responseContains('Passkey registration not permitted for your role.');
   }
@@ -201,14 +235,17 @@ class PasskeyManageAccessSecurityTest extends BrowserTestBase {
    */
   public function testAllowedRoleUserCanAddPasskey(): void {
     $this->drupalLogin($this->allowedUser);
+    $token = $this->getSessionCsrfToken();
 
-    // Get CSRF token from the passkey management page.
-    $this->drupalGet('user/' . $this->allowedUser->id() . '/passkeys');
-    $settings = $this->getDrupalSettings();
-    $registerOptionsToken = $settings['wa']['registerOptionsToken'] ?? '';
+    // Re-authenticate with current password first.
+    $this->drupalPostJson('/wa/register/reauth', [
+      'method' => 'password',
+      'password' => $this->allowedUser->passRaw,
+    ], [], ['X-CSRF-Token' => $token]);
+    $this->assertSession()->statusCodeEquals(200);
 
     // Attempt to get registration options - should succeed.
-    $this->drupalPostJson('/wa/register/options', [], [], ['X-CSRF-Token' => $registerOptionsToken]);
+    $this->drupalPostJson('/wa/register/options', [], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(200);
   }
 
@@ -270,6 +307,14 @@ class PasskeyManageAccessSecurityTest extends BrowserTestBase {
       $server,
       $content
     );
+  }
+
+  /**
+   * Returns a CSRF token for the current session via /session/token.
+   */
+  protected function getSessionCsrfToken(): string {
+    $this->drupalGet('/session/token');
+    return trim($this->getSession()->getPage()->getContent());
   }
 
 }

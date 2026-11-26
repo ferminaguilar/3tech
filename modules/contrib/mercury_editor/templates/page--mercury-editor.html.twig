@@ -59,6 +59,31 @@
     </a>
     {{ mobile_presets }}
   </div>
+  {% if block_preview_options is defined %}
+    <div class="me-block-preview-options me-toolbar__group">
+      <div class="me-block-preview-options" id="me-block-preview-options" data-placement="{{ block_preview_options.placement }}" data-token="{{ block_preview_options.token }}">
+        <button type="button" id="me-block-preview-options-toggle" class="me-button--icon me-button--block-preview" aria-expanded="false" aria-controls="me-block-preview-options-fields" title="{{ 'Block Preview options'|t }}"><span>{{ 'Block Preview options'|t }}</span></button>
+        <div class="me-block-preview-options__fields me-form" id="me-block-preview-options-fields" hidden>
+          <div class="js-form-item form-item js-form-type-select form-type--select">
+            <label class="form-item__label" for="me-preview-region">{{ 'Preview region'|t }}</label>
+            <select class="form-element form-element--type-select" id="me-preview-region">
+              {% for region, label in block_preview_options.regions %}
+                <option value="{{ region }}"{% if region == block_preview_options.region %} selected{% endif %}>{{ label|t }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="js-form-item form-item js-form-type-checkbox form-type--checkbox form-type--boolean">
+            <input class="form-checkbox form-boolean form-boolean--type-checkbox" id="me-preview-show-title" type="checkbox"{% if block_preview_options.show_title %} checked{% endif %}>
+            <label class="form-item__label option" for="me-preview-show-title">{{ 'Show title'|t }}</label>
+          </div>
+          <div class="js-form-item form-item js-form-type-textfield form-type--textfield" id="me-preview-title-item"{% if not block_preview_options.show_title %} hidden{% endif %}>
+            <label class="form-item__label" for="me-preview-title" id="me-preview-title-label">{{ 'Title'|t }}</label>
+            <input class="form-text form-element form-element--type-text form-element--api-textfield" id="me-preview-title" type="text" maxlength="255" value="{{ block_preview_options.title }}">
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
   <div class="me-toolbar__edit-controls main-actions me-toolbar__group">
     <div class="me-ajax-indicator" aria-hidden="true">
       <svg class="me-ajax-indicator__spinner" width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" focusable="false">

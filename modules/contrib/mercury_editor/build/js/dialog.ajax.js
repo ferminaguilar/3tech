@@ -156,6 +156,41 @@
         status,
       );
     };
+
+    /**
+     * Overrides the Views setBrowserUrl command.
+     *
+     * Core skips updating the browser URL only for elements inside
+     * `.ui-dialog-content`. Mercury dialogs don't use jQuery UI, so paging or
+     * filtering a view (e.g. the media library) would write the view's query
+     * parameters to window.location, and ajax_view.js would then re-send them
+     * with every subsequent request.
+     */
+    // views.ajax may load after this file, so patch on first attach, once
+    // core's command is guaranteed to be defined.
+    let browserUrlPatched = false;
+    Drupal.behaviors.mercuryDialogBrowserUrl = {
+      attach() {
+        const commands = Drupal.AjaxCommands.prototype;
+        if (browserUrlPatched || !commands.setBrowserUrl) {
+          return;
+        }
+        browserUrlPatched = true;
+        const coreSetBrowserUrl = commands.setBrowserUrl;
+        commands.setBrowserUrl = function setBrowserUrl(ajax, response, status) {
+          if (
+            ajax.element &&
+            ajax.element.closest &&
+            ajax.element.closest(
+              'mercury-dialog, .lpb-dialog, .ui-dialog-content',
+            )
+          ) {
+            return;
+          }
+          coreSetBrowserUrl(ajax, response, status);
+        };
+      },
+    };
   })(jQuery, Drupal);
 
 })();

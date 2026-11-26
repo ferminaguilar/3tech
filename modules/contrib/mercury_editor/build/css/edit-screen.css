@@ -179,6 +179,61 @@ html:has(#mercury-editor-component-outline[open]) #me-iframe-canvas {
     justify-content: center;
   }
 
+.me-block-preview-options {
+  position: relative;
+}
+
+.me-block-preview-options button {
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.me-block-preview-options button[aria-expanded="true"] {
+  outline: 1px solid #bdd1ff;
+}
+
+.me-block-preview-options button[aria-expanded="true"] span {
+  background-color: var(--me-button-color-text-primary);
+}
+
+.me-block-preview-options button.focus-visible {
+  z-index: 102;
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+}
+
+.me-block-preview-options button:focus-visible {
+  z-index: 102;
+  outline: 2px solid #005fcc;
+  outline-offset: 2px;
+}
+
+.me-block-preview-options__fields {
+  background: var(--me-color-background, #fff);
+  border: 1px solid var(--me-border-color, #e5e5e5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: grid;
+  grid-gap: 0.5rem;
+  gap: 0.5rem;
+  min-width: 16rem;
+  padding: 1rem;
+  position: absolute;
+  top: 100%;
+  z-index: 101;
+}
+
+.me-block-preview-options__fields[hidden] {
+  display: none;
+}
+
+#me-toolbar .me-block-preview-options__fields .form-item {
+  display: block;
+}
+
+#me-toolbar .me-block-preview-options__fields .form-item[hidden] {
+  display: none;
+}
+
 .me-ajax-indicator {
   display: inline-flex;
   align-items: center;
@@ -278,4 +333,9 @@ mercury-dialog[\:has\(.me-autosave-form\)] .me-dialog__buttonpane {
 
 mercury-dialog:has(.me-autosave-form) .me-dialog__buttonpane {
   display: none;
+}
+
+/* Keep the preview blocked for the entire save, including response commands. */
+.me-saving #me-preview {
+  pointer-events: none;
 }

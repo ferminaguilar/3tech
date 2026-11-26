@@ -1,5 +1,15 @@
 Replaces the standard Drupal edit screen for nodes with an enhanced drag-and-drop editor.
 
+## Content block editing
+
+Enable Content Block types in the Mercury Editor settings
+to create and edit them using Mercury Editor. Content blocks are previewed
+in a standalone themed page. Preview options let editors select a theme region
+and control the block title without changing any placement. Existing
+placements of the edited block are omitted from the preview page to avoid
+duplicate editing targets; their visibility elsewhere is unchanged. Preview
+access requires permission to create or update the block, as appropriate.
+
 ## If upgrading from 2.0.x:
 
 - make note of applicable settings under "admin > Settings > Content Authoring > Mercury Editor settings"

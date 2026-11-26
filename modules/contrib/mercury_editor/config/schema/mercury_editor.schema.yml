@@ -76,6 +76,15 @@ mercury_editor.settings:
         sequence:
           type: string
           label: 'Entity type'
+    full_page_preview:
+      type: sequence
+      label: 'Full-page preview updates by entity type'
+      sequence:
+        type: sequence
+        label: 'Selected bundles'
+        sequence:
+          type: string
+          label: 'Bundle ID'
     auto_update:
       type: mapping
       label: 'Auto-update settings'

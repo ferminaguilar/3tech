@@ -3,12 +3,31 @@
   function setAjaxing(value) {
     ajaxing = value;
     document.body.classList.toggle('me-ajaxing', value);
+    if (!value) {
+      document.dispatchEvent(new Event('mercury-editor:ajax-idle'));
+    }
   }
   $(document).on('ajaxStart.meAjaxGuard', () => setAjaxing(true));
   $(document).on('ajaxStop.meAjaxGuard', () => setAjaxing(false));
+  $.ajaxPrefilter((options) => {
+    document.dispatchEvent(
+      new CustomEvent('mercury-editor:ajax-options', { detail: options }),
+    );
+  });
 
-  // Tracks the "busy" indicator separately from `ajaxing` so its removal can
-  // be debounced, preventing flicker between back-to-back ajax requests.
+  // Both busy classes are added to document.body when a counted request starts
+  // (dialog-opening requests are excluded below). Their CSS lives in
+  // source/css/edit-screen.css:
+  // - me-ajax-busy shows the toolbar indicator and dims the preview if the
+  //   request lasts more than 500ms. It is removed BUSY_HIDE_DELAY after the last
+  //   counted request completes, when the live status announcement also clears.
+  // - me-preview-busy blocks pointer interaction with the preview iframe and
+  //   adds a transparent overlay. It remains for PREVIEW_INTERACTION_DELAY after
+  //   me-ajax-busy is removed, letting the preview settle before accepting clicks.
+  // New counted requests cancel both removal timers. The separate lifetimes
+  // prevent indicator flicker and premature preview interaction between requests.
+  // These classes do not lock the whole editor; save-lock.js handles that.
+  // The `ajaxing` flag above independently prevents overlapping autosaves.
   let busyCount = 0;
   let busyHideTimer = null;
   let previewInteractionTimer = null;
@@ -29,7 +48,24 @@
     }
   };
 
-  const setBusy = () => {
+  // Opening the form or dialog for a component changes nothing, so it must not
+  // dim the preview or stop it taking clicks. Doing so made every selection
+  // feel slow, as the preview stayed locked until the form had loaded and a
+  // short time after. Submitting a form still counts as busy, as it changes
+  // the content.
+  const OPENS_DIALOG = /\/action\/(edit|insert|delete)(\/|\?|$)/;
+  const opensDialog = (options) => {
+    const data = typeof options?.data === 'string' ? options.data : '';
+    return OPENS_DIALOG.test(options?.url || '') && !data.includes('form_build_id');
+  };
+
+  const setBusy = (event, xhr, options) => {
+    if (opensDialog(options)) {
+      if (xhr) {
+        xhr.meSkipBusy = true;
+      }
+      return;
+    }
     clearTimeout(busyHideTimer);
     clearTimeout(previewInteractionTimer);
 
@@ -42,7 +78,10 @@
     busyCount += 1;
   };
 
-  const clearBusy = () => {
+  const clearBusy = (event, xhr) => {
+    if (xhr?.meSkipBusy) {
+      return;
+    }
     busyCount = Math.max(0, busyCount - 1);
 
     if (busyCount !== 0) {
@@ -114,6 +153,7 @@
   function checkFormForChanges(form) {
     if (
       interacting ||
+      Drupal.mercuryEditorSaveLock?.isLocked() ||
       ajaxing ||
       !drupalSettings.ajaxPreviewPageState ||
       !form.serializedData ||
@@ -136,7 +176,7 @@
       clearInterval(intervalId);
     }
     intervalId = setInterval(() => {
-      if (ajaxing) {
+      if (ajaxing || Drupal.mercuryEditorSaveLock?.isLocked()) {
         return;
       }
       const autosaveForm =

@@ -23,8 +23,7 @@ describe('Mercury Editor component outline e2e tests.', () => {
   it('opens and closes the component outline', () => {
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
-    // Wait for the Mercury Editor interface to fully load
-    cy.get('#me-preview').its('0.contentDocument');
+    cy.meStateReady();
 
     // Check that the component outline button exists
     cy.openComponentOutline();
@@ -55,13 +54,14 @@ describe('Mercury Editor component outline e2e tests.', () => {
         'input[name="field_me_test_content_plugin_settings_update"]',
       ).click();
       cy.contains('You have unsaved changes.');
-      cy.get('input[value="Save"]').click();
+      cy.get('input[value="Save"]')
+        .filter(':visible')
+        .should('have.length', 1)
+        .click();
 
       // Create a new page.
       cy.visit('/node/add/me_test_ct');
-      cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
-      // Wait for the Mercury Editor interface to fully load
-      cy.get('#me-preview').its('0.contentDocument');
+      cy.meStateReady();
 
       // Set the title of the page
       cy.get('input[name="title[0][value]"]').clear();
@@ -152,6 +152,7 @@ describe('Mercury Editor component outline e2e tests.', () => {
       cy.get('a[aria-label="Edit Component Outline Test"]')
         .first()
         .click({ force: true });
+      cy.meStateReady();
     });
 
     it('displays components in an outline', () => {
@@ -725,6 +726,7 @@ describe('Mercury Editor component outline e2e tests.', () => {
 
       // Reload page
       cy.reload();
+      cy.meStateReady();
 
       // 4 items should still be visible when reopened.
       cy.openComponentOutline();
@@ -732,6 +734,7 @@ describe('Mercury Editor component outline e2e tests.', () => {
     });
 
     it('edits, duplicates, and deletes components via the menu', () => {
+      cy.intercept('POST', '**/mercury-editor/**/action/edit/*').as('outlineEdit');
       cy.openComponentOutline();
       // Edit Text A
       cy.getVisibleTreeItems()
@@ -748,6 +751,8 @@ describe('Mercury Editor component outline e2e tests.', () => {
       cy.get('mercury-dialog[id^="lpb-dialog-"]')
         .find('.layout-paragraphs-component-form')
         .should('exist');
+      cy.wait('@outlineEdit').its('response.statusCode').should('eq', 200);
+      cy.get('@outlineEdit.all').should('have.length', 1);
       cy.meSetCKEditor5Value('field_me_test_text', 'Text A - edited');
       cy.meSaveComponent();
       cy.iframe('#me-preview')
@@ -901,6 +906,7 @@ describe('Mercury Editor component outline e2e tests.', () => {
       cy.get('a[aria-label="Edit Component Outline Test"]')
         .first()
         .click({ force: true });
+      cy.meStateReady();
 
       cy.openComponentOutline();
       cy.get('.me-component-outline__component-toggle').click({
@@ -952,7 +958,10 @@ describe('Mercury Editor component outline e2e tests.', () => {
         'input[name="field_me_test_content_plugin_settings_update"]',
       ).click();
       cy.contains('You have unsaved changes.');
-      cy.get('input[value="Save"]').click();
+      cy.get('input[value="Save"]')
+        .filter(':visible')
+        .should('have.length', 1)
+        .click();
     });
   });
 });

@@ -45,15 +45,14 @@ class PasskeySecurityTest extends BrowserTestBase {
     $config = \Drupal::configFactory()->getEditable('wa.settings');
     $config->set('allowed_roles', ['administrator'])->save();
 
-    $token = \Drupal::service('csrf_token')->get('wa/register/options');
-    $verifyToken = \Drupal::service('csrf_token')->get('wa/register/verify');
+    $token = $this->getSessionCsrfToken();
 
     // Attempt to access registration options.
     $this->drupalPostJson('/wa/register/options', [], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(403);
 
     // Attempt to submit registration verification.
-    $this->drupalPostJson('/wa/register/verify', [], [], ['X-CSRF-Token' => $verifyToken]);
+    $this->drupalPostJson('/wa/register/verify', [], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(403);
   }
 
@@ -64,35 +63,56 @@ class PasskeySecurityTest extends BrowserTestBase {
     $user = $this->drupalCreateUser([]);
     $this->drupalLogin($user);
 
-    // Get token from the management page.
+    // Verify management page does not expose CSRF tokens in drupalSettings.
     $this->drupalGet('/user/' . $user->id() . '/passkeys');
     $settings = $this->getDrupalSettings();
+    $this->assertArrayNotHasKey('passkeyDeleteToken', $settings['wa'] ?? []);
+    $this->assertArrayNotHasKey('registerOptionsToken', $settings['wa'] ?? []);
+    $this->assertArrayNotHasKey('registerVerifyToken', $settings['wa'] ?? []);
 
-    $registerOptionsToken = $settings['wa']['registerOptionsToken'] ?? '';
-    $registerVerifyToken = $settings['wa']['registerVerifyToken'] ?? $registerOptionsToken;
+    // Obtain session CSRF token via /session/token and re-authenticate.
+    $token = $this->getSessionCsrfToken();
+    $this->drupalPostJson('/wa/register/reauth', [
+      'method' => 'password',
+      'password' => $user->passRaw,
+    ], [], ['X-CSRF-Token' => $token]);
+    $this->assertSession()->statusCodeEquals(200);
 
     // Case 1: Missing challenge in session.
-    // We send a request without first calling
-    // (which sets the challenge).
-    $this->drupalPostJson('/wa/register/verify', ['some' => 'data'], [], ['X-CSRF-Token' => $registerVerifyToken]);
-    // The controller throws an exception
-    // "No challenge found in session", caught and returns 400.
+    $this->drupalPostJson('/wa/register/verify', ['some' => 'data'], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(400);
     $this->assertSession()->responseContains('Passkey registration failed.');
 
     // Case 2: Invalid challenge.
-    $this->drupalPostJson('/wa/register/options', [], [], ['X-CSRF-Token' => $registerOptionsToken]);
-
+    $this->drupalPostJson('/wa/register/options', [], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(200);
 
-    // Now send garbage data.
-    // The WebAuthn library will fail to validate it against the challenge.
     $this->drupalPostJson('/wa/register/verify', [
       'id' => 'garbage',
       'rawId' => 'garbage',
       'response' => ['clientDataJSON' => 'garbage'],
-    ], [], ['X-CSRF-Token' => $registerVerifyToken]);
+    ], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(400);
+  }
+
+  /**
+   * Tests that loginOptions actually enforces IP flood control.
+   */
+  public function testLoginOptionsFloodControl(): void {
+    for ($i = 0; $i < 10; $i++) {
+      $this->drupalPostJson('/wa/login/options', [], [], [
+        'Origin' => $this->baseUrl,
+        'X-Requested-With' => 'XMLHttpRequest',
+      ]);
+      $this->assertSession()->statusCodeEquals(200);
+    }
+
+    // 11th request within the 5-minute window must be rate-limited (429).
+    $this->drupalPostJson('/wa/login/options', [], [], [
+      'Origin' => $this->baseUrl,
+      'X-Requested-With' => 'XMLHttpRequest',
+    ]);
+    $this->assertSession()->statusCodeEquals(429);
   }
 
   /**

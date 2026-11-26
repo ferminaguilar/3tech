@@ -2,5 +2,7 @@ allowed_aaguids: []
 custom_aaguid_labels: []
 enable_passkey_login: false
 allowed_roles: []
-user_verification: preferred
+user_verification: required
+resident_key: required
 enforce_user_handle: false
+revoke_on_password_change: true

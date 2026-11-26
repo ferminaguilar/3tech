@@ -21,6 +21,13 @@ class MercuryEditorContextService {
   protected $preview = NULL;
 
   /**
+   * Entities read from the tempstore, keyed by uuid, with their write version.
+   *
+   * @var array
+   */
+  protected $tempstoreEntities = [];
+
+  /**
    * MercuryEditorContextService constructor.
    *
    * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
@@ -135,8 +142,15 @@ class MercuryEditorContextService {
    */
   public function getEntity(): ?ContentEntityInterface {
     if ($this->requestStack->getCurrentRequest()->query->has('me_id')) {
-      $entity = $this->mercuryEditorTempstore->get($this->requestStack->getCurrentRequest()->query->get('me_id'));
-      return $entity;
+      // Rendering a layout asks for the entity once per component, and each
+      // read unserializes the whole entity, so reuse it until the tempstore is
+      // written to.
+      $uuid = $this->requestStack->getCurrentRequest()->query->get('me_id');
+      $version = $this->mercuryEditorTempstore->getWriteVersion();
+      if (!isset($this->tempstoreEntities[$uuid]) || $this->tempstoreEntities[$uuid][0] !== $version) {
+        $this->tempstoreEntities[$uuid] = [$version, $this->mercuryEditorTempstore->get($uuid)];
+      }
+      return $this->tempstoreEntities[$uuid][1];
     }
     $mercury_editor_entity = $this->routeMatch->getParameter('mercury_editor_entity');
     if ($mercury_editor_entity) {

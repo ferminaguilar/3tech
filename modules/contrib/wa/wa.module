@@ -7,12 +7,30 @@
 
 use Drupal\Core\Database\Query\AlterableInterface;
 use Drupal\Core\Database\Query\SelectInterface;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Url;
+use Drupal\Core\Entity\EntityFormInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Url;
+use Drupal\user\UserInterface;
 use Drupal\views\ViewExecutable;
 use Drupal\wa\WaPermissions;
+
+/**
+ * Implements hook_form_BASE_FORM_ID_alter() for user_form.
+ *
+ * Covers the default user edit/password-reset form as well as any custom user
+ * entity form modes (`user_<mode>_form`), while avoiding false revocations
+ * from transparent password rehashing during routine password login.
+ */
+function wa_form_user_form_alter(array &$form, FormStateInterface $form_state, string $form_id): void {
+  if (isset($form['actions']['submit']['#submit']) && is_array($form['actions']['submit']['#submit'])) {
+    $form['actions']['submit']['#submit'][] = 'wa_user_form_password_submit';
+  }
+  else {
+    $form['#submit'][] = 'wa_user_form_password_submit';
+  }
+}
 
 /**
  * Implements hook_form_alter().
@@ -24,7 +42,8 @@ function wa_form_alter(array &$form, FormStateInterface $form_state, string $for
     // Add cache tag so form is invalidated when config changes.
     $form['#cache']['tags'][] = 'config:wa.settings';
 
-    if ($config->get('enable_passkey_login') === FALSE) {
+    // Fail-closed: hide passkey login unless explicitly enabled.
+    if (!(bool) $config->get('enable_passkey_login')) {
       return;
     }
 
@@ -207,8 +226,93 @@ function wa_mail(string $key, array &$message, array $params): void {
     $subject = $config->get('passkey_add_notification_subject') ?? 'Security Alert: A new passkey was added to your account';
     $body = $config->get('passkey_add_notification_body') ?? "Dear [user:name],\n\nA new passkey has been added to your account. The authenticator used was [wa:key:authenticator].\n\nIf you did not perform this action, please contact the site administrator immediately.";
 
-    $message['subject'] = $token_service->replace($subject, $context, ['clear' => TRUE]);
-    $message['body'][] = $token_service->replace($body, $context, ['clear' => TRUE]);
+    $message['subject'] = $token_service->replacePlain($subject, $context, ['clear' => TRUE]);
+    $message['body'][] = $token_service->replacePlain($body, $context, ['clear' => TRUE]);
+  }
+  elseif ($key === 'passkey_reauth_code') {
+    $site_name = (string) (\Drupal::config('system.site')->get('name') ?? '');
+    $code = (string) ($params['code'] ?? '');
+    $message['subject'] = (string) t('Your verification code to add a passkey on @site', [
+      '@site' => $site_name,
+    ]);
+    $message['body'][] = (string) t("Use the following verification code to confirm adding a new passkey to your account:\n\n@code\n\nThis code expires in 5 minutes. If you did not request this, you can safely ignore this email.", [
+      '@code' => $code,
+    ]);
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for user entities.
+ */
+function wa_user_delete(UserInterface $account): void {
+  $uid = (int) $account->id();
+  if ($uid <= 0) {
+    return;
+  }
+  \Drupal::database()->delete('wa')
+    ->condition('uid', $uid)
+    ->execute();
+  \Drupal::service('cache_tags.invalidator')->invalidateTags(['wa_user_passkeys:' . $uid]);
+}
+
+/**
+ * Implements hook_user_cancel().
+ */
+function wa_user_cancel(array $edit, UserInterface $account, string $method): void {
+  $uid = (int) $account->id();
+  if ($uid <= 0) {
+    return;
+  }
+  \Drupal::database()->delete('wa')
+    ->condition('uid', $uid)
+    ->execute();
+  \Drupal::service('cache_tags.invalidator')->invalidateTags(['wa_user_passkeys:' . $uid]);
+}
+
+/**
+ * Submit handler for user_form: revokes passkeys on password change or reset.
+ *
+ * Triggered only when a new password is explicitly submitted on the user edit
+ * or password-reset form (covering self-service changes, one-time login reset
+ * links, and admin password resets), avoiding false revocations when Drupal
+ * core transparently re-hashes an existing password during login.
+ */
+function wa_user_form_password_submit(array &$form, FormStateInterface $form_state): void {
+  $newPassword = $form_state->getValue('pass');
+  if (!is_string($newPassword) || $newPassword === '') {
+    return;
+  }
+
+  $config = \Drupal::config('wa.settings');
+  if (!(bool) ($config->get('revoke_on_password_change') ?? TRUE)) {
+    return;
+  }
+
+  $formObject = $form_state->getFormObject();
+  if (!$formObject instanceof EntityFormInterface) {
+    return;
+  }
+  $account = $formObject->getEntity();
+  if (!$account instanceof UserInterface) {
+    return;
+  }
+
+  $uid = (int) $account->id();
+  if ($uid <= 0) {
+    return;
+  }
+
+  $deleted = \Drupal::database()->delete('wa')
+    ->condition('uid', $uid)
+    ->execute();
+
+  if ($deleted > 0) {
+    \Drupal::service('cache_tags.invalidator')->invalidateTags(['wa_user_passkeys:' . $uid]);
+    \Drupal::logger('wa')->info('Revoked @count passkey(s) for user @uid after password change or reset.', [
+      '@count' => $deleted,
+      '@uid' => $uid,
+    ]);
+    \Drupal::messenger()->addStatus(t('Existing passkeys for this account have been revoked because the password was changed.'));
   }
 }
 

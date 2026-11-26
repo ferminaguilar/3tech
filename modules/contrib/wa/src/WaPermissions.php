@@ -8,13 +8,21 @@ namespace Drupal\wa;
 final class WaPermissions {
 
   /**
-   * Grants full administrative access to every user's passkeys.
+   * Grants administrative access to view and delete any user's passkeys.
    *
    * The machine name is defined in wa.permissions.yml and referenced
-   * literally in wa.routing.yml, wa_email_otp.routing.yml and the bundled
-   * wa_passkeys view; those YAML usages must stay in sync with this
-   * constant.
+   * literally in the bundled wa_passkeys view; those YAML usages must stay
+   * in sync with this constant.
    */
   const ADMINISTER_ALL_USER_PASSKEY = 'administer all user passkey';
+
+  /**
+   * Grants access to configure site-wide passkey and Email OTP settings.
+   *
+   * The machine name is defined in wa.permissions.yml and referenced
+   * literally in wa.routing.yml and wa_email_otp.routing.yml; those YAML
+   * usages must stay in sync with this constant.
+   */
+  const ADMINISTER_PASSKEY_SETTINGS = 'administer passkey settings';
 
 }

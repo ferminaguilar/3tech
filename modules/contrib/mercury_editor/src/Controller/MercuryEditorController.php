@@ -13,6 +13,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Entity\RevisionableInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\mercury_editor\MercuryEditorTempstore;
@@ -103,6 +104,8 @@ class MercuryEditorController extends EntityViewController {
    *   The language manager service.
    * @param \Drupal\Core\Entity\EntityFormBuilderInterface $entityFormBuilder
    *   The entity form builder service.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
+   *   The request stack.
    */
   public function __construct(
     EntityTypeManagerInterface $entity_type_manager,
@@ -118,6 +121,7 @@ class MercuryEditorController extends EntityViewController {
     MessengerInterface $messenger,
     protected LanguageManagerInterface $languageManager,
     protected EntityFormBuilderInterface $entityFormBuilder,
+    protected RequestStack $requestStack,
   ) {
     parent::__construct($entity_type_manager, $renderer);
     $this->currentUser = $current_user;
@@ -145,6 +149,7 @@ class MercuryEditorController extends EntityViewController {
       $container->get('messenger'),
       $container->get('language_manager'),
       $container->get('entity.form_builder'),
+      $container->get('request_stack'),
     );
   }
 
@@ -248,6 +253,9 @@ class MercuryEditorController extends EntityViewController {
     if ($request->query->get('destination')) {
       $url = $request->query->get('destination');
     }
+    elseif ($mercury_editor_entity->getEntityTypeId() === 'block_content' && $mercury_editor_entity->hasLinkTemplate('collection')) {
+      $url = Url::fromRoute('entity.block_content.collection')->toString();
+    }
     elseif (!$mercury_editor_entity->id()) {
       $url = Url::fromRoute('<front>')->toString();
     }
@@ -327,8 +335,10 @@ class MercuryEditorController extends EntityViewController {
    */
   public function preview() {
     $mercury_editor_entity = $this->mercuryEditorContext->getEntity();
-    $this->tempstore->clearStates($mercury_editor_entity);
-    $this->tempstore->saveState($mercury_editor_entity);
+    // A page refresh renders the current state, without resetting undo/redo.
+    if (!$this->requestStack->getCurrentRequest()?->attributes->get('_mercury_editor_page_refresh')) {
+      $this->initializePreviewState($mercury_editor_entity);
+    }
     $this->mercuryEditorContext->setPreview(TRUE);
     $preview = $this->view($mercury_editor_entity);
     $preview['#attached']['drupalSettings']['mercuryEditor']['id'] = $mercury_editor_entity->uuid();
@@ -339,15 +349,34 @@ class MercuryEditorController extends EntityViewController {
   }
 
   /**
+   * Initializes undo history for a preview.
+   */
+  protected function initializePreviewState(ContentEntityInterface $mercury_editor_entity): void {
+    $this->tempstore->clearStates($mercury_editor_entity);
+    $this->tempstore->saveState($mercury_editor_entity);
+  }
+
+  /**
    * Access callback for using mercury editor.
    */
   public function access() {
     $mercury_editor_entity = $this->mercuryEditorContext->getEntity();
 
     if ($mercury_editor_entity instanceof ContentEntityInterface) {
-      return $mercury_editor_entity->id()
-        ? $mercury_editor_entity->access('update', NULL, TRUE)
-        : $mercury_editor_entity->access('create', NULL, TRUE);
+      if (!$mercury_editor_entity->id()) {
+        return $mercury_editor_entity->access('create', NULL, TRUE);
+      }
+
+      // Tempstore can contain an unsaved moderation transition. Authorize the
+      // latest saved revision, not the working copy's proposed state.
+      $saved_entity = $this->entityRepository->getActive(
+        $mercury_editor_entity->getEntityTypeId(),
+        $mercury_editor_entity->id(),
+        ['langcode' => $mercury_editor_entity->language()->getId()],
+      );
+      if ($saved_entity) {
+        return $saved_entity->access('update', NULL, TRUE);
+      }
     }
 
     return AccessResult::forbidden();

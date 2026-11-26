@@ -5,6 +5,10 @@
  * Installation hooks for Mercury Editor Content Moderation Test module.
  */
 
+use Drupal\node\Entity\Node;
+use Drupal\node\Entity\NodeType;
+use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
 use Drupal\workflows\Entity\Workflow;
 
 /**
@@ -14,6 +18,8 @@ function mercury_editor_content_moderation_test_install() {
   $workflow_storage = \Drupal::entityTypeManager()->getStorage('workflow');
   /** @var \Drupal\workflows\WorkflowInterface $workflow */
   $workflow = $workflow_storage->load('editorial');
+  $state = \Drupal::state();
+  $state_key = 'mercury_editor_content_moderation_test.editorial_change';
 
   if (!$workflow) {
     // Create the editorial workflow from scratch.
@@ -75,13 +81,121 @@ function mercury_editor_content_moderation_test_install() {
       ],
     ]);
     $workflow->save();
+    $state->set($state_key, 'created_workflow');
   }
   else {
-    // Add me_test_ct to the existing workflow.
-    $config = $workflow->getTypePlugin()->getConfiguration();
-    $config['entity_types']['node'][] = 'me_test_ct';
-    $config['entity_types']['node'] = array_unique($config['entity_types']['node']);
-    $workflow->set('type_settings', $config);
-    $workflow->save();
+    $plugin = $workflow->getTypePlugin();
+    if (!$plugin->appliesToEntityTypeAndBundle('node', 'me_test_ct')) {
+      $plugin->addEntityTypeAndBundle('node', 'me_test_ct');
+      $workflow->set('type_settings', $plugin->getConfiguration())->save();
+      $state->set($state_key, 'added_bundle');
+    }
   }
+  mercury_editor_content_moderation_test_create_access_fixtures();
+}
+
+/**
+ * Creates fixtures for the moderation access browser tests.
+ */
+function mercury_editor_content_moderation_test_create_access_fixtures() {
+  NodeType::create(['type' => 'me_approval', 'name' => 'Approval test'])->save();
+  Workflow::create([
+    'id' => 'me_approval',
+    'label' => 'Approval test',
+    'type' => 'content_moderation',
+    'type_settings' => [
+      'states' => [
+        'draft' => ['label' => 'Draft', 'published' => FALSE, 'default_revision' => FALSE, 'weight' => 0],
+        'needs_approval' => ['label' => 'Needs Approval', 'published' => FALSE, 'default_revision' => FALSE, 'weight' => 1],
+        'published' => ['label' => 'Published', 'published' => TRUE, 'default_revision' => TRUE, 'weight' => 2],
+      ],
+      'transitions' => [
+        'draft' => ['label' => 'Draft', 'from' => ['draft', 'published'], 'to' => 'draft', 'weight' => 0],
+        'submit' => ['label' => 'Submit for approval', 'from' => ['draft'], 'to' => 'needs_approval', 'weight' => 1],
+        'publish' => ['label' => 'Publish', 'from' => ['draft', 'needs_approval'], 'to' => 'published', 'weight' => 2],
+      ],
+      'entity_types' => ['node' => ['me_approval']],
+      'default_moderation_state' => 'draft',
+    ],
+  ])->save();
+
+  $role = Role::create(['id' => 'me_approval_author', 'label' => 'Approval test author']);
+  foreach ([
+    'access content',
+    'edit own me_approval content',
+    'view own unpublished content',
+    'view latest version',
+    'use me_approval transition draft',
+    'use me_approval transition submit',
+  ] as $permission) {
+    $role->grantPermission($permission);
+  }
+  $role->save();
+  $author = User::create([
+    'name' => 'me_approval_author',
+    'status' => 1,
+    'roles' => [$role->id()],
+  ]);
+  $author->save();
+
+  foreach ([
+    'Default revision' => 'draft',
+    'Pending revision' => 'published',
+    'Destination override' => 'published',
+    'Editable revision' => 'draft',
+    'Validation error' => 'draft',
+  ] as $title => $state) {
+    Node::create([
+      'type' => 'me_approval',
+      'title' => $title,
+      'uid' => $author->id(),
+      'moderation_state' => $state,
+    ])->save();
+  }
+
+  $config = \Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $bundles = $config->get('bundles') ?? [];
+  $bundles['node']['me_approval'] = 'me_approval';
+  $config->set('bundles', $bundles)->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_content_moderation_test_uninstall() {
+  mercury_editor_content_moderation_test_remove_access_fixtures();
+
+  $state = \Drupal::state();
+  $state_key = 'mercury_editor_content_moderation_test.editorial_change';
+  $change = $state->get($state_key);
+  if ($change && ($workflow = Workflow::load('editorial'))) {
+    if ($change === 'created_workflow') {
+      $workflow->delete();
+    }
+    elseif ($change === 'added_bundle') {
+      $plugin = $workflow->getTypePlugin();
+      $plugin->removeEntityTypeAndBundle('node', 'me_test_ct');
+      $workflow->set('type_settings', $plugin->getConfiguration())->save();
+    }
+  }
+  $state->delete($state_key);
+}
+
+/**
+ * Removes fixtures for the moderation access browser tests.
+ */
+function mercury_editor_content_moderation_test_remove_access_fixtures() {
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $storage->delete($storage->loadByProperties(['type' => 'me_approval']));
+  Workflow::load('me_approval')?->delete();
+  NodeType::load('me_approval')?->delete();
+  $users = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['name' => 'me_approval_author']);
+  foreach ($users as $user) {
+    $user->delete();
+  }
+  Role::load('me_approval_author')?->delete();
+  $config = \Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $bundles = $config->get('bundles') ?? [];
+  unset($bundles['node']['me_approval']);
+  $config->set('bundles', $bundles)->save();
 }

@@ -1,0 +1,14 @@
+name: Mercury Editor Content Block Test
+description: 'Fixtures for editing content blocks independently of their placements.'
+package: Testing
+type: module
+core_version_requirement: ^10.3 || ^11
+dependencies:
+  - drupal:block
+  - drupal:block_content
+  - mercury_editor:mercury_editor_setup_test
+
+# Information added by Drupal.org packaging script on 2026-11-19
+version: '3.1.0'
+project: 'mercury_editor'
+datestamp: 1795110925

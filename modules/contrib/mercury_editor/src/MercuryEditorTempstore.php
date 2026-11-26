@@ -41,6 +41,23 @@ class MercuryEditorTempstore {
   protected ConfigFactoryInterface $configFactory;
 
   /**
+   * Count of entity writes in this request.
+   *
+   * Lets callers that cache a read tell that the stored entity has changed.
+   */
+  protected static int $writeVersion = 0;
+
+  /**
+   * Gets a number that changes whenever an entity is written or deleted.
+   *
+   * @return int
+   *   The write version.
+   */
+  public function getWriteVersion(): int {
+    return static::$writeVersion;
+  }
+
+  /**
    * LayoutTempstoreRepository constructor.
    *
    * @param \Drupal\Core\TempStore\PrivateTempStoreFactory $temp_store_factory
@@ -70,6 +87,7 @@ class MercuryEditorTempstore {
    * Save a content entity to the tempstore.
    */
   public function set(ContentEntityInterface $entity, $save_state = TRUE) {
+    static::$writeVersion++;
     $this->tempStoreFactory->set($entity->uuid(), $entity);
     return $entity;
   }
@@ -318,6 +336,7 @@ class MercuryEditorTempstore {
    *   The content entity to delete.
    */
   public function delete(ContentEntityInterface $entity) {
+    static::$writeVersion++;
     $this->tempStoreFactory->delete($entity->uuid());
   }
 

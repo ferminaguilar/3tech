@@ -144,9 +144,15 @@ class SettingsForm extends ConfigFormBase {
 
     $form['bundles'] = [
       '#type' => 'fieldset',
-      '#title' => $this->t('Bundles'),
+      '#title' => $this->t('Entity Types and Bundles Enabled for Mercury Editor'),
       '#tree' => TRUE,
       '#description' => $this->t('Choose which bundles should use the Mercury Editor Edit Tray.'),
+    ];
+    $form['full_page_preview'] = [
+      '#type' => 'fieldset',
+      '#title' => $this->t('Full-page preview updates'),
+      '#tree' => TRUE,
+      '#description' => $this->t('Re-render the entire preview page when editing the main entity for the selected bundles. Enable this when entity fields affect surrounding content, such as a title in a hero block. Updates use AJAX morphing without reloading the preview.'),
     ];
     $default_bundle_values = $config->get('bundles');
     // @todo Expand the list of supported entity types.
@@ -166,6 +172,25 @@ class SettingsForm extends ConfigFormBase {
         '#options' => $options,
         '#default_value' => $default_bundle_values[$entity_type] ?? [],
       ];
+      $enabled_bundles = array_values(array_filter($default_bundle_values[$entity_type] ?? []));
+      $form['full_page_preview'][$entity_type] = [
+        '#type' => 'checkboxes',
+        '#title' => $definition->getLabel(),
+        '#options' => $options,
+        '#default_value' => $config->get('full_page_preview.' . $entity_type) ?? [],
+      ];
+      foreach ($options as $bundle_id => $label) {
+        $form['full_page_preview'][$entity_type][$bundle_id]['#states'] = [
+          'disabled' => [
+            ':input[name="bundles[' . $entity_type . '][' . $bundle_id . ']"]' => [
+              'checked' => FALSE,
+            ],
+          ],
+        ];
+        if (!in_array($bundle_id, $enabled_bundles, TRUE)) {
+          $form['full_page_preview'][$entity_type][$bundle_id]['#disabled'] = TRUE;
+        }
+      }
     }
 
     $mobile_presets = $config->get('mobile_presets') ?? [];
@@ -196,6 +221,11 @@ class SettingsForm extends ConfigFormBase {
       $bundle_values[$entity_type] = array_filter($bundles);
     }
     $config->set('bundles', $bundle_values);
+    $full_page_preview = [];
+    foreach ($form_state->getValue('full_page_preview', []) as $entity_type => $selected) {
+      $full_page_preview[$entity_type] = array_filter($selected);
+    }
+    $config->set('full_page_preview', $full_page_preview);
 
     $mobile_presets = [];
     foreach (explode("\n", $form_state->getValue('mobile_presets')) as $preset) {

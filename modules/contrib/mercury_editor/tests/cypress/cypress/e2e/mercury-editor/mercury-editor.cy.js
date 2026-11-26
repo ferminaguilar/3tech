@@ -10,6 +10,11 @@ describe('Mercury Editor e2e tests.', () => {
     cy.viewport(1000, 800);
   });
 
+  after(() => {
+    cy.drush('pmu', ['mercury_editor_content_moderation_test']);
+    cy.drush('cr');
+  });
+
   beforeEach(() => {
     // Login as admin.
     cy.loginUserByUid(1);
@@ -18,9 +23,7 @@ describe('Mercury Editor e2e tests.', () => {
   it('creates, edits, and deletes a node with Mercury Editor', () => {
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
-    // Wait for the Mercury Editor interface to fully load
-    cy.get('#me-preview').its('0.contentDocument');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     // Tests that syncing the title field works.
     cy.get('input[name="title[0][value]"]').clear();
     cy.get('input[name="title[0][value]"]').type('-- Test page --');
@@ -32,7 +35,7 @@ describe('Mercury Editor e2e tests.', () => {
   it('tests undo and redo functionality in Mercury Editor', () => {
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
-    cy.wait(3000);
+    cy.meStateReady();
     cy.meAddComponent('me_test_text');
     cy.meSetCKEditor5Value('field_me_test_text', 'First edit');
     cy.meSaveComponent().then((component) => {
@@ -87,6 +90,7 @@ describe('Mercury Editor e2e tests.', () => {
     cy.drush('en mercury_editor_content_moderation_test');
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
+    cy.meStateReady();
     cy.get('[name="revision_log[0][value]"]').type('First draft.');
     cy.meSavePage();
     cy.meExitEditor();
@@ -100,8 +104,10 @@ describe('Mercury Editor e2e tests.', () => {
     cy.get('.revision-current').contains('First draft.');
     cy.then(() => cy.visit(`/node/${nid}`));
     cy.meEditPage();
+    cy.meStateReady();
     cy.meExitEditor();
     cy.meEditPage();
+    cy.meStateReady();
     cy.get('[name="moderation_state[0][state]"]').select('Published');
     cy.get('[name="revision_log[0][value]"]').type('Published draft.');
     cy.meSavePage();
@@ -111,6 +117,7 @@ describe('Mercury Editor e2e tests.', () => {
 
     cy.then(() => cy.visit(`/node/${nid}`));
     cy.meEditPage();
+    cy.meStateReady();
     cy.get('[name="moderation_state[0][state]"]').select('Draft');
     cy.get('[name="revision_log[0][value]"]').type('New unpublished draft.');
     cy.meSavePage();
@@ -122,6 +129,7 @@ describe('Mercury Editor e2e tests.', () => {
 
     cy.then(() => cy.visit(`/node/${nid}`));
     cy.meEditPage();
+  cy.meStateReady();
     cy.get('[name="moderation_state[0][state]"]').select('Published');
     cy.get('[name="revision_log[0][value]"]').type('Latest published draft.');
     cy.meSavePage();
@@ -132,6 +140,7 @@ describe('Mercury Editor e2e tests.', () => {
     // Change moderation state without exiting the editor.
     cy.then(() => cy.visit(`/node/${nid}`));
     cy.meEditPage();
+    cy.meStateReady();
     cy.get('[name="moderation_state[0][state]"]').select('Draft');
     cy.get('[name="revision_log[0][value]"]').type(
       'Latest draft - without exit.',
@@ -154,7 +163,7 @@ describe('Mercury Editor e2e tests.', () => {
     cy.drush('en mercury_editor_layout_builder_test');
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     // Tests that syncing the title field works.
     cy.get('#edit-title-0-value').clear();
     cy.get('#edit-title-0-value').type('-- Test page --');
@@ -168,6 +177,7 @@ describe('Mercury Editor e2e tests.', () => {
     /* eslint-disable max-nested-callbacks */
     cy.drush('en mercury_editor_block_visibility_test');
     cy.visit('/node/add/me_test_ct');
+    cy.meStateReady();
     cy.iframe('#me-preview')
       .find('.block-mercury-editor-block-visibility-test')
       .should('contain', 'Tests block visibility with Mercury Editor.');

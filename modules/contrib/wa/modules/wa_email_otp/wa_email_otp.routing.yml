@@ -15,7 +15,7 @@ wa_email_otp.settings:
     _form: '\Drupal\wa_email_otp\Form\WaEmailOtpSettingsForm'
     _title: 'Email OTP Settings'
   requirements:
-    _permission: 'administer all user passkey'
+    _permission: 'administer passkey settings'
   options:
     _admin_route: TRUE
     no_cache: TRUE

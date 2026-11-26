@@ -23,7 +23,7 @@ describe('Mercury Editor Templates e2e tests.', () => {
   it('creates and inserts templates in several contexts', () => {
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     // Add a two-column section with a text component in each column and save
     // it as a new templates.
     cy.meAddComponent('me_test_section');
@@ -212,7 +212,7 @@ describe('Mercury Editor Templates e2e tests.', () => {
   it('creates, edits, and deletes a template with Mercury Editor', () => {
     // Create a new term.
     cy.visit('me-template/add');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     // Tests that syncing the title field works.
     cy.get('input[name="label[0][value]"]').clear();
     cy.get('input[name="label[0][value]"]').type(

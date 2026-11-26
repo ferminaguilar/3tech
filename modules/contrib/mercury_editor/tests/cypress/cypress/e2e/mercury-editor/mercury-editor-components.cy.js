@@ -18,8 +18,7 @@ describe('Mercury Editor card component tests.', () => {
 
   it('adds a card component with heading, image, and link', () => {
     cy.visit('/node/add/me_test_ct');
-    cy.get('#me-preview').its('0.contentDocument');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     cy.get('input[name="title[0][value]"]').clear();
     cy.get('input[name="title[0][value]"]').type('Card Test Page');
     cy.iframe('#me-preview').find('.page-title').contains('Card Test Page');

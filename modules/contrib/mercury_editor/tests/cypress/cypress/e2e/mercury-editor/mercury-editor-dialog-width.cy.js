@@ -90,7 +90,7 @@ describe('Mercury Editor dialog width tests.', () => {
     cy.drush('cr');
 
     cy.visit('/node/add/me_test_ct');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
 
     // edit-screen.js sets --me-dialog-width-default from
     // drupalSettings.mercuryEditor.defaultWidth (which comes from
@@ -116,7 +116,7 @@ describe('Mercury Editor dialog width tests.', () => {
   // ---------------------------------------------------------------------------
   it('preserves the user-set tray width when switching between components', () => {
     cy.visit('/node/add/me_test_ct');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
 
     // Add a first text component so there is something to navigate away from.
     cy.meAddComponent('me_test_text');
@@ -157,7 +157,7 @@ describe('Mercury Editor dialog width tests.', () => {
   // ---------------------------------------------------------------------------
   it('restores the tray width from localStorage after a page reload', () => {
     cy.visit('/node/add/me_test_ct');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
 
     // Simulate the user resizing the tray to 650 px.
     simulateTrayResize(650);
@@ -170,7 +170,7 @@ describe('Mercury Editor dialog width tests.', () => {
 
     // Reload the page (localStorage survives the reload).
     cy.reload();
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
 
     // edit-screen.js reads 'me-dialog-dock-right-width' from localStorage on
     // attach and re-applies it to --me-dialog-dock-right-width.
@@ -182,7 +182,7 @@ describe('Mercury Editor dialog width tests.', () => {
   // ---------------------------------------------------------------------------
   it('collapses the tray and restores the previous width on re-opening', () => {
     cy.visit('/node/add/me_test_ct');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
 
     // Set a known user width before collapsing.
     simulateTrayResize(550);
@@ -248,7 +248,7 @@ describe('Mercury Editor dialog width tests.', () => {
     cy.drush('cr');
 
     cy.visit('/node/add/me_test_ct');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
 
     // Add a me_test_text component. The INSERT form will open (since
     // skip_create_form is not set). Save it to open the EDIT form.

@@ -78,10 +78,13 @@ class PasskeyConfigurationTest extends BrowserTestBase {
     // Check endpoints.
     $this->drupalLogin($this->user);
 
-    // Get valid token from page.
-    $this->drupalGet('/user/' . $this->user->id() . '/passkeys');
-    $settings = $this->getDrupalSettings();
-    $token = $settings['wa']['registerOptionsToken'];
+    // Get valid session CSRF token and re-authenticate.
+    $token = $this->getSessionCsrfToken();
+    $this->drupalPostJson('/wa/register/reauth', [
+      'method' => 'password',
+      'password' => $this->user->passRaw,
+    ], ['X-CSRF-Token' => $token]);
+    $this->assertSession()->statusCodeEquals(200);
 
     $this->drupalPostJson('/wa/register/options', [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(200);
@@ -99,8 +102,8 @@ class PasskeyConfigurationTest extends BrowserTestBase {
 
     // Check endpoints.
     $this->drupalLogin($this->user);
-    // Access should be denied by route access check, so generic 403.
-    $this->drupalPostJson('/wa/register/options', [], ['X-CSRF-Token' => 'dummy']);
+    $token = $this->getSessionCsrfToken();
+    $this->drupalPostJson('/wa/register/options', [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(403);
   }
 
@@ -119,26 +122,32 @@ class PasskeyConfigurationTest extends BrowserTestBase {
 
     // User does not have the role yet.
     $this->drupalLogin($this->user);
+    $token = $this->getSessionCsrfToken();
 
-    // User does not have the role yet.
-    $this->drupalLogin($this->user);
-
-    // Access should be denied by route access check.
-    // We cannot get the token because we can't access the management page.
-    $this->drupalPostJson('/wa/register/options', [], ['X-CSRF-Token' => 'dummy']);
+    $this->drupalPostJson('/wa/register/options', [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(403);
 
     // Grant the role.
     $this->user->addRole('passkey_user');
     $this->user->save();
 
-    // Retry.
-    $this->drupalGet('/user/' . $this->user->id() . '/passkeys');
-    $settings = $this->getDrupalSettings();
-    $token = $settings['wa']['registerOptionsToken'];
+    // Re-authenticate and retry.
+    $this->drupalPostJson('/wa/register/reauth', [
+      'method' => 'password',
+      'password' => $this->user->passRaw,
+    ], ['X-CSRF-Token' => $token]);
+    $this->assertSession()->statusCodeEquals(200);
 
     $this->drupalPostJson('/wa/register/options', [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(200);
+  }
+
+  /**
+   * Returns a CSRF token for the current session via /session/token.
+   */
+  protected function getSessionCsrfToken(): string {
+    $this->drupalGet('/session/token');
+    return trim($this->getSession()->getPage()->getContent());
   }
 
 }

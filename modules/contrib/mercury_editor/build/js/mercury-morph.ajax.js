@@ -990,6 +990,8 @@
      *   The server-rendered replacement markup.
      * @param {object} [response.settings]
      *   Drupal settings associated with the response.
+     * @param {string|null} [response.activeComponentUuid]
+     *   The component to keep active during this morph only.
      * @param {number} status
      *   The HTTP response status.
      */
@@ -1000,14 +1002,21 @@
     ) {
       const settings =
         response.settings || ajax.settings || drupalSettings;
-      const activeUuid = settings.mercuryEditor?.activeComponentUuid;
+      const activeUuid = response.activeComponentUuid;
       const elements = document.querySelectorAll(response.selector);
 
       elements.forEach((element) => {
 
-        const template = document.createElement('template');
-        template.innerHTML = response.data.trim();
-        const newElement = template.content.firstElementChild;
+        // A template parses body markup as a fragment and drops the body tag.
+        // Parse page updates as documents so morphdom keeps the existing body.
+        let newElement;
+        if (element === document.body) {
+          newElement = new DOMParser().parseFromString(response.data, 'text/html').body;
+        } else {
+          const template = document.createElement('template');
+          template.innerHTML = response.data.trim();
+          newElement = template.content.firstElementChild;
+        }
 
         // If an active UUID is provided, find the corresponding element
         // in the new markup and mark it as active.

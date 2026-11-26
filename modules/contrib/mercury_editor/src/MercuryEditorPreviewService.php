@@ -5,17 +5,20 @@ namespace Drupal\mercury_editor;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\CommandInterface;
 use Drupal\Core\Ajax\RemoveCommand;
-use Drupal\Core\Ajax\ReplaceCommand;
+use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\mercury_editor\Ajax\MercuryAfterCommand;
 use Drupal\mercury_editor\Ajax\MercuryAppendCommand;
 use Drupal\mercury_editor\Ajax\MercuryBeforeCommand;
 use Drupal\mercury_editor\Ajax\MercuryPrependCommand;
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\layout_paragraphs\LayoutParagraphsLayout;
 use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
 use Drupal\mercury_editor\Ajax\MercuryEditorUpdateStateCommand;
 use Drupal\mercury_editor\Ajax\MercuryMorphCommand;
 use Drupal\mercury_editor\Event\RenderComponentPreviewEvent;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -43,6 +46,14 @@ class MercuryEditorPreviewService {
    *   The entity type manager service.
    * @param \Symfony\Contracts\EventDispatcher\EventDispatcherInterface $eventDispatcher
    *   The event dispatcher service.
+   * @param \Drupal\mercury_editor\BlockPreviewOptions $blockPreviewOptions
+   *   The content block preview options.
+   * @param \Symfony\Component\HttpFoundation\RequestStack $requestStack
+   *   The current request stack.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   The config factory.
+   * @param \Drupal\mercury_editor\MercuryEditorPagePreview $pagePreview
+   *   The full-page preview renderer.
    */
   public function __construct(
     protected MercuryEditorContextService $mercuryEditorContext,
@@ -50,6 +61,10 @@ class MercuryEditorPreviewService {
     protected IFrameAjaxResponseWrapper $iFrameAjaxResponseWrapper,
     protected $entityTypeManager,
     protected EventDispatcherInterface $eventDispatcher,
+    protected BlockPreviewOptions $blockPreviewOptions,
+    protected RequestStack $requestStack,
+    protected ConfigFactoryInterface $configFactory,
+    protected MercuryEditorPagePreview $pagePreview,
   ) {
     $this->entity = $this->mercuryEditorContext->getEntity();
   }
@@ -71,21 +86,73 @@ class MercuryEditorPreviewService {
     if (!$response) {
       $response = new AjaxResponse();
     }
-    $selector = '[data-me-edit-screen-key="' . $this->entity->uuid() . '"]';
-    $view_builder = $this->entityTypeManager->getViewBuilder($this->entity->getEntityTypeId());
-    $langcode = $this->entity->language()->getId();
-    $view = $view_builder->view($this->entity, 'full', $langcode);
-    $this->iFrameAjaxResponseWrapper->addCommand(new ReplaceCommand($selector, $view));
+    $bundles = $this->configFactory->get('mercury_editor.settings')->get('full_page_preview') ?? [];
+    if (!empty($bundles[$this->entity->getEntityTypeId()][$this->entity->bundle()])) {
+      $page = $this->pagePreview->build($this->entity);
+      $this->iFrameAjaxResponseWrapper->addCommand(new MercuryMorphCommand('body', $page));
+      $this->iFrameAjaxResponseWrapper->addCommand(new InvokeCommand('head title', 'text', [$page['#title']]));
+    }
+    else {
+      $selector = '[data-me-edit-screen-key="' . $this->entity->uuid() . '"]';
+      $view = $this->buildEntityPreview($this->entity);
+      $this->iFrameAjaxResponseWrapper->addCommand(new MercuryMorphCommand($selector, $view));
+      $this->updateEntityTitle();
+    }
 
     $response->addCommand(new MercuryEditorUpdateStateCommand(
       $this->tempstore,
       $this->entity,
     ));
 
-    // Update the entity's title if it exists.
-    $this->updateEntityTitle();
     $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());
     return $response;
+  }
+
+  /**
+   * Builds entity preview content, including a wrapper for content blocks.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The working entity.
+   * @param string $view_mode
+   *   The view mode.
+   *
+   * @return array
+   *   The entity's preview render array.
+   */
+  public function buildEntityPreview(EntityInterface $entity, string $view_mode = 'full'): array {
+    $is_preview = $this->mercuryEditorContext->isPreview();
+    $this->mercuryEditorContext->setPreview(TRUE);
+    try {
+      // Content blocks build eagerly, before the iframe response is rendered.
+      $view = $this->entityTypeManager
+        ->getViewBuilder($entity->getEntityTypeId())
+        ->view($entity, $view_mode, $entity->language()->getId());
+    }
+    finally {
+      $this->mercuryEditorContext->setPreview($is_preview);
+    }
+    if ($entity->getEntityTypeId() !== 'block_content') {
+      return $view;
+    }
+
+    $options = $this->blockPreviewOptions->resolve($entity, $this->requestStack->getCurrentRequest());
+    $attributes = ($view['#wrapper_attributes'] ?? []) + ($view['#attributes'] ?? []);
+    unset($view['#wrapper_attributes'], $view['#attributes'], $view['#title']);
+    $view['#cache']['max-age'] = 0;
+    return [
+      '#theme' => 'block',
+      '#configuration' => [
+        'provider' => 'block_content',
+        'label' => $options['title'],
+        'label_display' => $options['show_title'] ? 'visible' : FALSE,
+      ],
+      '#plugin_id' => 'block_content:' . $entity->uuid(),
+      '#base_plugin_id' => 'block_content',
+      '#derivative_plugin_id' => $entity->uuid(),
+      '#attributes' => $attributes,
+      '#cache' => ['max-age' => 0],
+      'content' => $view,
+    ];
   }
 
   /**
@@ -261,8 +328,8 @@ class MercuryEditorPreviewService {
       'type' => 'string',
     ]);
 
-    // Add the replace command for the title field.
-    $this->iFrameAjaxResponseWrapper->addCommand(new ReplaceCommand($selector, $field_view));
+    // Morph the title field using the same command as other preview updates.
+    $this->iFrameAjaxResponseWrapper->addCommand(new MercuryMorphCommand($selector, $field_view));
   }
 
   /**

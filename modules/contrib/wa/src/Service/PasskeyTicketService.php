@@ -3,6 +3,7 @@
 namespace Drupal\wa\Service;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Psr\Log\LogLevel;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 /**
@@ -48,20 +49,24 @@ class PasskeyTicketService {
    *   Additional context for the log.
    * @param int $statusCode
    *   The HTTP status code.
+   * @param string $logLevel
+   *   PSR-3 log level (defaults to LogLevel::ERROR).
+   * @param array<string, mixed> $extraData
+   *   Optional additional JSON fields to include in the response payload.
    *
    * @return \Symfony\Component\HttpFoundation\JsonResponse
    *   The JSON response.
    */
-  public function logAndReturnError(string $message, string $logMessage, array $context = [], int $statusCode = 400): JsonResponse {
+  public function logAndReturnError(string $message, string $logMessage, array $context = [], int $statusCode = 400, string $logLevel = LogLevel::ERROR, array $extraData = []): JsonResponse {
     $ticketId = $this->generateTicketId();
     $context['@ticket_id'] = $ticketId;
-    $this->loggerFactory->get('wa')->error("$logMessage (Ticket ID: @ticket_id)", $context);
+    $this->loggerFactory->get('wa')->log($logLevel, "$logMessage (Ticket ID: @ticket_id)", $context);
 
-    return new JsonResponse([
+    return new JsonResponse(array_merge([
       'status' => 'error',
       'message' => $message,
       'ticket_id' => $ticketId,
-    ], $statusCode);
+    ], $extraData), $statusCode);
   }
 
 }

@@ -55,11 +55,25 @@ class PasskeyRegistrationSecurityTest extends BrowserTestBase {
       ->set('allowed_roles', [RoleInterface::AUTHENTICATED_ID])
       ->save();
 
-    // Load management page to populate tokens from drupalSettings.
-    $this->drupalGet('/user/' . $this->user->id() . '/passkeys');
-    $settings = $this->getDrupalSettings();
-    $this->registerOptionsToken = $settings['wa']['registerOptionsToken'] ?? \Drupal::service('csrf_token')->get('wa/register/options');
-    $this->registerVerifyToken = $settings['wa']['registerVerifyToken'] ?? \Drupal::service('csrf_token')->get('wa/register/verify');
+    // Fetch session CSRF token via /session/token and complete re-auth.
+    $this->drupalGet('/session/token');
+    $sessionToken = trim($this->getSession()->getPage()->getContent());
+    $this->registerOptionsToken = $sessionToken;
+    $this->registerVerifyToken = $sessionToken;
+
+    $this->drupalPost(
+      'wa/register/reauth',
+      [],
+      [],
+      [
+        'content' => json_encode([
+          'method' => 'password',
+          'password' => $this->user->passRaw,
+        ]),
+        'HTTP_X_CSRF_TOKEN' => $sessionToken,
+      ]
+    );
+    $this->assertSession()->statusCodeEquals(200);
   }
 
   /**

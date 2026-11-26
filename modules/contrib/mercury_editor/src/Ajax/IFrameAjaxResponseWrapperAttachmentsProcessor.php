@@ -9,7 +9,7 @@ use Drupal\Core\Ajax\AjaxResponseAttachmentsProcessor;
 /**
  * IFrame Ajax response wrapper attachments processor.
  *
- * Replaces ajax_page_state with ajax_preview_page_state in the request.
+ * Resolves AJAX attachments against the libraries loaded in the preview iframe.
  *
  * @see \Drupal\Core\Ajax\AjaxResponseAttachmentsProcessor
  */
@@ -26,14 +26,27 @@ class IFrameAjaxResponseWrapperAttachmentsProcessor extends AjaxResponseAttachme
 
     $request = $this->requestStack->getCurrentRequest();
     $original_ajax_page_state = $request->request->all('ajax_page_state');
+    $original_ajax_page_state_attribute = $request->attributes->get('ajax_page_state');
     $preview_ajax_page_state = $request->request->all('ajax_preview_page_state');
     $request->request->set('ajax_page_state', $preview_ajax_page_state);
+    // Core can read the normalized state from request attributes instead of
+    // POST data. Both must describe the iframe, not the outer editor.
+    $request->attributes->set('ajax_page_state', $preview_ajax_page_state);
 
-    if ($response->getContent() == '{}') {
-      $response->setData($this->buildAttachmentsCommands($response, $request));
+    try {
+      if ($response->getContent() == '{}') {
+        $response->setData($this->buildAttachmentsCommands($response, $request));
+      }
     }
-
-    $request->request->set('ajax_page_state', $original_ajax_page_state);
+    finally {
+      $request->request->set('ajax_page_state', $original_ajax_page_state);
+      if ($original_ajax_page_state_attribute === NULL) {
+        $request->attributes->remove('ajax_page_state');
+      }
+      else {
+        $request->attributes->set('ajax_page_state', $original_ajax_page_state_attribute);
+      }
+    }
 
     return $response;
   }

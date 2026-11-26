@@ -2,7 +2,6 @@
 
 namespace Drupal\wa\Service;
 
-use Drupal\Component\Utility\Html;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\StringTranslation\TranslationInterface;
@@ -171,7 +170,7 @@ class PasskeyLabeler {
         }
         $providers['custom_' . preg_replace('/[^a-z0-9]+/', '_', $aaguidKey)] = [
           'aaguids' => [$aaguidKey],
-          'label' => Html::escape((string) $label),
+          'label' => (string) $label,
         ];
       }
     }

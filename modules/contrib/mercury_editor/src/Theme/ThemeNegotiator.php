@@ -5,6 +5,8 @@ namespace Drupal\mercury_editor\Theme;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Theme\ThemeNegotiatorInterface;
+use Drupal\mercury_editor\BlockPreviewOptions;
+use Drupal\mercury_editor\MercuryEditorContextService;
 use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
@@ -33,8 +35,17 @@ class ThemeNegotiator implements ThemeNegotiatorInterface {
    *   The config factory.
    * @param \Symfony\Component\HttpFoundation\RequestStack $request_stack
    *   The request stack used to retrieve the current request.
+   * @param \Drupal\mercury_editor\MercuryEditorContextService $context
+   *   The current editor context.
+   * @param \Drupal\mercury_editor\BlockPreviewOptions $blockPreviewOptions
+   *   The content block preview options.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, RequestStack $request_stack) {
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    RequestStack $request_stack,
+    protected MercuryEditorContextService $context,
+    protected BlockPreviewOptions $blockPreviewOptions,
+  ) {
     $this->configFactory = $config_factory;
     $this->requestStack = $request_stack;
   }
@@ -43,6 +54,9 @@ class ThemeNegotiator implements ThemeNegotiatorInterface {
    * {@inheritDoc}
    */
   public function applies(RouteMatchInterface $route_match) {
+    if ($route_match->getRouteName() === 'entity.block_content.mercury_editor_preview') {
+      return TRUE;
+    }
     if ($route_match->getRouteObject() && $route_match->getRouteObject()->getOption('_mercury_editor_route')) {
       return TRUE;
     }
@@ -53,6 +67,9 @@ class ThemeNegotiator implements ThemeNegotiatorInterface {
    * {@inheritDoc}
    */
   public function determineActiveTheme(RouteMatchInterface $route_match) {
+    if ($route_match->getRouteName() === 'entity.block_content.mercury_editor_preview') {
+      return $this->blockPreviewOptions->resolve($this->context->getEntity(), $this->requestStack->getCurrentRequest())['theme'];
+    }
     $theme = $this->configFactory->get('mercury_editor.settings')->get('edit_screen_theme');
 
     if (empty($theme)) {

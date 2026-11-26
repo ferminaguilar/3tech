@@ -6,6 +6,7 @@ wa.settings:
   requirements:
     _wa_passkey_manage_access: 'TRUE'
     user: \d+
+  methods: [GET]
   options:
     _admin_route: TRUE
     no_cache: TRUE
@@ -16,6 +17,18 @@ wa.passkey_delete:
     _controller: '\Drupal\wa\Controller\PasskeyController::deletePasskey'
   requirements:
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
+  methods: [POST]
+  options:
+    no_cache: TRUE
+
+wa.register_reauth:
+  path: '/wa/register/reauth'
+  defaults:
+    _controller: '\Drupal\wa\Controller\PasskeyController::registerReauth'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
   methods: [POST]
   options:
     no_cache: TRUE
@@ -26,6 +39,7 @@ wa.register_options:
     _controller: '\Drupal\wa\Controller\PasskeyController::registerOptions'
   requirements:
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
   methods: [POST]
   options:
     no_cache: TRUE
@@ -36,6 +50,7 @@ wa.register_verify:
     _controller: '\Drupal\wa\Controller\PasskeyController::registerVerify'
   requirements:
     _user_is_logged_in: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
   methods: [POST]
   options:
     no_cache: TRUE
@@ -66,7 +81,7 @@ wa.admin_settings:
     _form: '\Drupal\wa\Form\PasskeySettingsForm'
     _title: 'Passkey settings'
   requirements:
-    _permission: 'administer all user passkey'
+    _permission: 'administer passkey settings'
   options:
     _admin_route: TRUE
     no_cache: TRUE

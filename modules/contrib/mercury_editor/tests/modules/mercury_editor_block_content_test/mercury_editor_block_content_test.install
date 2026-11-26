@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * @file
+ * Installation hooks for Mercury Editor content block tests.
+ */
+
+use Drupal\block_content\Entity\BlockContentType;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_block_content_test_install(): void {
+  BlockContentType::create([
+    'id' => 'me_test_block',
+    'label' => 'Mercury Editor Test Block',
+    'revision' => TRUE,
+  ])->save();
+
+  mercury_editor_startup_demo_make_paragraph_field(
+    'block_content',
+    'me_test_block',
+    'field_me_test_block_content',
+    'Content',
+    [
+      'target_bundles' => [
+        'me_test_section' => 'me_test_section',
+        'me_test_text' => 'me_test_text',
+      ],
+      'target_bundles_drag_drop' => [
+        'me_test_section' => ['weight' => 0, 'enabled' => TRUE],
+        'me_test_text' => ['weight' => 1, 'enabled' => TRUE],
+      ],
+    ],
+    'layout_paragraphs',
+    'layout_paragraphs',
+  );
+
+  $role = Role::create([
+    'id' => 'me_block_content_editor',
+    'label' => 'Content block test editor',
+  ]);
+  foreach ([
+    'access content',
+    'access administration pages',
+    'access block library',
+    'access contextual links',
+    'administer blocks',
+    'create me_test_block block content',
+    'edit any me_test_block block content',
+    'use text format basic_html',
+  ] as $permission) {
+    $role->grantPermission($permission);
+  }
+  $role->save();
+  User::create([
+    'name' => 'me_block_content_editor',
+    'status' => 1,
+    'roles' => [$role->id()],
+  ])->save();
+  User::create([
+    'name' => 'me_block_content_viewer',
+    'status' => 1,
+  ])->save();
+
+  $config = \Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $bundles = $config->get('bundles') ?? [];
+  $bundles['block_content']['me_test_block'] = 'me_test_block';
+  $config->set('bundles', $bundles)->save();
+
+  mercury_editor_block_content_test_reset();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_block_content_test_uninstall(): void {
+  mercury_editor_block_content_test_delete_fixtures();
+  BlockContentType::load('me_test_block')?->delete();
+  FieldStorageConfig::loadByName('block_content', 'field_me_test_block_content')?->delete();
+
+  $storage = \Drupal::entityTypeManager()->getStorage('user');
+  $storage->delete($storage->loadByProperties([
+    'name' => ['me_block_content_editor', 'me_block_content_viewer'],
+  ]));
+  Role::load('me_block_content_editor')?->delete();
+
+  $config = \Drupal::configFactory()->getEditable('mercury_editor.settings');
+  $bundles = $config->get('bundles') ?? [];
+  unset($bundles['block_content']['me_test_block']);
+  if (empty($bundles['block_content'])) {
+    unset($bundles['block_content']);
+  }
+  $config->set('bundles', $bundles)->save();
+}

@@ -12,6 +12,11 @@ use Drupal\Core\Ajax\InsertCommand;
 final class MercuryMorphCommand extends InsertCommand {
 
   /**
+   * The component to keep active during this morph.
+   */
+  private ?string $activeComponentUuid = NULL;
+
+  /**
    * Constructs a MercuryMorphCommand object.
    *
    * @param string|null $selector
@@ -30,6 +35,13 @@ final class MercuryMorphCommand extends InsertCommand {
   }
 
   /**
+   * Sets the component to keep active during this morph.
+   */
+  public function setActiveComponentUuid(string $uuid): void {
+    $this->activeComponentUuid = $uuid;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function render(): array {
@@ -38,6 +50,7 @@ final class MercuryMorphCommand extends InsertCommand {
       'selector' => $this->selector,
       'data' => $this->getRenderedContent(),
       'settings' => $this->settings,
+      'activeComponentUuid' => $this->activeComponentUuid,
     ];
   }
 

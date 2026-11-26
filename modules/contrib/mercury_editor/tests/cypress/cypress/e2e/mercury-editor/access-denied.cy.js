@@ -18,8 +18,7 @@ describe('Mercury Editor access denied tests', () => {
 
     // Create a new page.
     cy.visit('/node/add/me_test_ct');
-    cy.get('#me-preview').its('0.contentDocument');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     cy.get('#edit-title-0-value').clear();
     cy.get('#edit-title-0-value').type('Access Test Page');
     cy.meSavePage();

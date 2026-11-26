@@ -44,6 +44,8 @@ edit_screen:
       build/css/components/messages.css: {}
   js:
     build/js/mercury-editor-bus.js: {}
+    build/js/save-lock.js: {}
+    build/js/block-preview-options.js: {}
     build/js/edit-screen.js: {}
     build/js/autosave.js: {}
     build/js/component.handlers.js: {}

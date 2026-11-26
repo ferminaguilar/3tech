@@ -98,6 +98,12 @@ Cypress.Commands.add('loginUserByUsername', (username) => {
       .then((url) => {
         cy.visit(url);
       });
+  }, {
+    validate() {
+      cy.request({ url: '/user', followRedirect: false })
+        .its('headers.location')
+        .should('match', /\/user\/\d+(?:[?#].*)?$/);
+    },
   });
 });
 
@@ -117,6 +123,14 @@ Cypress.Commands.add('enableLanguage', (langCode) => {
       cy.url().should('contain', 'admin/config/regional/language');
     }
   });
+});
+
+/**
+ * Waits for the Mercury Editor interface to be fully loaded and ready.
+ */
+Cypress.Commands.add('meStateReady', () => {
+  cy.get('#me-preview').its('0.contentDocument');
+  cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
 });
 
 /**
@@ -163,6 +177,7 @@ Cypress.Commands.add('basicMercuryEditorInteractions', () => {
   cy.meSavePage();
   cy.meExitEditor();
   cy.meEditPage();
+  cy.meStateReady();
 
   cy.meFindComponent('Left').then(($component) => {
     const uuid = $component.attr('data-uuid');

@@ -21,7 +21,7 @@ describe('Mercury Editor e2e tests.', () => {
 
     // Create a new term.
     cy.visit('admin/structure/taxonomy/manage/me_test_vocab/add');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     // Tests that syncing the title field works.
     cy.get('input[name="name[0][value]"]').clear();
     cy.get('input[name="name[0][value]"]').type('-- Test term --');

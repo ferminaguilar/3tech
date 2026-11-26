@@ -12,46 +12,75 @@ use Drupal\user\UserInterface;
  * Implements hook_wa_login().
  */
 function wa_email_otp_wa_login(UserInterface $user): array {
-  // Check if the OTP feature is enabled. If not, bypass OTP completely.
+  // Honor explicit disable (FALSE or 0 override), while failing closed if the
+  // configuration key is missing on a site where this module is enabled.
   $config = \Drupal::config('wa_email_otp.settings');
-  if ($config->get('enable_otp') === FALSE) {
+  $enableOtp = $config->get('enable_otp');
+  if ($enableOtp !== NULL && !(bool) $enableOtp) {
     return [];
   }
-  // Use the OTP service to generate credentials.
-  /** @var \Drupal\wa_email_otp\Service\OtpService $otp_service */
-  $otp_service = \Drupal::service('wa_email_otp.otp_service');
-  $data = $otp_service->generate($user->id());
-  $otp = $data['otp'];
-  $hash = $data['hash'];
 
-  // Set session marker to ensure binding.
-  $request = \Drupal::request();
-  $session = $request->getSession();
-  $session->set('wa_email_otp_uid', $user->id());
-
-  // Send Email.
-  if (!$otp_service->sendOtp($user, $otp)) {
-    // If email fails, we might want to allow login or block with message.
-    // Blocking is safer.
-    return [[
+  // Defer OTP generation, session binding, and email delivery to
+  // step_up_callback so that if another module hard-vetoes login, no OTP
+  // email is sent and the veto always takes precedence.
+  return [
+    [
       'allowed_login' => FALSE,
-      'redirect_url' => NULL,
+      'step_up' => TRUE,
+      'step_up_callback' => static function (UserInterface $account): ?Url {
+        /** @var \Drupal\wa_email_otp\Service\OtpService $otp_service */
+        $otp_service = \Drupal::service('wa_email_otp.otp_service');
+        $data = $otp_service->generate((int) $account->id());
+        $otp = $data['otp'];
+        $hash = $data['hash'];
+
+        $request = \Drupal::request();
+        $session = $request->getSession();
+        $session->set('wa_email_otp_uid', (int) $account->id());
+        $session->set('wa_email_otp_started', \Drupal::time()->getRequestTime());
+
+        // Preserve any safe local ?destination= from the login request so it
+        // can be honored after OTP verification completes.
+        $destination = $request->query->get('destination');
+        if (is_string($destination) && $destination !== '') {
+          $session->set('wa_email_otp_destination', $destination);
+        }
+        else {
+          $session->remove('wa_email_otp_destination');
+        }
+
+        if (!$otp_service->sendOtp($account, $otp)) {
+          $otp_service->cleanupAll((int) $account->id());
+          $session->remove('wa_email_otp_uid');
+          $session->remove('wa_email_otp_started');
+          $session->remove('wa_email_otp_destination');
+          return NULL;
+        }
+
+        return Url::fromRoute('wa_email_otp.login', [
+          'uid' => $account->id(),
+          'hash' => $hash,
+        ]);
+      },
     ],
-    ];
-  }
-
-  // Redirect to OTP entry form.
-  $options = ['state' => ['uid' => $user->id(), 'hash' => $hash]];
-
-  $url = Url::fromRoute('wa_email_otp.login', ['uid' => $user->id(), 'hash' => $hash], $options);
-
-  return [[
-    // Prevent immediate login.
-    'allowed_login' => FALSE,
-    // Redirect to OTP entry.
-    'redirect_url' => $url,
-  ],
   ];
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete() for user entities.
+ */
+function wa_email_otp_user_delete(UserInterface $account): void {
+  $uid = (int) $account->id();
+  if ($uid > 0) {
+    \Drupal::service('wa_email_otp.otp_service')->cleanupAll($uid);
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function wa_email_otp_cron(): void {
+  \Drupal::service('wa_email_otp.otp_service')->cleanupExpired();
 }
 
 /**

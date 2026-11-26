@@ -59,30 +59,36 @@ class PasskeyMultilingualTest extends BrowserTestBase {
     $user = $this->drupalCreateUser([]);
     $this->drupalLogin($user);
 
-    // Get a valid token by visiting the passkey management page.
-    $this->drupalGet('user/' . $user->id() . '/passkeys');
-    $settings = $this->getDrupalSettings();
-    $token = $settings['wa']['registerOptionsToken'];
+    // Fetch session CSRF token via /session/token and re-authenticate.
+    $this->drupalGet('/session/token');
+    $token = trim($this->getSession()->getPage()->getContent());
+
+    $this->drupalPostJson('/wa/register/reauth', [
+      'method' => 'password',
+      'password' => $user->passRaw,
+    ], [], [
+      'X-CSRF-Token' => $token,
+    ]);
+    $this->assertSession()->statusCodeEquals(200);
 
     // Test 1: Request the English (default) route.
-    // This should work with the internal path-based token.
     $this->drupalPostJson('/wa/register/options', [], [], [
       'X-CSRF-Token' => $token,
     ]);
     $this->assertSession()->statusCodeEquals(200);
 
-    // Test 2: Request the French route with language prefix.
-    // WITH THE FIX: The controller uses Url::fromRoute()->getInternalPath()
-    // which returns 'wa/register/options' for both '/wa/register/options'
-    // and '/fr/wa/register/options', so the same token works.
+    // Test 2: Request the French route with language prefix using the same
+    // session header token (_csrf_request_header_token).
     $this->drupalPostJson('/fr/wa/register/options', [], [], [
       'X-CSRF-Token' => $token,
     ]);
     $this->assertSession()->statusCodeEquals(200);
 
-    // Both English and French routes work with the same token because
-    // the controller uses Url::fromRoute()->getInternalPath() which
-    // returns the language-independent path 'wa/register/options'.
+    // Test 3: Missing or invalid CSRF token is rejected at the routing layer.
+    $this->drupalPostJson('/fr/wa/register/options', [], [], [
+      'X-CSRF-Token' => 'invalid-token',
+    ]);
+    $this->assertSession()->statusCodeEquals(403);
   }
 
   /**

@@ -13,7 +13,7 @@ describe('Mercury Editor AJAX indicator', () => {
   beforeEach(() => {
     cy.loginUserByUid(1);
     cy.visit('/node/add/me_test_ct');
-    cy.get('#me-preview').its('0.contentDocument');
+    cy.meStateReady();
     cy.get('#me-ajax-status').should('have.text', '');
     cy.get('.me-ajax-indicator').should('have.attr', 'aria-hidden', 'true');
   });

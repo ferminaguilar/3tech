@@ -1,6 +1,8 @@
 import { trackFocus, restoreFormFocus } from './focus-manager';
 
 ((Drupal) => {
+  const pendingEdits = new Map();
+
   /**
    * Generates the API URL for a given action.
    * @param {String} action The action to perform.
@@ -81,14 +83,21 @@ import { trackFocus, restoreFormFocus } from './focus-manager';
       if (openSidebar) {
         Drupal.mercuryEditorBus.post('editor:openSidebar');
       }
-      Drupal.mercuryEditorBus.post('preview:selectComponent', {
-        uuid: data.uuid,
-      });
-      makeRequest('edit', {
+      const requestKey = `${data.meId}:${data.layoutId}:${data.uuid}`;
+      if (pendingEdits.has(requestKey)) {
+        return pendingEdits.get(requestKey);
+      }
+      const request = makeRequest('edit', {
         meId: data.meId,
         layoutId: data.layoutId,
         uuid: data.uuid,
       });
+      pendingEdits.set(requestKey, request);
+      request.always(() => pendingEdits.delete(requestKey));
+      Drupal.mercuryEditorBus.post('preview:selectComponent', {
+        uuid: data.uuid,
+      });
+      return request;
     },
     /**
      * Inserts a new component.
@@ -188,6 +197,7 @@ import { trackFocus, restoreFormFocus } from './focus-manager';
     },
   };
   Drupal.mercuryEditorBus.on('component:*', (msg) => {
+    if (Drupal.mercuryEditorSaveLock?.isLocked()) return;
     const { type, payload } = msg;
     const action = type.split(':')[1];
     const handler = componentActionHandlers[action];
@@ -199,6 +209,7 @@ import { trackFocus, restoreFormFocus } from './focus-manager';
     }
   });
   Drupal.mercuryEditorBus.on('component-event:*', (msg) => {
+    if (Drupal.mercuryEditorSaveLock?.isLocked()) return;
     const { type, payload } = msg;
     const handler = componentEventHandlers[type.split(':')[1]];
     if (handler) {

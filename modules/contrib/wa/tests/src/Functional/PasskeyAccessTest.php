@@ -61,7 +61,8 @@ class PasskeyAccessTest extends BrowserTestBase {
    */
   public function testAdminSettingsAccess(): void {
     $regular = $this->drupalCreateUser([]);
-    $admin = $this->drupalCreateUser(['administer all user passkey']);
+    $supportAdmin = $this->drupalCreateUser(['administer all user passkey']);
+    $settingsAdmin = $this->drupalCreateUser(['administer passkey settings']);
 
     // Anonymous denied.
     $this->drupalGet('/admin/config/people/wa');
@@ -72,8 +73,13 @@ class PasskeyAccessTest extends BrowserTestBase {
     $this->drupalGet('/admin/config/people/wa');
     $this->assertSession()->statusCodeEquals(403);
 
-    // Admin allowed.
-    $this->drupalLogin($admin);
+    // User-passkey support permission does NOT grant policy settings access.
+    $this->drupalLogin($supportAdmin);
+    $this->drupalGet('/admin/config/people/wa');
+    $this->assertSession()->statusCodeEquals(403);
+
+    // Settings permission grants access.
+    $this->drupalLogin($settingsAdmin);
     $this->drupalGet('/admin/config/people/wa');
     $this->assertSession()->statusCodeEquals(200);
   }
@@ -111,12 +117,9 @@ class PasskeyAccessTest extends BrowserTestBase {
     $this->drupalPostJson('/wa/passkey/delete', ['id' => $encodedId]);
     $this->assertSession()->statusCodeEquals(403);
 
-    // Owner with permission can delete.
+    // Owner with valid session CSRF token can delete.
     $this->drupalLogin($owner);
-    // Get a valid token for the owner by visiting the page.
-    $this->drupalGet('user/' . $owner->id() . '/passkeys');
-    $settings = $this->getDrupalSettings();
-    $token = $settings['wa']['passkeyDeleteToken'];
+    $token = $this->getSessionCsrfToken();
 
     $this->drupalPostJson('/wa/passkey/delete', ['id' => $encodedId], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(200);
@@ -142,18 +145,25 @@ class PasskeyAccessTest extends BrowserTestBase {
 
     // Authenticated without role denied.
     $this->drupalLogin($noRole);
-    $verifyToken = \Drupal::service('csrf_token')->get('wa/register/verify');
-    $this->drupalPostJson('/wa/register/verify', [], [], ['X-CSRF-Token' => $verifyToken]);
+    $token = $this->getSessionCsrfToken();
+    $this->drupalPostJson('/wa/register/verify', [], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(403);
 
-    // Authenticated with role reaches controller
-    // (challenge missing -> 400).
+    // Authenticated with role but without re-authentication is denied (403).
     $this->drupalLogin($withRole);
-    // Fetch token from passkey management page to ensure session-bound token.
-    $this->drupalGet('user/' . $withRole->id() . '/passkeys');
-    $settings = $this->getDrupalSettings();
-    $verifyToken = $settings['wa']['registerVerifyToken'] ?? \Drupal::service('csrf_token')->get('wa/register/verify');
-    $this->drupalPostJson('/wa/register/verify', [], [], ['X-CSRF-Token' => $verifyToken]);
+    $token = $this->getSessionCsrfToken();
+    $this->drupalPostJson('/wa/register/verify', [], [], ['X-CSRF-Token' => $token]);
+    $this->assertSession()->statusCodeEquals(403);
+
+    // Re-authenticate with current password, then reach controller
+    // (challenge missing -> 400).
+    $this->drupalPostJson('/wa/register/reauth', [
+      'method' => 'password',
+      'password' => $withRole->passRaw,
+    ], [], ['X-CSRF-Token' => $token]);
+    $this->assertSession()->statusCodeEquals(200);
+
+    $this->drupalPostJson('/wa/register/verify', [], [], ['X-CSRF-Token' => $token]);
     $this->assertSession()->statusCodeEquals(400);
   }
 
@@ -221,6 +231,14 @@ class PasskeyAccessTest extends BrowserTestBase {
       $server,
       $content
     );
+  }
+
+  /**
+   * Returns a CSRF token for the current session via /session/token.
+   */
+  protected function getSessionCsrfToken(): string {
+    $this->drupalGet('/session/token');
+    return trim($this->getSession()->getPage()->getContent());
   }
 
 }

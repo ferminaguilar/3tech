@@ -29,6 +29,7 @@ morphdom
 onecolumn
 onethird
 pxtorem
+prefilter
 threecolumn
 twocolumn
 twothirds
@@ -36,3 +37,5 @@ undock
 xsmall
 effectful
 reparenting
+héro
+prefilter

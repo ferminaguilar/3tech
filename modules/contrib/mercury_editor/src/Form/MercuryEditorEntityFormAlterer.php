@@ -2,6 +2,10 @@
 
 namespace Drupal\mercury_editor\Form;
 
+use Drupal\Core\Url;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\Core\Ajax\RedirectCommand;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Form\FormStateInterface;
@@ -164,6 +168,7 @@ class MercuryEditorEntityFormAlterer {
       $form['actions']['delete']['#url']->setOption('query', ['_mercury_editor_iframe' => TRUE] + $query);
     }
     $form['actions']['submit']['#access'] = TRUE;
+    $form['actions']['submit']['#name'] = 'mercury_editor_save';
     $form['actions']['submit']['#ajax'] = [
       'callback' => [self::class, 'ajaxCallback'],
     ];
@@ -274,6 +279,30 @@ class MercuryEditorEntityFormAlterer {
       }
     }
 
+    // Saving can remove edit access, for example after a moderation transition.
+    \Drupal::entityTypeManager()->getAccessControlHandler($entity_type_id)->resetCache();
+    if (!$entity->access('update')) {
+      $form_object->setEntity($entity);
+      $form_state->setRebuild(FALSE);
+
+      // AJAX disables redirects, but the entity form can still set a target.
+      $redirect_state = clone $form_state;
+      $redirect_state->disableRedirect(FALSE);
+      $url = $redirect_state->getRedirect();
+      if (!$url instanceof Url) {
+        $rel = !$entity->isDefaultRevision() && $entity->hasLinkTemplate('latest-version')
+          ? 'latest-version'
+          : 'canonical';
+        $url = $entity->toUrl($rel, ['language' => $entity->language()]);
+      }
+      if (!$form_state->getIgnoreDestination() && \Drupal::request()->query->has('destination')) {
+        $url = Url::fromUserInput(\Drupal::service('redirect.destination')->get());
+      }
+      $form_state->setRedirectUrl($url);
+      $form_state->set('mercury_editor_redirect', $url);
+      return;
+    }
+
     // Clear status messages; visual feedback is handled elsewhere in the ME UI.
     $messenger_service->deleteAll();
 
@@ -365,6 +394,13 @@ class MercuryEditorEntityFormAlterer {
    *   The form state.
    */
   public static function ajaxCallback(array &$form, FormStateInterface $form_state) {
+    if (!$form_state->hasAnyErrors() && $url = $form_state->get('mercury_editor_redirect')) {
+      $response = new AjaxResponse();
+      $response->addCommand(new InvokeCommand('.me-entity-form', 'removeClass', ['unsaved-changes']));
+      $response->addCommand(new RedirectCommand($url->toString()));
+      return $response;
+    }
+
     /** @var \Drupal\Core\Entity\ContentEntityFormInterface $form_object */
     $form_object = $form_state->getFormObject();
     $entity = $form_object->getEntity();

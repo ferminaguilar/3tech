@@ -4,7 +4,6 @@ namespace Drupal\mercury_editor\Form;
 
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
-use Drupal\Core\Ajax\SettingsCommand;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
@@ -19,6 +18,7 @@ use Drupal\layout_paragraphs\LayoutParagraphsLayoutTempstoreRepository;
 use Drupal\mercury_editor\Ajax\IFrameAjaxResponseWrapper;
 use Drupal\mercury_editor\Ajax\MercuryEditorSelectComponentCommand;
 use Drupal\mercury_editor\Ajax\MercuryEditorUpdateStateCommand;
+use Drupal\mercury_editor\Ajax\MercuryMorphCommand;
 use Drupal\mercury_editor\MercuryEditorPreviewService;
 use Drupal\mercury_editor\MercuryEditorTempstore;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -174,11 +174,6 @@ class EditComponentForm extends LayoutParagraphsEditComponentForm {
   public function successfulAjaxSubmit(array $form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
     $uuid = $this->paragraph->uuid();
-    $this->iFrameAjaxResponseWrapper->addCommand(new SettingsCommand([
-      'mercuryEditor' => [
-        'activeComponentUuid' => $uuid,
-      ],
-    ], TRUE));
     $preview_command = $this->previewRendererService->ajaxRenderComponent(
       $this->originalLayoutParagraphsLayout,
       $this->layoutParagraphsLayout,
@@ -186,6 +181,9 @@ class EditComponentForm extends LayoutParagraphsEditComponentForm {
       $uuid,
       'update',
     );
+    if ($preview_command instanceof MercuryMorphCommand) {
+      $preview_command->setActiveComponentUuid($uuid);
+    }
     $this->iFrameAjaxResponseWrapper->addCommand($preview_command);
     $this->iFrameAjaxResponseWrapper->addCommand(new LayoutParagraphsEventCommand($this->layoutParagraphsLayout, $uuid, 'component:update', ['editing' => TRUE]));
     $response->addCommand($this->iFrameAjaxResponseWrapper->getWrapperCommand());

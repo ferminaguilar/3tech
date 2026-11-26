@@ -23,7 +23,7 @@ describe('Mercury Editor undo/redo state history limit', () => {
 
   it('keeps only the most recent states for undo/redo', () => {
     cy.visit('/node/add/me_test_ct');
-    cy.wait(3500);
+    cy.meStateReady();
 
     cy.meAddComponent('me_test_text');
     cy.meSetCKEditor5Value('field_me_test_text', 'State one');

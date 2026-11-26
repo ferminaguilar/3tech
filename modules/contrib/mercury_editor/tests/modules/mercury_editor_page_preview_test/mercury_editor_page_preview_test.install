@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * @file
+ * Installs a block outside the main entity for preview refresh testing.
+ */
+
+use Drupal\block\Entity\Block;
+
+/**
+ * Implements hook_install().
+ */
+function mercury_editor_page_preview_test_install() {
+  Block::create([
+    'id' => 'mercury_editor_page_preview_test_hero',
+    'theme' => \Drupal::config('system.theme')->get('default'),
+    'region' => 'content',
+    'plugin' => 'mercury_editor_page_preview_hero',
+    'weight' => -100,
+    'settings' => ['label' => 'Preview hero', 'label_display' => FALSE],
+  ])->save();
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function mercury_editor_page_preview_test_uninstall() {
+  Block::load('mercury_editor_page_preview_test_hero')?->delete();
+}

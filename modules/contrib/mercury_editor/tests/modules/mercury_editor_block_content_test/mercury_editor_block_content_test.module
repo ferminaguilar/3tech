@@ -1,0 +1,177 @@
+<?php
+
+/**
+ * @file
+ * Fixtures for Mercury Editor content block browser tests.
+ */
+
+use Drupal\block\Entity\Block;
+use Drupal\block_content\Entity\BlockContent;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Extension\Extension;
+use Drupal\paragraphs\Entity\Paragraph;
+use Drupal\user\Entity\User;
+
+/**
+ * Implements hook_system_info_alter().
+ */
+function mercury_editor_block_content_test_system_info_alter(array &$info, Extension $file, $type): void {
+  if ($type === 'theme' && $file->getName() === \Drupal::config('system.theme')->get('default')) {
+    $info['regions'] += ['page_top' => 'Page top', 'page_bottom' => 'Page bottom'];
+    $info['regions_hidden'] = array_unique(array_merge($info['regions_hidden'] ?? [], ['page_top', 'page_bottom']));
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_view_alter().
+ */
+function mercury_editor_block_content_test_block_content_view_alter(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display): void {
+  if ($entity->bundle() === 'me_test_block' && \Drupal::service('mercury_editor.context')->isPreview()) {
+    $build['#title'] = 'Entity view title';
+  }
+}
+
+/**
+ * Builds an ordinary frontend page for checking block placement visibility.
+ */
+function mercury_editor_block_content_test_page(): array {
+  return ['#markup' => '<p>Content block placement test page.</p>'];
+}
+
+/**
+ * Recreates owned blocks and returns their identifiers for browser tests.
+ *
+ * @return array
+ *   Fixture IDs, UUIDs, labels, and original text, keyed by placement scenario.
+ */
+function mercury_editor_block_content_test_reset(): array {
+  mercury_editor_block_content_test_delete_fixtures();
+  $users = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties([
+    'name' => 'me_block_content_editor',
+  ]);
+  $editor = reset($users);
+  if (!$editor instanceof User) {
+    throw new \LogicException('The content block test editor is missing.');
+  }
+  $theme = \Drupal::config('system.theme')->get('default');
+  $theme_info = \Drupal::service('theme_handler')->listInfo()[$theme]->info;
+  $regions = array_diff_key($theme_info['regions'], array_flip($theme_info['regions_hidden'] ?? []));
+  $alternate_region = isset($regions['sidebar']) ? 'sidebar' : array_key_first(array_diff_key($regions, ['content' => TRUE]));
+  if (!$alternate_region) {
+    throw new \LogicException('The content block tests require a second theme region.');
+  }
+  $fixtures = [];
+  foreach (['unplaced', 'restricted', 'global'] as $scenario) {
+    $text = ucfirst($scenario) . ' block original text.';
+    $paragraph = Paragraph::create([
+      'type' => 'me_test_text',
+      'field_me_test_text' => [
+        'value' => '<p>' . $text . '</p>',
+        'format' => 'basic_html',
+      ],
+    ]);
+    $block = BlockContent::create([
+      'type' => 'me_test_block',
+      'info' => 'ME content block: ' . $scenario,
+      'revision_user' => $editor->id(),
+      'status' => TRUE,
+      'reusable' => TRUE,
+      'field_me_test_block_content' => [$paragraph],
+    ]);
+    $block->save();
+    $fixtures[$scenario] = [
+      'id' => $block->id(),
+      'uuid' => $block->uuid(),
+      'label' => $block->label(),
+      'text' => $text,
+    ];
+
+    if ($scenario === 'unplaced') {
+      continue;
+    }
+    $placement = Block::create([
+      'id' => 'me_block_content_' . $scenario,
+      'plugin' => 'block_content:' . $block->uuid(),
+      'theme' => $theme,
+      'region' => 'content',
+      'weight' => -10,
+      'settings' => [
+        'label' => $block->label(),
+        'label_display' => FALSE,
+        'view_mode' => 'full',
+      ],
+    ]);
+    if ($scenario === 'restricted') {
+      $placement->setVisibilityConfig('request_path', [
+        'id' => 'request_path',
+        'negate' => FALSE,
+        'pages' => '/mercury-editor-block-content-test/visible',
+      ]);
+    }
+    $placement->save();
+    if ($scenario === 'global') {
+      $alternate = Block::create([
+        'id' => 'me_block_content_alternate',
+        'plugin' => 'block_content:' . $block->uuid(),
+        'theme' => $theme,
+        'region' => $alternate_region,
+        'settings' => [
+          'label' => 'Alternate placement title',
+          'label_display' => 'visible',
+          'view_mode' => 'full',
+        ],
+      ]);
+      $alternate->save();
+      $admin_theme = \Drupal::config('system.theme')->get('admin');
+      $admin_regions = \Drupal::service('theme_handler')->listInfo()[$admin_theme]->info['regions'];
+      $admin_region = isset($admin_regions['content']) ? 'content' : array_key_first($admin_regions);
+      $admin = Block::create([
+        'id' => 'me_block_content_admin',
+        'plugin' => 'block_content:' . $block->uuid(),
+        'theme' => $admin_theme,
+        'region' => $admin_region,
+        'settings' => [
+          'label' => 'Admin placement title',
+          'label_display' => 'visible',
+          'view_mode' => 'full',
+        ],
+        'visibility' => [
+          'request_path' => [
+            'id' => 'request_path',
+            'negate' => FALSE,
+            'pages' => '/mercury-editor-block-content-test/never',
+          ],
+        ],
+      ]);
+      $admin->save();
+      $fixtures[$scenario] += [
+        'alternate_region' => $alternate_region,
+        'admin_theme' => $admin_theme,
+        'admin_region' => $admin_region,
+      ];
+    }
+  }
+  return $fixtures;
+}
+
+/**
+ * Deletes the placements, blocks, and paragraphs owned by this test module.
+ */
+function mercury_editor_block_content_test_delete_fixtures(): void {
+  foreach (['restricted', 'global', 'alternate', 'admin'] as $scenario) {
+    Block::load('me_block_content_' . $scenario)?->delete();
+  }
+  $storage = \Drupal::entityTypeManager()->getStorage('block_content');
+  $blocks = $storage->loadByProperties(['type' => 'me_test_block']);
+  if ($blocks) {
+    $paragraph_storage = \Drupal::entityTypeManager()->getStorage('paragraph');
+    $paragraphs = $paragraph_storage->loadByProperties([
+      'parent_type' => 'block_content',
+      'parent_field_name' => 'field_me_test_block_content',
+      'parent_id' => array_keys($blocks),
+    ]);
+    $storage->delete($blocks);
+    $paragraph_storage->delete($paragraphs);
+  }
+}

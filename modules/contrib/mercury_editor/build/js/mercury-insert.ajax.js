@@ -1,6 +1,11 @@
 (function () {
   'use strict';
 
+  /**
+   * @file
+   * Defines Mercury Editor AJAX insert commands that target a single match.
+   */
+
   ((Drupal, drupalSettings) => {
     /**
      * Parses returned HTML into a document fragment.

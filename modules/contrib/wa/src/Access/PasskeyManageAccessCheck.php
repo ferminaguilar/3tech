@@ -3,13 +3,13 @@
 namespace Drupal\wa\Access;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\user\Entity\User;
 use Drupal\wa\WaPermissions;
-
-use Drupal\Core\Config\ConfigFactoryInterface;
 
 /**
  * Checks access for passkey management.
@@ -24,13 +24,23 @@ class PasskeyManageAccessCheck implements AccessInterface {
   protected $configFactory;
 
   /**
+   * The database connection.
+   *
+   * @var \Drupal\Core\Database\Connection|null
+   */
+  protected ?Connection $database;
+
+  /**
    * Constructs a new PasskeyManageAccessCheck object.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
+   * @param \Drupal\Core\Database\Connection|null $database
+   *   The database connection.
    */
-  public function __construct(ConfigFactoryInterface $config_factory) {
+  public function __construct(ConfigFactoryInterface $config_factory, ?Connection $database = NULL) {
     $this->configFactory = $config_factory;
+    $this->database = $database;
   }
 
   /**
@@ -54,60 +64,88 @@ class PasskeyManageAccessCheck implements AccessInterface {
       return AccessResult::forbidden()->cachePerUser();
     }
 
-    // Administrators can always manage passkeys.
-    $canAdminister = $account->hasPermission(WaPermissions::ADMINISTER_ALL_USER_PASSKEY);
-    if ($canAdminister) {
+    // Administrators can always view and delete any user's passkeys.
+    if ($account->hasPermission(WaPermissions::ADMINISTER_ALL_USER_PASSKEY)) {
       return AccessResult::allowed()
+        ->cachePerPermissions();
+    }
+
+    // Global kill switch (fail-closed: anything other than truthy denies).
+    if (!(bool) $config->get('enable_passkey_login')) {
+      return AccessResult::forbidden()
+        ->addCacheableDependency($config)
+        ->cachePerPermissions();
+    }
+
+    // Blocked users cannot manage passkeys.
+    if ($target_user->isBlocked()) {
+      return AccessResult::forbidden()
         ->addCacheableDependency($config)
         ->addCacheableDependency($target_user)
         ->cachePerPermissions();
     }
-    // Global switch.
-    if ($config->get('enable_passkey_login') === FALSE) {
-      return AccessResult::forbidden()->addCacheableDependency($config);
-    }
 
-    // Blocked users cannot view or add passkeys.
-    if ($target_user->isBlocked()) {
+    // Non-owners without admin permission are forbidden.
+    if ((int) $account->id() !== $target_uid) {
       return AccessResult::forbidden()
+        ->addCacheableDependency($config)
         ->addCacheableDependency($target_user)
-        ->cachePerUser();
-    }
-
-    // Check allowed roles for the target user.
-    $allowed_roles = $config->get('allowed_roles') ?? [];
-    // Filter out empty values just in case.
-    $allowed_roles = array_filter($allowed_roles);
-
-    // If no roles are configured, passkey management is disabled for regular
-    // users.
-    if (empty($allowed_roles)) {
-      return AccessResult::forbidden()
-        ->addCacheableDependency($config)
-        ->cachePerUser();
-    }
-
-    $target_user_roles = $target_user->getRoles();
-    $target_role_allowed = !empty(array_intersect($target_user_roles, $allowed_roles));
-
-    // Owners can manage their own passkeys if their role is allowed.
-    if ((int) $account->id() === $target_uid) {
-      if (!$target_role_allowed) {
-        return AccessResult::forbidden()
-          ->addCacheableDependency($config)
-          ->cachePerUser()
-          ->cachePerPermissions();
-      }
-      return AccessResult::allowed()
-        ->addCacheableDependency($config)
         ->cachePerUser()
         ->cachePerPermissions();
     }
-    // All other users are forbidden.
-    return AccessResult::forbidden()
+
+    // Check allowed roles for the owner.
+    $allowed_roles = $config->get('allowed_roles') ?? [];
+    $allowed_roles = array_filter(is_array($allowed_roles) ? $allowed_roles : []);
+    $target_user_roles = $target_user->getRoles();
+    $target_role_allowed = !empty($allowed_roles)
+      && !empty(array_intersect($target_user_roles, $allowed_roles));
+
+    if ($target_role_allowed) {
+      return AccessResult::allowed()
+        ->addCacheableDependency($config)
+        ->addCacheableDependency($target_user)
+        ->cachePerUser()
+        ->cachePerPermissions();
+    }
+
+    // Allow owners whose role left the allow-list to still view and delete
+    // existing passkeys so credentials are never stranded on their account.
+    $hasStoredPasskeys = $this->userHasStoredPasskeys($target_uid);
+    $result = $hasStoredPasskeys
+      ? AccessResult::allowed()
+      : AccessResult::forbidden();
+
+    return $result
       ->addCacheableDependency($config)
+      ->addCacheableDependency($target_user)
+      ->addCacheTags(['wa_user_passkeys:' . $target_uid])
       ->cachePerUser()
       ->cachePerPermissions();
+  }
+
+  /**
+   * Checks whether a user has any stored passkeys in the wa table.
+   *
+   * @param int $uid
+   *   The user ID.
+   *
+   * @return bool
+   *   TRUE if the user owns at least one stored passkey, FALSE otherwise.
+   */
+  protected function userHasStoredPasskeys(int $uid): bool {
+    if ($this->database === NULL || $uid <= 0) {
+      return FALSE;
+    }
+
+    $exists = $this->database->select('wa', 'c')
+      ->fields('c', ['id'])
+      ->condition('uid', $uid)
+      ->range(0, 1)
+      ->execute()
+      ->fetchField();
+
+    return $exists !== FALSE;
   }
 
 }

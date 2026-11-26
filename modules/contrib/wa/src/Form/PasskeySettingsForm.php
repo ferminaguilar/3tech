@@ -70,7 +70,7 @@ class PasskeySettingsForm extends ConfigFormBase {
     $config = $this->config('wa.settings');
     $allowed = $config->get('allowed_aaguids') ?? [];
     $customLabels = $config->get('custom_aaguid_labels') ?? [];
-    $enablePasskeyLogin = $config->get('enable_passkey_login') ?? TRUE;
+    $enablePasskeyLogin = (bool) ($config->get('enable_passkey_login') ?? FALSE);
     $allowedRoles = $config->get('allowed_roles') ?? [];
     $notificationSubject = $config->get('passkey_add_notification_subject') ?? 'Security Alert: A new passkey was added to your account';
     $notificationBody = $config->get('passkey_add_notification_body') ?? "Dear [user:name],\n\nA new passkey has been added to your account. The authenticator used was [wa:key:authenticator].\n\nIf you did not perform this action, please contact the site administrator immediately.";
@@ -117,7 +117,7 @@ class PasskeySettingsForm extends ConfigFormBase {
       '#title' => $this->t('Allowed authenticators'),
       '#options' => $providerOptions,
       '#default_value' => $allowedKnown,
-      '#description' => $this->t('Select which known authenticators (by AAGUID) you allow for registration and login.'),
+      '#description' => $this->t('Select which known authenticators (by self-reported AAGUID) you allow for registration and login. Note: because attestation is set to "none", AAGUID values are self-reported by clients and act as a labelling/UX filter rather than cryptographic hardware enforcement.'),
     ];
 
     $form['allowed_custom'] = [
@@ -157,33 +157,43 @@ class PasskeySettingsForm extends ConfigFormBase {
     $form['security_options']['user_verification'] = [
       '#type' => 'radios',
       '#title' => $this->t('User Verification Requirement'),
-      '#default_value' => $config->get('user_verification') ?? 'preferred',
+      '#default_value' => $config->get('user_verification') ?? 'required',
       '#options' => [
-        'preferred' => $this->t('Preferred (Allows user presence only)'),
-        'required' => $this->t('Required (Enforces PIN/Biometrics)'),
+        'required' => $this->t('Required (Enforces PIN/Biometrics for registration and login)'),
+        'preferred' => $this->t('Preferred (Allows user presence only — possession-only login)'),
       ],
-      '#description' => $this->t('Choose "Required" for higher security, or "Preferred" for better compatibility.'),
+      '#description' => $this->t('Choose "Required" (recommended) so passkey login provides multi-factor verification (possession + PIN/biometric) at both registration and login. "Preferred" allows possession-only login and bypasses any TFA attached only to the password login form.'),
       '#required' => TRUE,
     ];
 
+    $residentKeyDefault = $config->get('resident_key') ?? 'required';
+    if ($residentKeyDefault === 'discouraged') {
+      $residentKeyDefault = 'preferred';
+    }
     $form['security_options']['resident_key'] = [
       '#type' => 'radios',
       '#title' => $this->t('Resident Key Requirement'),
-      '#default_value' => $config->get('resident_key') ?? 'preferred',
+      '#default_value' => $residentKeyDefault,
       '#options' => [
-        'discouraged' => $this->t('Discouraged (Server stores key handle)'),
-        'preferred' => $this->t('Preferred (Attempt to create resident key)'),
-        'required' => $this->t('Required (Force resident key - needed for usernameless login)'),
+        'required' => $this->t('Required (Force discoverable passkey — recommended for usernameless login)'),
+        'preferred' => $this->t('Preferred (Attempt to create a discoverable passkey)'),
       ],
-      '#description' => $this->t('Controls whether the authenticator must create a client-side discoverable credential (resident key). "Required" is necessary for the "Sign in with Passkey" button (usernameless login) to work. "Discouraged" saves storage space on hardware keys but requires entering a username first.'),
+      '#description' => $this->t('Controls whether the authenticator must create a client-side discoverable credential (resident key). Usernameless passkey login requires a discoverable credential.'),
       '#required' => TRUE,
     ];
 
     $form['security_options']['enforce_user_handle'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Enforce User Handle Validation'),
-      '#default_value' => $config->get('enforce_user_handle') ?? FALSE,
+      '#default_value' => (bool) ($config->get('enforce_user_handle') ?? FALSE),
       '#description' => $this->t('If checked, login requests must include the User Handle (User ID) from the authenticator. This hardens security but may block older keys or non-resident credentials.'),
+    ];
+
+    $form['security_options']['revoke_on_password_change'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Revoke passkeys on password change or reset'),
+      '#default_value' => (bool) ($config->get('revoke_on_password_change') ?? TRUE),
+      '#description' => $this->t('When checked, submitting a new password on the user edit or password-reset forms (including custom user form modes) automatically removes stored passkeys. Out-of-band password changes via Drush, REST/JSON:API, standalone contrib password forms, or programmatic entity saves are not affected.'),
     ];
 
     $form['notification_options'] = [
@@ -265,8 +275,9 @@ class PasskeySettingsForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $allowedKnown = array_filter($form_state->getValue('allowed_known') ?? []);
     $allowedRoles = array_filter($form_state->getValue('allowed_roles') ?? []);
-    $enablePasskeyLogin = $form_state->getValue('enable_passkey_login');
-    $enforceUserHandle = $form_state->getValue('enforce_user_handle');
+    $enablePasskeyLogin = (bool) $form_state->getValue('enable_passkey_login');
+    $enforceUserHandle = (bool) $form_state->getValue('enforce_user_handle');
+    $revokeOnPasswordChange = (bool) $form_state->getValue('revoke_on_password_change');
     $userVerification = $form_state->getValue('user_verification');
     $residentKey = $form_state->getValue('resident_key');
     $notificationSubject = $form_state->getValue('passkey_add_notification_subject');
@@ -300,6 +311,7 @@ class PasskeySettingsForm extends ConfigFormBase {
       ->set('custom_aaguid_labels', $customLabels)
       ->set('enable_passkey_login', $enablePasskeyLogin)
       ->set('enforce_user_handle', $enforceUserHandle)
+      ->set('revoke_on_password_change', $revokeOnPasswordChange)
       ->set('user_verification', $userVerification)
       ->set('resident_key', $residentKey)
       ->set('allowed_roles', $allowedRoles)

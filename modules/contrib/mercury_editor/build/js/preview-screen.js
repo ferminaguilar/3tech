@@ -17,6 +17,12 @@
         return url;
       }
       urlObj.searchParams.set('me_id', mercuryEditorId);
+      const previewParams = new URLSearchParams(window.location.search);
+      ['me_block_placement', 'me_block_token', 'me_preview_region', 'me_preview_show_title', 'me_preview_title'].forEach((key) => {
+        if (previewParams.has(key)) {
+          urlObj.searchParams.set(key, previewParams.get(key));
+        }
+      });
       return urlObj.toString();
     }
 

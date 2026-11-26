@@ -23,6 +23,7 @@ describe('Mercury Editor validation and messages tests.', () => {
   it('tests field validation when creating a new Mercury Editor component', () => {
     // Creates a new 2-column section and attempts to save it without entering a value for the "label" field.
     cy.visit('/node/add/me_test_ct');
+    cy.meStateReady();
     cy.meAddComponent('me_test_section');
     cy.meChooseLayout('layout_twocol');
     cy.meSaveComponent();
@@ -50,6 +51,7 @@ describe('Mercury Editor validation and messages tests.', () => {
   it('tests field validation when editing an existing Mercury Editor component', () => {
     // Creates a new 2-column section and attempts to save it without entering a value for the "label" field.
     cy.visit('/node/add/me_test_ct');
+    cy.meStateReady();
     cy.meAddComponent('me_test_section');
     cy.meChooseLayout('layout_twocol');
 
@@ -92,8 +94,7 @@ describe('Mercury Editor validation and messages tests.', () => {
   it('tests field validation with a Mercury Editor node form', () => {
     // Removed required title field text to trigger validation error.
     cy.visit('/node/add/me_test_ct');
-    // Ensure that autosave has initialized.
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     // Clear the required title field.
     cy.get('input[name="title[0][value]"]').clear();
     // Confirm that validation error appears once error is triggered.
@@ -112,7 +113,7 @@ describe('Mercury Editor validation and messages tests.', () => {
   it('tests that if there is an error in the entity form but not the component form, the component form will be closed so a user can see the error', () => {
     // Removed required title field text to trigger validation error.
     cy.visit('/node/add/me_test_ct');
-    cy.get('.me-entity-form').should('have.class', 'me-autosave-initialized');
+    cy.meStateReady();
     cy.get('input[name="title[0][value]"]').clear();
     cy.meAddComponent('me_test_section');
     cy.meChooseLayout('layout_twocol').then(() => {

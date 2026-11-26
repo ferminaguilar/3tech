@@ -4,7 +4,7 @@ services:
     class: Drupal\wa\Access\PasskeyManageAccessCheck
     tags:
       - { name: access_check, applies_to: _wa_passkey_manage_access }
-    arguments: ['@config.factory']
+    arguments: ['@config.factory', '@database']
 
   wa.passkey_labeler:
     class: Drupal\wa\Service\PasskeyLabeler
@@ -17,6 +17,10 @@ services:
   wa.ticket_service:
     class: Drupal\wa\Service\PasskeyTicketService
     arguments: ['@logger.factory']
+
+  wa.login_policy_evaluator:
+    class: Drupal\wa\Service\LoginPolicyEvaluator
+    arguments: ['@module_handler', '@logger.factory']
 
   wa.safe_login_finalizer:
     class: Drupal\wa\Service\SafeLoginFinalizer

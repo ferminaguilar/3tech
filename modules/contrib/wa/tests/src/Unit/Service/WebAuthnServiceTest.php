@@ -510,6 +510,225 @@ class WebAuthnServiceTest extends UnitTestCase {
     $this->assertEquals('Test User', $options['user']['displayName']);
     $this->assertEquals('none', $options['attestation']);
     $this->assertEquals(60000, $options['timeout']);
+    // When resident_key is 'preferred', requireResidentKey MUST be FALSE.
+    $this->assertSame('preferred', $options['authenticatorSelection']['residentKey']);
+    $this->assertFalse($options['authenticatorSelection']['requireResidentKey']);
+    $this->assertSame('preferred', $options['authenticatorSelection']['userVerification']);
+    $this->assertArrayNotHasKey('excludeCredentials', $options);
+  }
+
+  /**
+   * Tests getRegistrationOptions with required settings and excludeCredentials.
+   *
+   * @covers ::getRegistrationOptions
+   */
+  public function testGetRegistrationOptionsRequiredAndExcludeCredentials(): void {
+    $config = $this->createMock(ImmutableConfig::class);
+    $config->method('get')
+      ->willReturnMap([
+        ['resident_key', 'required'],
+        ['user_verification', 'required'],
+      ]);
+    $configFactory = $this->createMock(ConfigFactoryInterface::class);
+    $configFactory->method('get')->with('wa.settings')->willReturn($config);
+
+    $time = $this->createMock(TimeInterface::class);
+    $time->method('getCurrentTime')->willReturn(time());
+
+    $session = $this->createMock(SessionInterface::class);
+    $request = $this->createMock(Request::class);
+    $request->method('hasSession')->willReturn(TRUE);
+    $request->method('getSession')->willReturn($session);
+    $requestStack = $this->createMock(RequestStack::class);
+    $requestStack->method('getCurrentRequest')->willReturn($request);
+
+    $service = new WebAuthnService($requestStack, $configFactory, $time);
+
+    $user = $this->createMock(UserInterface::class);
+    $user->method('id')->willReturn(42);
+    $user->method('getAccountName')->willReturn('alice');
+    $user->method('getDisplayName')->willReturn('Alice');
+
+    $existing = [
+      [
+        'credential_id' => "\x00\x01\x02raw-id",
+        'transports' => json_encode(['internal', 'hybrid']),
+      ],
+    ];
+
+    $options = $service->getRegistrationOptions($user, 'example.com', $existing);
+
+    $this->assertSame('required', $options['authenticatorSelection']['residentKey']);
+    $this->assertTrue($options['authenticatorSelection']['requireResidentKey']);
+    $this->assertSame('required', $options['authenticatorSelection']['userVerification']);
+    $this->assertCount(1, $options['excludeCredentials']);
+    $this->assertSame('public-key', $options['excludeCredentials'][0]['type']);
+    $this->assertSame(['internal', 'hybrid'], $options['excludeCredentials'][0]['transports']);
+  }
+
+  /**
+   * Tests that legacy 'discouraged' resident_key is clamped to 'preferred'.
+   *
+   * @covers ::getRegistrationOptions
+   */
+  public function testGetRegistrationOptionsClampsDiscouragedResidentKey(): void {
+    $config = $this->createMock(ImmutableConfig::class);
+    $config->method('get')
+      ->willReturnMap([
+        ['resident_key', 'discouraged'],
+        ['user_verification', NULL],
+      ]);
+    $configFactory = $this->createMock(ConfigFactoryInterface::class);
+    $configFactory->method('get')->with('wa.settings')->willReturn($config);
+
+    $time = $this->createMock(TimeInterface::class);
+    $time->method('getCurrentTime')->willReturn(time());
+
+    $session = $this->createMock(SessionInterface::class);
+    $request = $this->createMock(Request::class);
+    $request->method('hasSession')->willReturn(TRUE);
+    $request->method('getSession')->willReturn($session);
+    $requestStack = $this->createMock(RequestStack::class);
+    $requestStack->method('getCurrentRequest')->willReturn($request);
+
+    $service = new WebAuthnService($requestStack, $configFactory, $time);
+
+    $user = $this->createMock(UserInterface::class);
+    $user->method('id')->willReturn(7);
+    $user->method('getAccountName')->willReturn('bob');
+    $user->method('getDisplayName')->willReturn('Bob');
+
+    $options = $service->getRegistrationOptions($user, 'example.com');
+    $this->assertSame('preferred', $options['authenticatorSelection']['residentKey']);
+    $this->assertFalse($options['authenticatorSelection']['requireResidentKey']);
+    $this->assertSame('required', $options['authenticatorSelection']['userVerification']);
+  }
+
+  /**
+   * Tests that subdomain origins are strictly rejected during assertion checks.
+   *
+   * @covers ::validateLoginRequest
+   * @covers ::validateAssertion
+   */
+  public function testSubdomainOriginRejectedOnLogin(): void {
+    $challenge = rtrim(strtr(base64_encode('test-challenge-32-bytes-12345678'), '+/', '-_'), '=');
+    $clientDataJson = rtrim(strtr(base64_encode(json_encode([
+      'type' => 'webauthn.get',
+      'challenge' => $challenge,
+      'origin' => 'https://attacker.example.com',
+    ])), '+/', '-_'), '=');
+    $rpIdHash = hash('sha256', 'example.com', TRUE);
+    // UP=1, UV=1 (0x05), signCount=1.
+    $authData = rtrim(strtr(base64_encode($rpIdHash . chr(0x05) . pack('N', 1)), '+/', '-_'), '=');
+    $signature = rtrim(strtr(base64_encode(str_repeat("\x01", 64)), '+/', '-_'), '=');
+
+    $this->expectException(\Exception::class);
+    $this->expectExceptionMessage('Subdomains are not allowed.');
+
+    $this->service->validateLoginRequest(
+      [
+        'id' => rtrim(strtr(base64_encode('test-credential-id'), '+/', '-_'), '='),
+        'response' => [
+          'clientDataJSON' => $clientDataJson,
+          'authenticatorData' => $authData,
+          'signature' => $signature,
+          'userHandle' => rtrim(strtr(base64_encode('1'), '+/', '-_'), '='),
+        ],
+      ],
+      $this->createValidCredentialData(),
+      $challenge,
+      'example.com',
+      'https://example.com',
+      'required'
+    );
+  }
+
+  /**
+   * Tests that subdomain origins and UV=0 are rejected during registration.
+   *
+   * @covers ::validateRegistrationRequest
+   * @covers ::validateRegistration
+   */
+  public function testSubdomainOriginAndPresenceOnlyRejectedOnRegistration(): void {
+    $challenge = rtrim(strtr(base64_encode('reg-challenge-32-bytes-123456789'), '+/', '-_'), '=');
+    // Minimal valid CBOR map: {"fmt":"none","attStmt":{},"authData":<bytes>}
+    // Build authData with rpIdHash (32B) + flags + counter (4B) +
+    // attestedCredentialData (16B aaguid + 2B credIdLen=4 + 4B credId +
+    // minimal CBOR key).
+    $rpIdHash = hash('sha256', 'example.com', TRUE);
+    // Minimal CBOR EC2 key map: {1:2, 3:-7, -1:1, -2:h'01..', -3:h'02..'}.
+    $coseKey = "\xa5\x01\x02\x03\x26\x20\x01\x21\x58\x20" . str_repeat("\x01", 32) . "\x22\x58\x20" . str_repeat("\x02", 32);
+    $attestedCredData = str_repeat("\x00", 16) . pack('n', 4) . 'cred' . $coseKey;
+
+    // Helper to encode attestationObject CBOR map with given flags byte.
+    $encodeAttestation = static function (int $flags) use ($rpIdHash, $attestedCredData): string {
+      $authData = $rpIdHash . chr($flags) . pack('N', 0) . $attestedCredData;
+      $len = strlen($authData);
+      $bytesHeader = $len < 256 ? "\x58" . chr($len) : "\x59" . pack('n', $len);
+      // 3-item map: "fmt":"none", "attStmt":{}, "authData":<bytes>.
+      $cbor = "\xa3"
+        . "\x63fmt\x64none"
+        . "\x67attStmt\xa0"
+        . "\x68authData" . $bytesHeader . $authData;
+      return rtrim(strtr(base64_encode($cbor), '+/', '-_'), '=');
+    };
+
+    // 1. Subdomain origin must be rejected on registration
+    // (AT=0x40|UP=0x01|UV=0x04 = 0x45).
+    $subdomainClientData = rtrim(strtr(base64_encode(json_encode([
+      'type' => 'webauthn.create',
+      'challenge' => $challenge,
+      'origin' => 'https://attacker.example.com',
+    ])), '+/', '-_'), '=');
+
+    try {
+      $this->service->validateRegistrationRequest(
+        [
+          'response' => [
+            'clientDataJSON' => $subdomainClientData,
+            'attestationObject' => $encodeAttestation(0x45),
+          ],
+        ],
+        'example.com',
+        $challenge,
+        'https://example.com',
+        'alice',
+        '1',
+        'Alice',
+        'required'
+      );
+      $this->fail('Expected subdomain origin to be rejected during registration.');
+    }
+    catch (\Throwable $e) {
+      $this->assertStringContainsString('Subdomains are not allowed.', $e->getMessage());
+    }
+
+    // 2. Presence-only (AT=0x40|UP=0x01 = 0x41, UV=0) must be rejected when
+    // user verification is required.
+    $exactOriginClientData = rtrim(strtr(base64_encode(json_encode([
+      'type' => 'webauthn.create',
+      'challenge' => $challenge,
+      'origin' => 'https://example.com',
+    ])), '+/', '-_'), '=');
+
+    $this->expectException(\Throwable::class);
+    $this->expectExceptionMessage('User authentication required.');
+
+    $this->service->validateRegistrationRequest(
+      [
+        'response' => [
+          'clientDataJSON' => $exactOriginClientData,
+          'attestationObject' => $encodeAttestation(0x41),
+        ],
+      ],
+      'example.com',
+      $challenge,
+      'https://example.com',
+      'alice',
+      '1',
+      'Alice',
+      'required'
+    );
   }
 
   /**

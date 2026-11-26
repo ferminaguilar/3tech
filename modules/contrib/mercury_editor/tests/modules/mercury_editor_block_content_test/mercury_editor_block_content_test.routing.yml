@@ -1,0 +1,8 @@
+mercury_editor_block_content_test.page:
+  path: '/mercury-editor-block-content-test/{page}'
+  defaults:
+    _controller: '\mercury_editor_block_content_test_page'
+    _title: 'Content block test page'
+  requirements:
+    _access: 'TRUE'
+    page: 'visible|hidden'
